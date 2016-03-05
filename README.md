@@ -162,7 +162,9 @@ Given a deterministic spec, one could be sure that two computations,
 starting from the same state, run on two conforming implementations,
 fed the same inputs, will compute the same new states and outputs. The
 ECMAScript 5 and 6 specs come tantalizingly close to being
-deterministic. They fail for three reasons:
+deterministic. They have avoided some common but unnecessary sources
+of non-determinsism like Java's `Object.hashCode`. But the EcmaScript
+specs fail for three reasons:
 
   * Genuine non-determinism, such as by `Math.random()`.
   * Unspecified but unavoidable failure, such as out-of-memory.
