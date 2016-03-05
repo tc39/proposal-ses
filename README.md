@@ -152,6 +152,27 @@ is about.
 
 ## Discussion
 
+Because the proto SES realm is transitively immutable and
+authority-free, we can safely share it between JS programs that are
+otherwise fully isolated. This sharing gives them access to shared
+objects and shared identities, but no ability to communicate with each
+other or to affect any state outside themselves they are not
+explicitly given access to. We can even share it between origins and
+between threads, since immutability at the specification level should
+make thread safety at the implementation level straightforward.
+
+In a browser environment, a SES-based confined seamless iframe could
+be *very* lightweight, since it would avoid the need to create most
+per-frame primordials. Likewise, we could afford to place each web
+component (need link) into its own confinement box.
+
+Self-hosting builtins, including new browser extensions (TODO need
+link), by writing them in JavaScript currently requires
+[safe meta programming](http://wiki.ecmascript.org/doku.php?id=conventions:safe_meta_programming)
+techniques so that these builtins are properly defensive. Instead,
+they could be defined in a SES realm, making defensiveness much easier
+to achieve, and with much higher confidence.
+
 Because of the so-called "[override mistake](
 http://wiki.ecmascript.org/doku.php?id=strawman:fixing_override_mistake)",
 for many or possibly all properties in this frozen state, primordial
@@ -176,17 +197,8 @@ In ES6, the `GeneratorFunction` evaluator is not a named global, but
 rather an unnamed intrinsic. Upcoming evaluators are likely to include
 `AsyncFunction` and `AsyncGeneratorFunction`. These are likely to be
 specified as unnamed instrinsics as well. For all of these, the above
-name-based overriding of SES vs proto-SES is irrelevant, and probably
+name-based overriding of SES vs proto-SES is irrelevant and probably
 not needed anyway.
-
-Because the proto SES realm is transitively immutable and
-authority-free, we can safely share it between JS programs that are
-otherwise fully isolated. This sharing gives them access to shared
-objects and shared identities, but no ability to communicate with each
-other or to affect any state outside themselves they are not
-explicitly given access to. We can even share it between origins and
-between threads, since specification-immutability makes
-implementation-thread-safety straightforward.
 
 Because code within a SES realm is unable to cause any affects outside
 itself is it not given explicit access to, i.e., it is fully confined,
