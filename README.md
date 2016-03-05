@@ -218,7 +218,7 @@ seems difficult.
 
 However, even without pinning down the precise meaning of
 "implementation defined", a computation which is limited to
-implementation-defined fail-stop determinism _**cannot read covert
+fail-stop implementation-defined determinism _**cannot read covert
 channels and side channels**_ that are not otherwise provided to
 it. Nothing can practically prevent signalling on covert channels and
 side channels, but approximations to determinism can practically
