@@ -92,6 +92,7 @@ platform.
      constructor of another SES realm, etc. Among SES realms,
      `instanceof` on primordial types simply works.
 
+
 ## Annex B considerations
 
 As of ES6, most of the normative optionals of
@@ -149,6 +150,67 @@ optimization advice but without causing observable mutation.
 I have no idea what
 [B.3.5](http://www.ecma-international.org/ecma-262/6.0/#sec-__proto__-property-names-in-object-initializers)
 is about.
+
+
+## How Deterministic?
+
+_We do not include any form of determinism within the goals of SES, so
+this "How Deterministic" section is only speculative and intriguing._
+
+Given a deterministic spec, one could be sure that two computations,
+starting from the same state, run on two conforming implementations,
+fed the same inputs, will compute the same new states and outputs. The
+ECMAScript 5 and 6 specs come tantalizingly close to being
+deterministic. They fail for three reasons:
+
+  * Genuine non-determinism, such as by `Math.random()`.
+  * Unspecified but unavoidable failure, such as out-of-memory.
+  * Explicit underspecification, i.e. leaving some observable behavior
+    up to the implementation.
+
+The explicitly non-deterministic abilities to sense the
+current time (via `Date()` and `Date.now()`) or generate random
+numbers (via `Math.random()`) are disabled in the proto SES
+realm. New source of non-determinism, like `makeWeakRef` and
+`getStack` will not be added to the proto SES realm or will be
+similarly disabled.
+
+The EcmaScript specs to date have never admitted the possibility of
+failures such as out-of-memory. In theory this means that a conforming
+EcmaScript implementation requires an infinite memory
+machine. Unfortunately, these are in short supply ;) .Since JavaScript
+is an implicitly-allocating language, the out-of-memory condition
+could cause computation to fail at virtually any time. If these
+failures are reported in a recoverable manner without rollback, such
+as by a thrown exception (cite JVM), then defensive programming
+becomes impossible. This would be contrary to the goals of at least
+SES and indeed to much JavaScript code. (TODO link to SAB discussion
+of containing failure.) Thus, at least SES computation, and any
+synchronous computation it is entangled with, on unpredicatble errors,
+must either be preemptively aborted without running further user code
+(cite Erlang) or roll back to a previous safe point (cite
+Noether). If repeated attempts to roll forward from a safe point fail,
+preemptive termination is inevitable.
+
+Even if EcmaScript were otherwise deterministically replayable, these
+unpredicable preemptive failures would prevent it. We examine instead
+the weaker property of *fail-stop determinism*, where each replica
+either fails, or succeeds in an identical manner as every other
+non-failing replica.
+
+Although they are few in number, there are a number of specification
+issues that are observably left to implementations, on which
+implementations differ. Some of these may eventually be closed by
+future TC39 agreement, such as enumeration order if objects are
+modified during enumeration (TODO link). Others, like the sort
+algorithm used by `Array.prototype.sort` are less likely. However,
+*implementatiion-defined* is not genuine non-determinism. On a given
+implementation, operations which are only implementation-defined will
+operate in the same manner. They should be fail-stop reproducible when
+run on the same implementation. To make use of this, we would need to
+pin down what we mean by "same implementation", which seems
+difficult.
+
 
 ## Discussion
 
