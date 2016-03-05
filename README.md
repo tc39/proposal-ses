@@ -94,7 +94,7 @@ platform.
 
 ## Discussion
 
-Because the so-called "[override mistake](
+Because of the so-called "[override mistake](
 http://wiki.ecmascript.org/doku.php?id=strawman:fixing_override_mistake)",
 for many or possibly all properties in this frozen state, primordial
 objects need to be frozen in a pattern we call "tamper proofing",
