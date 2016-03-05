@@ -216,11 +216,11 @@ seems difficult.
 
 However, even without pinning down the precise meaning of
 "implementation defined", a computation which is limited to
-implementation-defined fail-stop determinism cannot read covert and
-side channels that are not otherwise provided to it. Nothing can
-practically prevent signalling on covert and side channels, but
-approximations to determinism can practically prevent confined
-computations from perceiving these signals.
+implementation-defined fail-stop determinism cannot read covert
+channels and side channels that are not otherwise provided to
+it. Nothing can practically prevent signalling on covert channels and
+side channels, but approximations to determinism can practically
+prevent confined computations from perceiving these signals.
 
 
 ## Discussion
