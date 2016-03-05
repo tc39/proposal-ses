@@ -164,13 +164,13 @@ that such divergence will break almost no existing code other than
 test code that specifically probes for standards compliance.
 
 By the rules above, a SES realm's `Function.prototype.constructor`
-will be the proto-SES realms `Function` constructor, i.e., identical
+will be the proto-SES realm's `Function` constructor, i.e., identical
 to the SES realm's `Function.__proto__`. Alternatively, we could
 create a per-SES-realm `Function.prototype` that inherits from the
-proto realm's `Function.prototype` and overrides the constructor to
-point back at its own `Function`. The price of this technique is that
-we lose the pleasant property that `instanceof` works transparently
-between SES realms.
+proto realm's `Function.prototype` and overrides the `constructor`
+property to point back at its own `Function`. The price of this
+technique is that we lose the pleasant property that `instanceof`
+works transparently between SES realms.
 
 In ES6, the `GeneratorFunction` evaluator is not a named global, but
 rather an unnamed intrinsic. Upcoming evaluators are likely to include
