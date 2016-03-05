@@ -281,7 +281,7 @@ the receiver to evaluate them, in order to reconsitute that function's
 call behavior in a safe manner.
 
 Because code within a SES realm is unable to cause any affects outside
-itself is it not given explicit access to, i.e., it is fully confined,
+itself it is not given explicit access to, i.e., it is fully confined,
 `Reflect.confine` and the evaluators of SES realms should continue to
 operate even in environments in which CSP has forbidden normal
 evaluators. By analogy, CSP evaluator suppression does not suppress
