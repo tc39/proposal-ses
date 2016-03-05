@@ -163,7 +163,7 @@ starting from the same state, run on two conforming implementations,
 fed the same inputs, will compute the same new states and outputs. The
 ECMAScript 5 and 6 specs come tantalizingly close to being
 deterministic. They have avoided some common but unnecessary sources
-of non-determinsism like Java's `Object.hashCode`. But the EcmaScript
+of non-determinism like Java's `Object.hashCode`. But the EcmaScript
 specs fail for three reasons:
 
   * Genuine non-determinism, such as by `Math.random()`.
