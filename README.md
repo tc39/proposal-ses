@@ -191,9 +191,9 @@ SES and indeed to much JavaScript code. (TODO link to SAB discussion
 of containing failure.) Thus, at least SES computation, and any
 synchronous computation it is entangled with, on unpredicatble errors,
 must either be preemptively aborted without running further user code
-(cite Erlang) or roll back to a previous safe point (cite Noether). If
-repeated attempts to roll forward from a safe point fail, preemptive
-termination is inevitable.
+(cite Erlang, Joe-E/Waterken) or roll back to a previous safe point
+(cite Noether). If repeated attempts to roll forward from a safe point
+fail, preemptive termination is inevitable.
 
 Even if EcmaScript were otherwise deterministically replayable, these
 unpredicable preemptive failures would prevent it. We examine instead
