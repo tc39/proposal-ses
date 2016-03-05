@@ -154,8 +154,9 @@ is about.
 
 ## How Deterministic?
 
-_We do not include any form of determinism within the goals of SES, so
-this "How Deterministic" section is only speculative and intriguing._
+_We do not include any form of replay within the goals of SES, so
+this "How Deterministic" section is only important because of the
+punch line at the end of this section._
 
 Given a deterministic spec, one could be sure that two computations,
 starting from the same state, run on two conforming implementations,
@@ -207,9 +208,19 @@ algorithm used by `Array.prototype.sort` are less likely. However,
 *implementatiion-defined* is not genuine non-determinism. On a given
 implementation, operations which are only implementation-defined will
 operate in the same manner. They should be fail-stop reproducible when
-run on the same implementation. To make use of this, we would need to
-pin down what we mean by "same implementation", which seems
-difficult.
+run on the same implementation. To make use of this for replay, we
+would need to pin down what we mean by "same implementation", which
+seems difficult.
+
+### The punch line
+
+However, even without pinning down the precise meaning of
+"implementation defined", a computation which is limited to
+implementation-defined fail-stop determinism cannot read covert and
+side channels that are not otherwise provided to it. Nothing can
+practically prevent signalling on covert and side channels, but
+approximations to determinism can practically prevent confined
+computations for perceiving these signals.
 
 
 ## Discussion
