@@ -178,19 +178,19 @@ similarly disabled.
 The EcmaScript specs to date have never admitted the possibility of
 failures such as out-of-memory. In theory this means that a conforming
 EcmaScript implementation requires an infinite memory
-machine. Unfortunately, these are in short supply ;) .Since JavaScript
-is an implicitly-allocating language, the out-of-memory condition
-could cause computation to fail at virtually any time. If these
-failures are reported in a recoverable manner without rollback, such
-as by a thrown exception (cite JVM), then defensive programming
+machine. Unfortunately, these are in short supply ;) . Since
+JavaScript is an implicitly-allocating language, the out-of-memory
+condition could cause computation to fail at virtually any time. If
+these failures are reported in a recoverable manner without rollback,
+such as by a thrown exception (cite JVM), then defensive programming
 becomes impossible. This would be contrary to the goals of at least
 SES and indeed to much JavaScript code. (TODO link to SAB discussion
 of containing failure.) Thus, at least SES computation, and any
 synchronous computation it is entangled with, on unpredicatble errors,
 must either be preemptively aborted without running further user code
-(cite Erlang) or roll back to a previous safe point (cite
-Noether). If repeated attempts to roll forward from a safe point fail,
-preemptive termination is inevitable.
+(cite Erlang) or roll back to a previous safe point (cite Noether). If
+repeated attempts to roll forward from a safe point fail, preemptive
+termination is inevitable.
 
 Even if EcmaScript were otherwise deterministically replayable, these
 unpredicable preemptive failures would prevent it. We examine instead
