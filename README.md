@@ -200,6 +200,11 @@ specified as unnamed instrinsics as well. For all of these, the above
 name-based overriding of SES vs proto-SES is irrelevant and probably
 not needed anyway.
 
+Now that `Function.prototype.toString` will give a reliably evaluable
+string that can be sent (TODO link), SES provides a reliable way to
+evaluate them, in order to reconsitute that function's call behavior
+in a safe manner.
+
 Because code within a SES realm is unable to cause any affects outside
 itself is it not given explicit access to, i.e., it is fully confined,
 `Reflect.confine` and the evaluators of SES realms should continue to
@@ -232,7 +237,6 @@ and authority-free:
   * makeWeakRef
   * getStack
   * getStackString
-
 
 (TODO link to proposals) they must be absent from the proto-SES realm,
 or have their behavior grossly truncated into something safe. This
