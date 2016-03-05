@@ -220,7 +220,7 @@ implementation-defined fail-stop determinism cannot read covert and
 side channels that are not otherwise provided to it. Nothing can
 practically prevent signalling on covert and side channels, but
 approximations to determinism can practically prevent confined
-computations for perceiving these signals.
+computations from perceiving these signals.
 
 
 ## Discussion
