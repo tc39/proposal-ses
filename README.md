@@ -1,7 +1,8 @@
 # Draft Proposed Standard SES
 
-See [Glossary](https://github.com/FUDCo/ses-realm/wiki/Glossary) for
-supporting definitions.
+This document specifies an API and accompanying language changes to incorporate
+SES -- Secure EcmaScript, an ocap secure subset of EcmaScript -- into the
+standard EcmaScript platform.
 
 
 ## Background:
@@ -60,6 +61,9 @@ properties of SES code.  It was developed as part of the Google
 [Caja](https://github.com/google/caja) project; you can read much more about
 SES specifically and Caja more generally on the Caja website.
 
+See [Glossary](https://github.com/FUDCo/ses-realm/wiki/Glossary) for supporting
+definitions.
+
 
 ## Problem statement:
 
@@ -74,7 +78,9 @@ making the current implementation strategy even more expensive. However, this
 large per-page expense can avoided by making SES a standard part of the
 platform, so that an appropriately adjusted execution environment can be
 provided directly, while any necessary preamble computation need only be done
-once per browser startup, and moreover can be done by native code.
+once per browser startup, and moreover can be done by native code.  The mission
+of this document is to specify an API and a strategy for incorporating SES into
+the standard EcmaScript platform.
 
 
 ## Proposal:
