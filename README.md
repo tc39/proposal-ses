@@ -6,36 +6,75 @@ supporting definitions.
 
 ## Background:
 
-SES -- Secure EcmaScript -- is an object capability (ocap) secure
-subset of the EcmaScript (JavaScript) programming language.  SES turns
-a conventional ES5 or ES6 environment into an ocap environment by
-imposing various restrictions prior to any code being allowed to run.
-These restrictions support the writing of defensively consistent
-abstractions -- object abstractions that can defend their integrity
-while being exposed to untrusted but confined objects.  Although
-programs are limited to a subset of the full EcmaScript language, SES
-should compatibly run all ES5 or ES6 code that follows recognized ES
-best practices. In fact, many features of ES5 were introduced
-specifically to enable precisely this subsetting and restriction, so
-that we can realize a secure computing environment for JavaScript.
-SES was developed as part of the Google
-[Caja](https://github.com/google/caja) project; you can read much more
-about SES specifically and Caja more generally on the Caja website.
+In a memory-safe object language, an object reference grants the right to
+invoke methods on the public interface of the object it designates. Such an
+invocation in turn grants to the called object the right to similarly make
+method invocations on any object references that are passed as arguments.  If
+we further stipulate that object references are unforgeable (that is, there is
+no way within the language for code to "manufacture" a reference to a
+pre-existing object) and that encapsulation is unbreakable (that is, objects
+may hold state -- including references to other objects -- that is totally
+inaccessible to code outside themselves), then we can guarantee that the only
+way for one object to come to possess a reference to a second object is for
+them to have been given that reference by somebody else, or for them to have
+been the creator of the second object to begin with.  In a language that has
+these properties, we can make strong, provable assertions about the ability of
+object references to propagate from one holder to another, and can thus reason
+reliably about the evolution of the object reference graph over time.
+EcmaScript (JavaScript) is a language with these properties.
+
+If we further stipulate that the only way for an object to cause effects on the
+world outside itself is by using references it already holds, and that no
+object has default or implicit access to any other objects (e.g., via language
+provided global variables) that are not already transitively immutable and
+powerless, then we have an object-capability (ocap) language.  In an ocap
+language, granted references are the sole representation of permission.
+
+Ocap languages enable us to program objects that are defensively consistent --
+that is, they can defend their own invariants and provide correct service to
+their well behaved clients, despite arbitrary or malicious misbehavior by their
+other clients.
+
+Although stock EcmaScript satisfies our first set of requirements for a
+strongly memory safe object language, is *not* an ocap language.  The runtime
+environment specified by the ECMA-262 standard mandates globally accessible
+powerful objects with mutable state.  Moreover, typical implementations provide
+default access to additional powerful objects that can effect parts of the
+outside world, such as the browser DOM or the Internet.  However, it *is*
+possible to transform EcmaScript into an ocap language by careful language
+subsetting combined with some fairly simple changes to the default execution
+environment.
+
+SES -- Secure EcmaScript -- is such a subset.
+
+SES turns a conventional ES5 or ES6 environment into an ocap environment by
+imposing various restrictions prior to any code being allowed to run.  Although
+programs are limited to a subset of the full EcmaScript language, SES will
+compatibly run nearly all ES5 or ES6 code that follows recognized ES best
+practices. (In fact, many features introduced in ES5 were put there
+specifically to enable precisely this subsetting and restriction, so that we
+could realize a secure computing environment for JavaScript.)
+
+SES has a formal semantics supporting automated verification of some security
+properties of SES code.  It was developed as part of the Google
+[Caja](https://github.com/google/caja) project; you can read much more about
+SES specifically and Caja more generally on the Caja website.
 
 
 ## Problem statement:
 
-SES is currently implemented as a bundle of preamble code that is the
-first thing run on an SES-enabled web page.  To turn a JS environment
-into an ocap environment, this SES implementation must freeze all
-primordial objects -- objects like `Array.prototype` -- that are
-mandated to exist before any code starts running. The time it takes to
-walk and freeze all these makes the initial page load expensive, which
-has inhibited SES adoption. With the advent of ES6, the number of
-primordials balloons, so realizing SES purely as a library will become
-even more expensive. We are quickly approaching the time when we can
-no longer postpone proposing SES to be a standard part of the
-platform.
+SES was originally (and is currently) implemented as a bundle of preamble code
+that is run first on any SES-enabled web page.  To turn a regular JavaScript
+environment into an ocap environment, SES must freeze all primordial objects --
+objects like `Array.prototype` -- that are mandated to exist before any code
+starts running. The time it takes to individually walk and freeze each of these
+objects makes the initial page load expensive, which has inhibited SES
+adoption. With the advent of ES6, the number of primordials has ballooned,
+making the current implementation strategy even more expensive. However, this
+large per-page expense can avoided by making SES a standard part of the
+platform, so that an appropriately adjusted execution environment can be
+provided directly, while any necessary preamble computation need only be done
+once per browser startup, and moreover can be done by native code.
 
 
 ## Proposal:
