@@ -264,11 +264,11 @@ class RemotePromise extends QPromise {
 }
 ```
 
-The expression `Promise.resolve(p).then(callBack)` postpones the the
+The expression `Promise.resolve(p).then(callback)` postpones the the
 `callBack` function to some future time after the promise `p` has been
 fulfilled. In like manner, the expression
-`RemotePromise.resolve(r).there(callBack)` postpones and migrates the
-closed `callBack` function to some future time and space, where the
+`RemotePromise.resolve(r).there(callback)` postpones and migrates the
+closed `callback` function to some future time and space, where the
 object designated by the fulfilled `r` is located. This supports a
 federated form of the
 [Asynchronous Partitioned Global Address Space](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.464.557)
