@@ -265,7 +265,7 @@ class RemotePromise extends QPromise {
 ```
 
 The expression `Promise.resolve(p).then(callback)` postpones the the
-`callBack` function to some future time after the promise `p` has been
+`callback` function to some future time after the promise `p` has been
 fulfilled. In like manner, the expression
 `RemotePromise.resolve(r).there(callback)` postpones and migrates the
 closed `callback` function to some future time and space, where the
