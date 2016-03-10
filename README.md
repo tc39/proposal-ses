@@ -26,7 +26,7 @@ reliably about the evolution of the object reference graph over time.
 EcmaScript (JavaScript) is a language with these properties.
 
 With the additional restrictions that the only way for an
-object to cause effects on the 
+object to cause effects on the
 world outside itself is by using references it already holds, and that no
 object has default or implicit access to any other objects (e.g., via language
 provided global variables) that are not already transitively immutable and
@@ -252,10 +252,12 @@ class QPromise extends Promise {
 
 class RemotePromise extends QPromise {
   ...
-  // callBack must be a closed function
-  there(callBack, errBack = void 0) {
-    const callBackP = remoteEval(Function.prototype.toString(callBack));
-    return callBackP.fcall(this).catch(errBack);
+  // callback must be a closed function
+  // farEval is a remote promise for the eval function of the
+  // remote SES realm where this promise's fulfillment will be
+  there(callback, errback = void 0) {
+    const farCallback = farEval.fcall(Function.prototype.toString(callback));
+    return farCallback.fcall(this).catch(errback);
   }
 }
 ```
