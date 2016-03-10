@@ -113,7 +113,7 @@ standard EcmaScript platform.
   1. As a consequence of the deep immutability of the proto-SES realm:
      When performed using the proto-SES realm's `Date` and `Math`, the
      expressions `new Date()`, `Date.now()`, and `Math.random()` all
-     throw a to-be-specified error.
+     throw a `TypeError`. (Would another error be more appropriate?)
 
   1. Add to all realms including the shared proto-SES realm a new
      builtin function `Reflect.confine(src, endowments)`, which
