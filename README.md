@@ -18,8 +18,8 @@ pre-existing object) and that encapsulation is unbreakable (that is, objects
 may hold state -- including references to other objects -- that is totally
 inaccessible to code outside themselves), then we can guarantee that the only
 way for one object to come to possess a reference to a second object is for
-them to have been given that reference by somebody else, or for them to have
-been the creator of the second object to begin with.  In a language that has
+them to have been given that reference by somebody else, or for one of
+them to have been the creator of the other.  In a language that has
 these properties, we can make strong, provable assertions about the ability of
 object references to propagate from one holder to another, and can thus reason
 reliably about the evolution of the object reference graph over time.
@@ -50,13 +50,14 @@ environment.
 
 SES -- Secure EcmaScript -- is such a subset.
 
-SES turns a conventional ES5 or ES6 environment into an ocap environment by
-imposing various restrictions prior to any code being allowed to run.  Although
-programs are limited to a subset of the full EcmaScript language, SES will
-compatibly run nearly all ES5 or ES6 code that follows recognized ES best
-practices. (In fact, many features introduced in ES5 were put there
-specifically to enable precisely this subsetting and restriction, so that we
-could realize a secure computing environment for JavaScript.)
+SES turns a conventional ES5 or ES6 environment into an ocap
+environment by imposing various restrictions prior to any code being
+allowed to run.  Although programs are limited to a subset of the full
+EcmaScript language, SES will compatibly run nearly all ES5 or ES6
+code that follows recognized ES best practices. In fact, many features
+introduced in ES5 and ES6 were put there specifically to enable this
+subsetting and restriction, so that we could realize a secure
+computing environment for JavaScript.
 
 SES has a
 [formal semantics](http://research.google.com/pubs/pub37199.html)
@@ -89,8 +90,8 @@ making the current implementation strategy even more
 expensive. However, this large per-page expense can avoided by making
 SES a standard part of the platform, so that an appropriately adjusted
 execution environment can be provided directly, while any necessary
-preamble computation need only be done once per browser startup, and
-moreover can be done by native code.  The mission of this document is
+preamble computation need only be done once per browser startup as
+part of the browser implementation.  The mission of this document is
 to specify an API and a strategy for incorporating SES into the
 standard EcmaScript platform.
 
@@ -154,59 +155,69 @@ standard EcmaScript platform.
      another SES realm, etc. Among SES realms, `instanceof` on
      primordial types simply works.
 
-### Entire API:
+### Entire Fundamental API:
 
 ```js
 Reflect.confine(src, endowments)  // -> completion value
 ```
 
-### Examples
+Further derived API may be called for, to aid some patterns of
+use. For now, we assume that such conveniences will first be
+user-level libraries before migrating to a later proposal. The
+following examples demonstrate the need for such conveniences.
 
-Composing
+## Examples
+
+### Compartments
+
+By composing
 [revocable membranes](http://soft.vub.ac.be/~tvcutsem/invokedynamic/js-membranes)
 and `confine`, we can make compartments:
 
 ```js
-// Obtain billSrc and JoanSrc from untrusted clients
+// Obtain billSrc and joanSrc from untrusted clients
 const makeCompartment = makeMembrane(Reflect.confine);
 const {wrapper: bill,
        revoke: killBill} = makeCompartment(billSrc, endowments);
 const {wrapper: joan,
        revoke: killJoan} = makeCompartment(joanSrc, endowments);
+
 // ... introduce mutually suspicious Bill and Joan. Use both ...
 killBill();
 // ... Bill is inaccessible to us and to Joan. GC can collect Bill ...
 ```
 
+### Virtualized Powers
 
-Endowing with the missing functionality from our own `Date` and
-`Math.random`, to faithfully emulate full ES6. The following pattern
-is sufficiently involved that we may wish to provide some convenience
-APIs, perhaps in separate proposals.
+We can make a `confine`-like function that first provides the missing
+functionality from our own `Date` and `Math.random`, to faithfully
+emulate full ES6.
 
 ```js
 function confinePlus(src, endowments) {
   const freshGlobal = Reflect.confine('this', {});
-  const {Date: superDate, Math: superMath} = freshGlobal;
+  const {Date: SuperDate, Math: superMath} = freshGlobal;
   function SubDate(...args) {
-    let otherDate = superDate;
+    let OtherDate = SuperDate;
     if (new.target) {
       if (args.length === 0) {
-        otherDate = Date; // our own
+        OtherDate = Date;  // our own power
       }
-      return Reflect.construct(otherDate, args, new.target);
+      return Reflect.construct(OtherDate, args, new.target);
     } else {
-      return otherDate(...args);
+      return OtherDate(...args);
     }
   }
-  SubDate.__proto__ = superDate;
-  SubDate.now = () => Date.now();
-  SubDate.now.__proto__ = superDate.now;
+  SubDate.__proto__ = SuperDate;
+  SubDate.now = () => Date.now();  // our own
+  SubDate.now.__proto__ = SuperDate.now;
+  SubDate.prototype = SuperDate.prototype;  // so instanceof works
+  SubDate.name = SuperDate.name;
   freshGlobal = SubDate;
 
   const SubMath = {
     __proto__: superMath,
-    random: () => Math.random();
+    random: () => Math.random();  // our own
   };
   SubMath.random.__proto__ = superMath.random;
   freshGlobal.Math = SubMath;
@@ -222,9 +233,42 @@ We can likewise create patterns for endowing with
 like `window` and `document`, possibly mapping into the caller's own
 or not.
 
-Of course, these two examples can be composed, enabling one to
-*temporarily* invite potentially malicious code onto one's page and
-endow it with a subset of one's own DOM as its virtual document.
+Of course, the Compartments and Virtualized Powers patterns can be
+composed, enabling one to *temporarily* invite potentially malicious
+code onto one's page, endow it with a subset of one's own DOM as
+its virtual document, and then permanently and fully evict it.
+
+### Mobile code
+
+Now that `Function.prototype.toString` will give a reliably evaluable
+string that can be sent (TODO link), SES provides a reliable way for
+the receiver to evaluate them, in order to reconsitute that function's
+call behavior in a safe manner.
+
+```js
+class QPromise extends Promise {
+  ... api from https://github.com/kriskowal/q/wiki/API-Reference
+}
+
+class RemotePromise extends QPromise {
+  ...
+  // callBack must be a closed function
+  there(callBack, errBack = void 0) {
+    const callBackP = remoteEval(Function.prototype.toString(callBack));
+    return callBackP.fcall(this).catch(errBack);
+  }
+}
+```
+
+The expression `Promise.resolve(p).then(callBack)` postpones the the
+`callBack` function to some future time after the promise `p` has been
+fulfilled. In like manner, the expression
+`RemotePromise.resolve(r).there(callBack)` postpones and migrates the
+closed `callBack` function to some future time and space, where the
+object designated by the fulfilled `r` is located. This supports a
+federated form of the
+[Asynchronous Partitioned Global Address Space](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.464.557)
+used by the X10 supercomputer language.
 
 
 ## Annex B considerations
@@ -305,12 +349,12 @@ specs fail for three reasons:
   * Explicit underspecification, i.e. leaving some observable behavior
     up to the implementation.
 
-The explicitly non-deterministic abilities to sense the
-current time (via `Date()` and `Date.now()`) or generate random
-numbers (via `Math.random()`) are disabled in the proto SES
-realm. New source of non-determinism, like `makeWeakRef` and
-`getStack` will not be added to the proto SES realm or will be
-similarly disabled.
+The explicitly non-deterministic abilities to sense the current time
+(via `Date()` and `Date.now()`) or generate random numbers (via
+`Math.random()`) are disabled in the proto SES realm, and therefore by
+default in each SES realm. New source of non-determinism, like
+`makeWeakRef` and `getStack` will not be added to the proto SES realm
+or will be similarly disabled.
 
 The EcmaScript specs to date have never admitted the possibility of
 failures such as out-of-memory. In theory this means that a conforming
@@ -358,7 +402,7 @@ it. Nothing can practically prevent signalling on covert channels and
 side channels, but approximations to determinism can practically
 prevent confined computations from perceiving these signals.
 
-(TODO explain anthropic side channel and how it differs from an
+(TODO explain the anthropic side channel and how it differs from an
 information-flow termination channel.)
 
 
@@ -378,12 +422,14 @@ be *very* lightweight, since it would avoid the need to create most
 per-frame primordials. Likewise, we could afford to place each web
 component (need link) into its own confinement box.
 
-Self-hosting builtins, including new browser extensions (TODO need
-link), by writing them in JavaScript currently requires
+Today, to self-host builtins by writing them in JavaScript, one must
+practice
 [safe meta programming](http://wiki.ecmascript.org/doku.php?id=conventions:safe_meta_programming)
-techniques so that these builtins are properly defensive. Instead,
-they could be defined in a SES realm, making defensiveness much easier
-to achieve, and with much higher confidence.
+techniques so that these builtins are properly defensive. This
+technique is difficult to get right, especially if such self hosting
+is opened to browser extension authors (TODO need link). Instead,
+these builtin could be defined in a SES realm, making defensiveness
+much easier to achieve, and with much higher confidence.
 
 Because of the so-called "[override mistake](
 http://wiki.ecmascript.org/doku.php?id=strawman:fixing_override_mistake)",
@@ -411,11 +457,6 @@ rather an unnamed intrinsic. Upcoming evaluators are likely to include
 specified as unnamed instrinsics as well. For all of these, the above
 name-based overriding of SES vs proto-SES is irrelevant and probably
 not needed anyway.
-
-Now that `Function.prototype.toString` will give a reliably evaluable
-string that can be sent (TODO link), SES provides a reliable way for
-the receiver to evaluate them, in order to reconsitute that function's
-call behavior in a safe manner.
 
 Because code within a SES realm is unable to cause any affects outside
 itself it is not given explicit access to, i.e., it is fully confined,
