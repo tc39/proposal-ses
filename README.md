@@ -10,8 +10,9 @@ standard EcmaScript platform.
 In a memory-safe object language, an object reference grants the right to
 invoke methods on the public interface of the object it designates. Such an
 invocation in turn grants to the called object the right to similarly make
-method invocations on any object references that are passed as arguments.  If
-we further stipulate that object references are unforgeable (that is, there is
+method invocations on any object references that are passed as
+arguments.  In a system in which
+object references are unforgeable (that is, there is
 no way within the language for code to "manufacture" a reference to a
 pre-existing object) and that encapsulation is unbreakable (that is, objects
 may hold state -- including references to other objects -- that is totally
@@ -24,7 +25,8 @@ object references to propagate from one holder to another, and can thus reason
 reliably about the evolution of the object reference graph over time.
 EcmaScript (JavaScript) is a language with these properties.
 
-If we further stipulate that the only way for an object to cause effects on the
+With the additional restrictions that the only way for an
+object to cause effects on the 
 world outside itself is by using references it already holds, and that no
 object has default or implicit access to any other objects (e.g., via language
 provided global variables) that are not already transitively immutable and
@@ -37,10 +39,10 @@ their well behaved clients, despite arbitrary or malicious misbehavior by their
 other clients.
 
 Although stock EcmaScript satisfies our first set of requirements for a
-strongly memory safe object language, is *not* an ocap language.  The runtime
+strongly memory safe object language, it is *not* an ocap language.  The runtime
 environment specified by the ECMA-262 standard mandates globally accessible
 powerful objects with mutable state.  Moreover, typical implementations provide
-default access to additional powerful objects that can effect parts of the
+default access to additional powerful objects that can affect parts of the
 outside world, such as the browser DOM or the Internet.  However, it *is*
 possible to transform EcmaScript into an ocap language by careful language
 subsetting combined with some fairly simple changes to the default execution
@@ -56,38 +58,48 @@ practices. (In fact, many features introduced in ES5 were put there
 specifically to enable precisely this subsetting and restriction, so that we
 could realize a secure computing environment for JavaScript.)
 
-SES has a formal semantics supporting automated verification of some security
-properties of SES code.  It was developed as part of the Google
-[Caja](https://github.com/google/caja) project; you can read much more about
-SES specifically and Caja more generally on the Caja website.
+SES has a
+[formal semantics](http://research.google.com/pubs/pub37199.html)
+supporting automated verification of some security properties of SES
+code.  It was developed as part of the Google
+[Caja](https://github.com/google/caja) project; you can read much more
+about SES specifically and Caja more generally on the Caja website.
 
 See [Glossary](https://github.com/FUDCo/ses-realm/wiki/Glossary) for supporting
 definitions.
 
 
-## Problem statement:
+### Existing library implementation: SES5
 
-SES was originally (and is currently) implemented as a bundle of preamble code
-that is run first on any SES-enabled web page.  To turn a regular JavaScript
-environment into an ocap environment, SES must freeze all primordial objects --
-objects like `Array.prototype` -- that are mandated to exist before any code
-starts running. The time it takes to individually walk and freeze each of these
-objects makes the initial page load expensive, which has inhibited SES
-adoption. With the advent of ES6, the number of primordials has ballooned,
-making the current implementation strategy even more expensive. However, this
-large per-page expense can avoided by making SES a standard part of the
-platform, so that an appropriately adjusted execution environment can be
-provided directly, while any necessary preamble computation need only be done
-once per browser startup, and moreover can be done by native code.  The mission
-of this document is to specify an API and a strategy for incorporating SES into
-the standard EcmaScript platform.
+SES is
+[currently implemented in JavaScript as a bundle of preamble
+code](https://github.com/google/caja/tree/master/src/com/google/caja/ses)
+that is run first on any SES-enabled web page.  To turn a regular
+JavaScript environment into an ocap environment, SES must freeze all
+primordial objects -- objects like `Array.prototype` -- that are
+mandated to exist before any code starts running. The time it takes to
+individually walk and freeze each of these objects makes the initial
+page load expensive, which has inhibited SES adoption. Here, we will
+refer to this implementation as **SES5**, since it requires a platform
+compatible with at least ES5 and produces an ocap subset that includes
+all of ES5 but, currently, only small portions of ES6.
+
+With the advent of ES6, the number of primordials has ballooned,
+making the current implementation strategy even more
+expensive. However, this large per-page expense can avoided by making
+SES a standard part of the platform, so that an appropriately adjusted
+execution environment can be provided directly, while any necessary
+preamble computation need only be done once per browser startup, and
+moreover can be done by native code.  The mission of this document is
+to specify an API and a strategy for incorporating SES into the
+standard EcmaScript platform.
 
 
 ## Proposal:
 
   1. Create a single shared **proto-SES realm** (global scope and set
      of primordial objects) in which all primordials are already
-     transitively immutable and authority-free. Unlike the SES realms
+     transitively immutable and authority-free. Unlike the *SES realms*
      we define below, in this one shared proto-SES realm the global
      object itself is also transitively immutable and
      authority-free. These primordials include *all* the primordials
@@ -104,38 +116,115 @@ the standard EcmaScript platform.
 
   1. Add to all realms including the shared proto-SES realm a new
      builtin function `Reflect.confine(src, endowments)`, which
-     creates a new **SES realm** with its own fresh global
-     object. This fresh global object is populated with overriding
-     bindings for `Date`, `Math`, and the evaluators: `eval`,
-     `Function`, `GeneratorFunction` etc..., binding each of these
-     globals to fresh objects that inherit from the corresponding
-     objects from proto-SES realm. It then copies the own enumerable
-     properties from `endowments` onto this global, evaluates `src` as
-     if by `freshGlobal.eval(src)`, and returns the result.
+     creates a new **SES realm** with its own fresh global object that
+     inherits from the proto-global object. This fresh global is also
+     a plain object.
+       * This fresh global object is populated with overriding
+         bindings for the evaluators with global names, `eval` and
+         `Function`, binding each of these globals to fresh objects
+         that inherit from the corresponding objects from proto-SES
+         realm.
+       * It then copies the own enumerable properties from
+         `endowments` onto this global,
+       * evaluates `src` as if by
+         `freshGlobal.eval(src)`, and
+       * returns the completion value. When `src` is an expression,
+         the completion value is the value that the expression
+         evaluates to.
 
   1. The evaluators of the proto-SES realm evaluate code in the global
      scope of the proto-SES realm, using the proto-SES realm's frozen
-     global as their global object. The initial evaluators specific to
-     a SES realm evaluate code in the global scope of that SES realm,
-     using that realm's global object as their global object.
+     global as their global object. The evaluators of a specific SES
+     realm evaluate code in the global scope of that SES realm, using
+     that realm's global object as their global object.
 
   1. The expression `Reflect.confine('this', {})` therefore simply
      creates a fresh global for a new SES realm, populates it with its
-     own overriding evaluators, `Date`, and `Math`, but otherwise uses
-     the globals from the proto-SES realm, and returns that new
+     own overriding evaluators, but otherwise inherits the globals
+     from the proto-SES realm globals, and returns that new
      global. Thus, one can obtain and fully customize the global of a
      new SES realm before running confined code in that realm by
      `freshGlobal.eval(src)`.
 
   1. A SES realm's initial `eval` inherits from proto-SES's
-     `eval`. `Date` inherits from proto SES's Date, etc. The
-     overriding `Date` has its own `now`. The overriding `Math` has
-     its own `random`. For each of the overriding constructors, their
+     `eval`. For each of the overriding constructors, their
      `prototype` is the same as the constructor they inherit
-     from. Thus, a date object made by `new Date()` in one SES realm
-     passes the `date instanceof Date` test using the `Date`
-     constructor of another SES realm, etc. Among SES realms,
-     `instanceof` on primordial types simply works.
+     from. Thus, a function `foo` from one SES realm passes the `foo
+     instanceof Function` test using the `Function` constructor of
+     another SES realm, etc. Among SES realms, `instanceof` on
+     primordial types simply works.
+
+### Entire API:
+
+```js
+Reflect.confine(src, endowments)  // -> completion value
+```
+
+### Examples
+
+Composing
+[revocable membranes](http://soft.vub.ac.be/~tvcutsem/invokedynamic/js-membranes)
+and `confine`, we can make compartments:
+
+```js
+// Obtain billSrc and JoanSrc from untrusted clients
+const makeCompartment = makeMembrane(Reflect.confine);
+const {wrapper: bill,
+       revoke: killBill} = makeCompartment(billSrc, endowments);
+const {wrapper: joan,
+       revoke: killJoan} = makeCompartment(joanSrc, endowments);
+// ... introduce mutually suspicious Bill and Joan. Use both ...
+killBill();
+// ... Bill is inaccessible to us and to Joan. GC can collect Bill ...
+```
+
+
+Endowing with the missing functionality from our own `Date` and
+`Math.random`, to faithfully emulate full ES6. The following pattern
+is sufficiently involved that we may wish to provide some convenience
+APIs, perhaps in separate proposals.
+
+```js
+function confinePlus(src, endowments) {
+  const freshGlobal = Reflect.confine('this', {});
+  const {Date: superDate, Math: superMath} = freshGlobal;
+  function SubDate(...args) {
+    let otherDate = superDate;
+    if (new.target) {
+      if (args.length === 0) {
+        otherDate = Date; // our own
+      }
+      return Reflect.construct(otherDate, args, new.target);
+    } else {
+      return otherDate(...args);
+    }
+  }
+  SubDate.__proto__ = superDate;
+  SubDate.now = () => Date.now();
+  SubDate.now.__proto__ = superDate.now;
+  freshGlobal = SubDate;
+
+  const SubMath = {
+    __proto__: superMath,
+    random: () => Math.random();
+  };
+  SubMath.random.__proto__ = superMath.random;
+  freshGlobal.Math = SubMath;
+
+  // Do it separately last so it can overwrite what we wrote above
+  Object.define(freshGlobal, endowments);
+  return freshGlobal.eval(src);
+}
+```
+
+We can likewise create patterns for endowing with
+[virtualized emulations of expected host-provided globals](https://github.com/google/caja/blob/master/src/com/google/caja/plugin/domado.js),
+like `window` and `document`, possibly mapping into the caller's own
+or not.
+
+Of course, these two examples can be composed, enabling one to
+*temporarily* invite potentially malicious code onto one's page and
+endow it with a subset of one's own DOM as its virtual document.
 
 
 ## Annex B considerations
@@ -146,11 +235,11 @@ seem safe for inclusion as normative optionals of the proto SES
 realm. However, where Annex B states that these are normative
 mandatory in a web browser, there is no such requirement for SES. Even
 when run in a web browser, the SES environment, having no host
-specific globals, is not considered to be a JavaScript browser
-environment. Note that some post-ES6 APIs proposed for Annex B, such
-as the `RegExp` statics (TODO need link) and the
-`Error.prototype.stack` accessor property, are not safe for inclusion
-in SES and must be absent.
+specific globals, must be considered a non-browser environment. Note
+that some post-ES6 APIs proposed for Annex B, such as the `RegExp`
+statics (TODO need link) and the `Error.prototype.stack` accessor
+property (TODO need link), are not safe for inclusion in SES and must
+be absent.
 
 At this time, to maximize compatability with normal ECMAScript, we do
 not alter the evaluators to evaluate code in strict mode by
@@ -269,6 +358,9 @@ it. Nothing can practically prevent signalling on covert channels and
 side channels, but approximations to determinism can practically
 prevent confined computations from perceiving these signals.
 
+(TODO explain anthropic side channel and how it differs from an
+information-flow termination channel.)
+
 
 ## Discussion
 
@@ -352,11 +444,11 @@ clear what.
 For each of the upcoming proposed standard APIs that are not immutable
 and authority-free:
 
-  * defaultLoader
-  * global
-  * makeWeakRef
-  * getStack
-  * getStackString
+  * `defaultLoader`
+  * `global`
+  * `makeWeakRef`
+  * `getStack`
+  * `getStackString`
 
 (TODO link to proposals) they must be absent from the proto-SES realm,
 or have their behavior grossly truncated into something safe. This
