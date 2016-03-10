@@ -213,7 +213,7 @@ function confinePlus(src, endowments) {
   SubDate.now.__proto__ = SuperDate.now;
   SubDate.prototype = SuperDate.prototype;  // so instanceof works
   SubDate.name = SuperDate.name;
-  freshGlobal = SubDate;
+  freshGlobal.Date = SubDate;
 
   const SubMath = {
     __proto__: SuperMath,
