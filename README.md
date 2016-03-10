@@ -247,7 +247,8 @@ call behavior in a safe manner.
 
 ```js
 class QPromise extends Promise {
-  ... api from https://github.com/kriskowal/q/wiki/API-Reference
+  // ... api from https://github.com/kriskowal/q/wiki/API-Reference
+  // All we actually use below is fcall
 }
 
 class RemotePromise extends QPromise {
