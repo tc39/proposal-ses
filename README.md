@@ -255,7 +255,8 @@ class RemotePromise extends QPromise {
   ...
   // callback must be a closed function
   // farEval is a remote promise for the eval function of the
-  // remote SES realm where this promise's fulfillment will be
+  // remote SES realm where this promise's fulfillment will be.
+  // See https://github.com/kriskowal/q-connection
   there(callback, errback = void 0) {
     const farCallback = farEval.fcall(Function.prototype.toString(callback));
     return farCallback.fcall(this).catch(errback);
