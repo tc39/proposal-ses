@@ -196,7 +196,7 @@ emulate full ES6.
 ```js
 function confinePlus(src, endowments) {
   const freshGlobal = Reflect.confine('this', {});
-  const {Date: SuperDate, Math: superMath} = freshGlobal;
+  const {Date: SuperDate, Math: SuperMath} = freshGlobal;
   function SubDate(...args) {
     let OtherDate = SuperDate;
     if (new.target) {
@@ -216,10 +216,10 @@ function confinePlus(src, endowments) {
   freshGlobal = SubDate;
 
   const SubMath = {
-    __proto__: superMath,
-    random: () => Math.random();  // our own
+    __proto__: SuperMath,
+    random() { return Math.random(); }  // our own
   };
-  SubMath.random.__proto__ = superMath.random;
+  SubMath.random.__proto__ = SuperMath.random;
   freshGlobal.Math = SubMath;
 
   // Do it separately last so it can overwrite what we wrote above
