@@ -252,7 +252,7 @@ code to the data, rather than the data to the code. Flexible
 distributed computing systems must be able to express both.
 
 Now that `Function.prototype.toString` will give a reliably evaluable
-string that can be sent (TODO link), SES provides a reliable way for
+string that can be sent (TODO link), SES provides a safe way for
 the receiver to evaluate it, in order to reconsitute that function's
 call behavior in a safe manner.
 
