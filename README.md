@@ -142,7 +142,7 @@ standard EcmaScript platform.
   1. The expression `Reflect.confine('this', {})` therefore simply
      creates a fresh global for a new SES realm, populates it with its
      own overriding evaluators, but otherwise inherits the globals
-     from the proto-SES realm globals, and returns that new
+     from the proto-SES realm's globals, and returns that new
      global. Thus, one can obtain and fully customize the global of a
      new SES realm before running confined code in that realm by
      `freshGlobal.eval(src)`.
