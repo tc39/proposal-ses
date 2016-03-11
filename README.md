@@ -114,6 +114,10 @@ standard EcmaScript platform.
      When performed using the proto-SES realm's `Date` and `Math`, the
      expressions `new Date()`, `Date.now()`, and `Math.random()` all
      throw a `TypeError`. (Would another error be more appropriate?)
+     (Zarutian:
+        Make Date.now === undefined, Math.random === undefined and
+        make new Date() return always an Date object with the
+        iso8601 0000-01-01-00:00:00:000Z as the calander date? )
 
   1. Add to all realms including the shared proto-SES realm a new
      builtin function `Reflect.confine(src, endowments)`, which
