@@ -423,10 +423,10 @@ Because the proto SES realm is transitively immutable and
 authority-free, we can safely share it between JS programs that are
 otherwise fully isolated. This sharing gives them access to shared
 objects and shared identities, but no ability to communicate with each
-other or to affect any state outside themselves they are not
-explicitly given access to. We can even share it between origins and
-between threads, since immutability at the specification level should
-make thread safety at the implementation level straightforward.
+other or to affect any state outside themselves. We can even share
+proto-SES primordials between origins and between threads, since deep
+immutability at the specification level should make thread safety at
+the implementation level straightforward.
 
 In a browser environment, a SES-based confined seamless iframe could
 be *very* lightweight, since it would avoid the need to create most
