@@ -247,7 +247,7 @@ its virtual document, and then permanently and fully evict it.
 
 Now that `Function.prototype.toString` will give a reliably evaluable
 string that can be sent (TODO link), SES provides a reliable way for
-the receiver to evaluate them, in order to reconsitute that function's
+the receiver to evaluate it, in order to reconsitute that function's
 call behavior in a safe manner.
 
 ```js
