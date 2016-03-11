@@ -247,6 +247,10 @@ its virtual document, and then permanently and fully evict it.
 
 ### Mobile code
 
+Map-Reduce frameworks vividly demonstrate the power of sending the
+code to the data, rather than the data to the code. Flexible
+distributed computing systems must be able to express both.
+
 Now that `Function.prototype.toString` will give a reliably evaluable
 string that can be sent (TODO link), SES provides a reliable way for
 the receiver to evaluate it, in order to reconsitute that function's
