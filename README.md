@@ -122,9 +122,9 @@ standard EcmaScript platform.
      a plain object.
        * This fresh global object is populated with overriding
          bindings for the evaluators with global names, `eval` and
-         `Function`, binding each of these globals to fresh objects
-         that inherit from the corresponding objects from proto-SES
-         realm.
+         `Function`. It binds each of these names to fresh objects
+         that inherit from the corresponding objects from the
+         proto-SES realm.
        * It then copies the own enumerable properties from
          `endowments` onto this global,
        * evaluates `src` as if by
