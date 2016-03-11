@@ -176,7 +176,11 @@ and `confine`, we can make compartments:
 
 ```js
 // Obtain billSrc and joanSrc from untrusted clients
-const makeCompartment = makeMembrane(Reflect.confine);
+function makeCompartment(src, endowments) {
+  const {wrapper,
+         revoke} = makeMembrane(Reflect.confine);
+  return {wrapper: wrapper(src, endowments),
+          revoke};
 const {wrapper: bill,
        revoke: killBill} = makeCompartment(billSrc, endowments);
 const {wrapper: joan,
