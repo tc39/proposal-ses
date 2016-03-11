@@ -440,7 +440,7 @@ techniques so that these builtins are properly defensive. This
 technique is difficult to get right, especially if such self hosting
 is opened to browser extension authors (TODO need link). Instead,
 these builtin could be defined in a SES realm, making defensiveness
-much easier to achieve, and with much higher confidence.
+easier to achieve and with higher confidence.
 
 Because of the so-called "[override mistake](
 http://wiki.ecmascript.org/doku.php?id=strawman:fixing_override_mistake)",
