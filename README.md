@@ -145,7 +145,8 @@ standard EcmaScript platform.
      from the proto-SES realm's globals, and returns that new
      global. Thus, one can obtain and fully customize the global of a
      new SES realm before running confined code in that realm by
-     `freshGlobal.eval(src)`.
+     `freshGlobal.eval(src)`. This is illustrated in the Virtual
+     Powers example below.
 
   1. A SES realm's initial `eval` inherits from proto-SES's
      `eval`. For each of the overriding constructors, their
