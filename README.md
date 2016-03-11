@@ -164,7 +164,7 @@ Reflect.confine(src, endowments)  // -> completion value
 
 Further derived API may be called for, to aid some patterns of
 use. For now, we assume that such conveniences will first be
-user-level libraries before migrating to a later proposal. The
+user-level libraries before appearing in a later proposal. The
 following examples demonstrate the need for such conveniences.
 
 ## Examples
