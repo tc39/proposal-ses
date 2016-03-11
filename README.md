@@ -50,12 +50,12 @@ environment.
 
 SES -- Secure EcmaScript -- is such a subset.
 
-SES turns a conventional ES5 or ES6 environment into an ocap
+SES turns a conventional ES5 or ES2015 environment into an ocap
 environment by imposing various restrictions prior to any code being
 allowed to run.  Although programs are limited to a subset of the full
-EcmaScript language, SES will compatibly run nearly all ES5 or ES6
+EcmaScript language, SES will compatibly run nearly all ES5 or ES2015
 code that follows recognized ES best practices. In fact, many features
-introduced in ES5 and ES6 were put there specifically to enable this
+introduced in ES5 and ES2015 were put there specifically to enable this
 subsetting and restriction, so that we could realize a secure
 computing environment for JavaScript.
 
@@ -83,9 +83,9 @@ individually walk and freeze each of these objects makes the initial
 page load expensive, which has inhibited SES adoption. Here, we will
 refer to this implementation as **SES5**, since it requires a platform
 compatible with at least ES5 and produces an ocap subset that includes
-all of ES5 but, currently, only small portions of ES6.
+all of ES5 but, currently, only small portions of ES2015.
 
-With the advent of ES6, the number of primordials has ballooned,
+With the advent of ES2015, the number of primordials has ballooned,
 making the current implementation strategy even more
 expensive. However, this large per-page expense can avoided by making
 SES a standard part of the platform, so that an appropriately adjusted
@@ -104,7 +104,7 @@ standard EcmaScript platform.
      we define below, in this one shared proto-SES realm the global
      object itself is also transitively immutable and
      authority-free. These primordials include *all* the primordials
-     defined as mandatory in ES6 and all those defined by later
+     defined as mandatory in ES2015 and all those defined by later
      ratified ECMAScript specs unless stated otherwise. These
      primordials must include no other objects or properties beyond
      those specified here. Specifically, it contains no host-specific
@@ -198,7 +198,7 @@ killBill();
 
 We can make a `confine`-like function that first provides the missing
 functionality from our own `Date` and `Math.random`, to faithfully
-emulate full ES6.
+emulate full ES2015.
 
 ```js
 function confinePlus(src, endowments) {
@@ -289,14 +289,14 @@ concurrency model used by the X10 supercomputer language.
 
 ## Annex B considerations
 
-As of ES6, most of the normative optionals of
+As of ES2015, most of the normative optionals of
 [Annex B](http://www.ecma-international.org/ecma-262/6.0/#sec-additional-ecmascript-features-for-web-browsers)
 seem safe for inclusion as normative optionals of the proto SES
 realm. However, where Annex B states that these are normative
 mandatory in a web browser, there is no such requirement for SES. Even
 when run in a web browser, the SES environment, having no host
 specific globals, must be considered a non-browser environment. Note
-that some post-ES6 APIs proposed for Annex B, such as the `RegExp`
+that some post-ES2015 APIs proposed for Annex B, such as the `RegExp`
 statics (TODO need link) and the `Error.prototype.stack` accessor
 property (TODO need link), are not safe for inclusion in SES and must
 be absent.
@@ -467,7 +467,7 @@ property to point back at its own `Function`. The price of this
 technique is that we lose the pleasant property that `instanceof`
 works transparently between SES realms.
 
-In ES6, the `GeneratorFunction` evaluator is not a named global, but
+In ES2015, the `GeneratorFunction` evaluator is not a named global, but
 rather an unnamed intrinsic. Upcoming evaluators are likely to include
 `AsyncFunction` and `AsyncGeneratorFunction`. These are likely to be
 specified as unnamed instrinsics as well. For all of these, the above
