@@ -240,7 +240,7 @@ or not.
 
 Of course, the Compartments and Virtualized Powers patterns can be
 composed, enabling one to *temporarily* invite potentially malicious
-code onto one's page, endow it with a subset of one's own DOM as
+code onto one's page, endow it with a subtree of one's own DOM as
 its virtual document, and then permanently and fully evict it.
 
 ### Mobile code
