@@ -268,7 +268,8 @@ class RemotePromise extends QPromise {
   there(callback, errback = void 0) {
     const callbackSrc = Function.prototype.toString(callback);
     // Assume #farEval is a remote promise for the eval function of
-    // the remote SES realm where this promise's fulfillment will be.
+    // the remote proto-SES realm within the same
+    // event-loop (agent, vat) that promise's fulfillment will be.
     // See https://github.com/kriskowal/q-connection
     const farCallback = #farEval.fcall(callbackSrc);
     return farCallback.fcall(this).catch(errback);
