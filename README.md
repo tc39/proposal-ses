@@ -181,6 +181,7 @@ function makeCompartment(src, endowments) {
          revoke} = makeMembrane(Reflect.confine);
   return {wrapper: wrapper(src, endowments),
           revoke};
+}
 const {wrapper: bill,
        revoke: killBill} = makeCompartment(billSrc, endowments);
 const {wrapper: joan,
