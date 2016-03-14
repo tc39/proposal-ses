@@ -5,98 +5,120 @@ SES -- Secure EcmaScript, an ocap secure subset of EcmaScript -- into the
 standard EcmaScript platform.
 
 
-## Background:
+## Background
 
-In a memory-safe object language, an object reference grants the right to
+It is commonplace for EcmaScript developers to produce applications by
+co-mingling their own code with code provided by others -- frameworks and
+libraries, for example (of course this pattern is by no means limited to
+EcmaScript, but that's what we are concerned with here).  There are vast
+opportunities for the operation of these various pieces to interfere with each
+other.  The chance of such interference grows as the size and complexity of the
+application grows, and as the number of participants in the application's code
+ecosystem also grows.  The various parties contributing code to an application
+may be mutually suspicious, but even if they are not, any coordination among
+them is relatively weak, usually limited to what is imposed by the EcmaScript
+language itself and by the computational environment in which the code is
+running (typically a web browser or a Node.js instance).  And this is before we
+account for deliberate misbehavior.  The large user-base of a successful web
+application makes a tempting target for bad actors, yet the size and complexity
+of such an application (and the consequent large scope of software it
+encompasses) makes it especially vulnerable to the purposeful introduction of
+malicious components.
+
+In software engineering, an historically successful strategy for reducing these
+kinds of coordination problems has been to isolate potentially interfering
+components from each other, limiting their interactions to selected,
+well-defined channels.  This has been the motivation behind many of the
+advances in the field, including lexical scoping, object-oriented programming,
+module systems, and memory safety, to name just a few examples.  In the world
+of object-oriented programming, the gold standard for such isolation is the
+object capability (ocap) model.  The ocap model is perhaps best understood in
+contrast to more conventional object systems.
+
+In a memory-safe object language, an object reference allows its holder to
 invoke methods on the public interface of the object it designates. Such an
-invocation in turn grants to the called object the right to similarly make
-method invocations on any object references that are passed as
-arguments.  In a system in which
-object references are unforgeable (that is, there is
-no way within the language for code to "manufacture" a reference to a
-pre-existing object) and that encapsulation is unbreakable (that is, objects
-may hold state -- including references to other objects -- that is totally
-inaccessible to code outside themselves), then we can guarantee that the only
-way for one object to come to possess a reference to a second object is for
-them to have been given that reference by somebody else, or for one of
-them to have been the creator of the other.  In a language that has
-these properties, we can make strong, provable assertions about the ability of
-object references to propagate from one holder to another, and can thus reason
-reliably about the evolution of the object reference graph over time.
-EcmaScript (JavaScript) is a language with these properties.
+invocation in turn grants to the called object the means to similarly make
+method invocations on any object references that are passed as arguments.  In a
+system in which object references are unforgeable (that is, there is no way
+within the language for code to "manufacture" a reference to a pre-existing
+object) and that encapsulation is unbreakable (that is, objects may hold state
+-- including references to other objects -- that is totally inaccessible to
+code outside themselves), then we can guarantee that the only way for one
+object to come to possess a reference to a second object is for them to have
+been given that reference by somebody else, or for one of them to have been the
+creator of the other.  In a language with these properties, we can make strong,
+provable assertions about the ability of object references to propagate from
+one holder to another, and can thus reason reliably about the evolution of the
+object reference graph over time.  EcmaScript (JavaScript) is a language with
+these properties.
 
-With the additional restrictions that the only way for an
-object to cause effects on the
-world outside itself is by using references it already holds, and that no
-object has default or implicit access to any other objects (e.g., via language
-provided global variables) that are not already transitively immutable and
-powerless, then we have an object-capability (ocap) language.  In an ocap
-language, granted references are the sole representation of permission.
+With the additional restrictions that the only way for an object to cause
+any effect on the world outside itself is by using references it already holds,
+and that no object has default or implicit access to any other objects (e.g.,
+via language provided global variables) that are not already transitively
+immutable and powerless, then we have an object-capability (ocap) language.  In
+an ocap language, granted references are the sole representation of permission.
 
 Ocap languages enable us to program objects that are defensively consistent --
 that is, they can defend their own invariants and provide correct service to
 their well behaved clients, despite arbitrary or malicious misbehavior by their
-other clients.
+other clients.  Ocap languages thus provide a way to solve the coordination
+problem described above, of enabling disparate pieces of code from mutually
+suspicious parties to interoperate in way that is both safe and useful at the
+same time.
 
-Although stock EcmaScript satisfies our first set of requirements for a
-strongly memory safe object language, it is *not* an ocap language.  The runtime
-environment specified by the ECMA-262 standard mandates globally accessible
-powerful objects with mutable state.  Moreover, typical implementations provide
-default access to additional powerful objects that can affect parts of the
-outside world, such as the browser DOM or the Internet.  However, it *is*
-possible to transform EcmaScript into an ocap language by careful language
-subsetting combined with some fairly simple changes to the default execution
-environment.
+In order to solve this problem in the EcmaScript environment, it would be ideal
+if EcmaScript was an ocap language.  However, although stock EcmaScript
+satisfies our first set of requirements for a strongly memory safe object
+language, it is *not* an ocap language.  The runtime environment specified by
+the ECMA-262 standard mandates globally accessible powerful objects with
+mutable state.  Moreover, typical implementations provide default access to
+additional powerful objects that can affect parts of the outside world, such as
+the browser DOM or the Internet.  However, EcmapScript *can* be transformed
+into an ocap language by careful language subsetting combined with some fairly
+simple changes to the default execution environment.
 
 SES -- Secure EcmaScript -- is such a subset.
 
-SES turns a conventional ES5 or ES2015 environment into an ocap
-environment by imposing various restrictions prior to any code being
-allowed to run.  Although programs are limited to a subset of the full
-EcmaScript language, SES will compatibly run nearly all ES5 or ES2015
-code that follows recognized ES best practices. In fact, many features
-introduced in ES5 and ES2015 were put there specifically to enable this
-subsetting and restriction, so that we could realize a secure
-computing environment for JavaScript.
+SES turns a conventional ES5 or ES2015 environment into an ocap environment by
+imposing various restrictions prior to any code being allowed to run.  Although
+programs are limited to a subset of the full EcmaScript language, SES will
+compatibly run nearly all ES5 or ES2015 code that follows recognized ES best
+practices. In fact, many features introduced in ES5 and ES2015 were put there
+specifically to enable this subsetting and restriction, so that we could
+realize a secure computing environment for JavaScript.
 
-SES has a
-[formal semantics](http://research.google.com/pubs/pub37199.html)
-supporting automated verification of some security properties of SES
-code.  It was developed as part of the Google
-[Caja](https://github.com/google/caja) project; you can read much more
-about SES specifically and Caja more generally on the Caja website.
+SES has a [formal semantics](http://research.google.com/pubs/pub37199.html)
+supporting automated verification of some security properties of SES code.  It
+was developed as part of the Google [Caja](https://github.com/google/caja)
+project; you can read much more about SES specifically and Caja more generally
+on the Caja website.
 
 See [Glossary](https://github.com/FUDCo/ses-realm/wiki/Glossary) for supporting
 definitions.
 
+SES is [currently implemented in JavaScript as a bundle of preamble
+code](https://github.com/google/caja/tree/master/src/com/google/caja/ses) that
+is run first on any SES-enabled web page.  To turn a regular JavaScript
+environment into an ocap environment, SES must freeze all primordial objects --
+objects like `Array.prototype` -- that are mandated to exist before any code
+starts running. The time it takes to individually walk and freeze each of these
+objects makes the initial page load expensive, which has inhibited SES
+adoption. Here, we will refer to this implementation as **SES5**, since it
+requires a platform compatible with at least ES5 and produces an ocap subset
+that includes all of ES5 but, currently, only small portions of ES2015.
 
-### Existing library implementation: SES5
-
-SES is
-[currently implemented in JavaScript as a bundle of preamble
-code](https://github.com/google/caja/tree/master/src/com/google/caja/ses)
-that is run first on any SES-enabled web page.  To turn a regular
-JavaScript environment into an ocap environment, SES must freeze all
-primordial objects -- objects like `Array.prototype` -- that are
-mandated to exist before any code starts running. The time it takes to
-individually walk and freeze each of these objects makes the initial
-page load expensive, which has inhibited SES adoption. Here, we will
-refer to this implementation as **SES5**, since it requires a platform
-compatible with at least ES5 and produces an ocap subset that includes
-all of ES5 but, currently, only small portions of ES2015.
-
-With the advent of ES2015, the number of primordials has ballooned,
-making the current implementation strategy even more
-expensive. However, this large per-page expense can avoided by making
-SES a standard part of the platform, so that an appropriately adjusted
-execution environment can be provided directly, while any necessary
-preamble computation need only be done once per browser startup as
-part of the browser implementation.  The mission of this document is
-to specify an API and a strategy for incorporating SES into the
-standard EcmaScript platform.
+With the advent of ES2015, the number of primordials has ballooned, making the
+current implementation strategy even more expensive. However, this large
+per-page expense can avoided by making SES a standard part of the platform, so
+that an appropriately adjusted execution environment can be provided directly,
+while any necessary preamble computation need only be done once per browser
+startup as part of the browser implementation.  The mission of this document is
+to specify an API and a strategy for incorporating SES into the standard
+EcmaScript platform.
 
 
-## Proposal:
+## Proposal
 
   1. Create a single shared **proto-SES realm** (global scope and set
      of primordial objects) in which all primordials are already
@@ -156,7 +178,7 @@ standard EcmaScript platform.
      another SES realm, etc. Among SES realms, `instanceof` on
      primordial types simply works.
 
-### Entire Fundamental API:
+### Entire Fundamental API
 
 ```js
 Reflect.confine(src, endowments)  // -> completion value
