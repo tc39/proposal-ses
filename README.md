@@ -153,7 +153,8 @@ ECMAScript platform.
          *after* binding the evaluators, so that the caller of
          `confine` has the option to endow a SES realm with different
          evaluators of its own choosing),
-       * evaluates `src` as if by `freshGlobal.eval(src)`, and
+       * evaluates `src` as if by calling the `eval` method originally used to
+         populate `freshGlobal` prior to copying in the endowments, and
        * returns the completion value. When `src` is an expression,
          the completion value is the value that the expression
          evaluates to.
