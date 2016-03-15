@@ -120,11 +120,10 @@ ECMAScript platform.
 We want the standard SES mechanism to be sufficiently lightweight that it can
 be used promiscuously.  Rather than simply isolating individual pieces of code
 so they can do no damage, we also want to enable using these confined pieces as
-composable building blocks.  Thus we want to empower whatever outer code is
-responsible for integrating the various pieces to selectively connect the
-otherwise isolated components to each other in controlled ways, or to objects
-that selectively provide constrained access to sensitive operations they would
-not otherwise have the power to do.
+composable building blocks.  Thus, code that is responsible for integrating the
+various isolated pieces also should be empowered to selectively connect them to
+each other in controlled ways, or to objects that selectively grant constrained
+access to sensitive operations they would not otherwise have the power to do.
 
 This is in deliberate contrast to sandboxing strategies, which aim to simply
 partition a piece of subsidiary code from its host, without considering the
