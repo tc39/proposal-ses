@@ -111,11 +111,25 @@ that includes all of ES5 but, currently, only small portions of ES2015.
 With the advent of ES2015, the number of primordials has ballooned, making the
 current implementation strategy even more expensive. However, this large
 per-page expense can avoided by making SES a standard part of the platform, so
-that an appropriately adjusted execution environment can be provided directly,
+that an appropriately confined execution environment can be provided directly,
 while any necessary preamble computation need only be done once per browser
 startup as part of the browser implementation.  The mission of this document is
 to specify an API and a strategy for incorporating SES into the standard
 ECMAScript platform.
+
+We want the standard SES mechanism to be sufficiently lightweight that it can
+be used promiscuously.  Rather than simply isolating individual pieces of code
+so they can do no damage, we also want to enable using these confined pieces as
+composable building blocks.  Thus we want to empower whatever outer code is
+responsible for integrating the various pieces to selectively connect the
+otherwise isolated components to each other in controlled ways, or to objects
+that selectively provide constrained access to sensitive operations they would
+not otherwise have the power to do.
+
+This is in deliberate contrast to sandboxing strategies, which aim to simply
+partition a piece of subsidiary code from its host, without considering the
+importance of interoperation or the deliberate injection of authority to
+perform functions not normally available in a sandbox.
 
 
 ## Proposal
