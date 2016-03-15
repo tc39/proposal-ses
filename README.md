@@ -41,9 +41,9 @@ invocation in turn grants to the called object the means to similarly make
 method invocations on any object references that are passed as arguments.  In a
 system in which object references are unforgeable (that is, there is no way
 within the language for code to "manufacture" a reference to a pre-existing
-object) and that encapsulation is unbreakable (that is, objects may hold state
--- including references to other objects -- that is totally inaccessible to
-code outside themselves), then we can guarantee that the only way for one
+object) and in which encapsulation is unbreakable (that is, objects may hold
+state -- including references to other objects -- that is totally inaccessible
+to code outside themselves), then we can guarantee that the only way for one
 object to come to possess a reference to a second object is for them to have
 been given that reference by somebody else, or for one of them to have been the
 creator of the other.  In a language with these properties, we can make strong,
@@ -52,12 +52,13 @@ one holder to another, and can thus reason reliably about the evolution of the
 object reference graph over time.  ECMAScript (JavaScript) is a language with
 these properties.
 
-With the additional restrictions that the only way for an object to cause
+With two additional restrictions, (1) that the only way for an object to cause
 any effect on the world outside itself is by using references it already holds,
-and that no object has default or implicit access to any other objects (e.g.,
-via language provided global variables) that are not already transitively
-immutable and powerless, then we have an object-capability (ocap) language.  In
-an ocap language, granted references are the sole representation of permission.
+and (2) that no object has default or implicit access to any other objects
+(e.g., via language provided global variables) that are not already
+transitively immutable and powerless, we have an object-capability (ocap)
+language.  In an ocap language, granted references are the sole representation
+of permission.
 
 Ocap languages enable us to program objects that are defensively consistent --
 that is, they can defend their own invariants and provide correct service to
@@ -74,8 +75,8 @@ language, it is *not* an ocap language.  The runtime environment specified by
 the ECMA-262 standard mandates globally accessible powerful objects with
 mutable state.  Moreover, typical implementations provide default access to
 additional powerful objects that can affect parts of the outside world, such as
-the browser DOM or the Internet.  However, EcmapScript *can* be transformed
-into an ocap language by careful language subsetting combined with some fairly
+the browser DOM or the Internet.  However, ECMAScript *can* be transformed into
+an ocap language by careful language subsetting combined with some fairly
 simple changes to the default execution environment.
 
 SES -- Secure ECMAScript -- is such a subset.
@@ -94,8 +95,8 @@ was developed as part of the Google [Caja](https://github.com/google/caja)
 project; you can read much more about SES specifically and Caja more generally
 on the Caja website.
 
-See [Glossary](https://github.com/FUDCo/ses-realm/wiki/Glossary) for supporting
-definitions.
+See the [Glossary](https://github.com/FUDCo/ses-realm/wiki/Glossary) for
+supporting definitions.
 
 SES is [currently implemented in JavaScript as a bundle of preamble
 code](https://github.com/google/caja/tree/master/src/com/google/caja/ses) that
@@ -119,11 +120,12 @@ ECMAScript platform.
 
 We want the standard SES mechanism to be sufficiently lightweight that it can
 be used promiscuously.  Rather than simply isolating individual pieces of code
-so they can do no damage, we also want to enable using these confined pieces as
-composable building blocks.  Thus, code that is responsible for integrating the
-various isolated pieces also should be empowered to selectively connect them to
-each other in controlled ways, or to objects that selectively grant constrained
-access to sensitive operations they would not otherwise have the power to do.
+so they can do no damage, we also want to make it possible to use these
+confined pieces as composable building blocks.  Consequently, code that is
+responsible for integrating separate isolated pieces also should be empowered
+to selectively connect them in controlled ways to each other, or to unconfined
+objects that selectively grant constrained access to sensitive operations that
+confined code would not otherwise have the power to do.
 
 This is in deliberate contrast to sandboxing strategies, which aim to simply
 partition a piece of subsidiary code from its host, without considering the
@@ -146,9 +148,9 @@ perform functions not normally available in a sandbox.
   1. As a consequence of the deep immutability of the proto-SES realm, two of
      its primordials must be modified from the standard: The proto-SES realm's
      `Date` object has its `now()` method removed and its `new Date()`
-     constructor throws a `TypeError` _(Would a different error be more
-     appropriate?)_.  The proto-SES realm's `Math` object has its `random()`
-     method removed.
+     constructor changed to throw a `TypeError` if invoked _(Would a different
+     error be more appropriate?)_.  The proto-SES realm's `Math` object has its
+     `random()` method removed.
 
   1. Add to all realms, including the shared proto-SES realm, a new
      builtin function `Reflect.confine(src, endowments)`, which
