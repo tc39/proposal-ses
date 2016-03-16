@@ -105,9 +105,9 @@ environment into an ocap environment, SES must freeze all primordial objects --
 objects like `Array.prototype` -- that are mandated to exist before any code
 starts running. The time it takes to individually walk and freeze each of these
 objects makes the initial page load expensive, which has inhibited SES
-adoption. Here, we will refer to this implementation as **SES5**, since it
-requires a platform compatible with at least ES5 and produces an ocap subset
-that includes all of ES5 but, currently, only small portions of ES2015.
+adoption. Here, we will refer to this implementation as the
+**SESifier**, since it polyfills an approximation of SES on any
+platform conforming to ES5 or later.
 
 With the advent of ES2015, the number of primordials has ballooned,
 making the current implementation strategy even more
@@ -344,7 +344,8 @@ when run in a web browser, the SES environment, having no host
 specific globals, must be considered a non-browser environment. Note
 that some post-ES2015 APIs proposed for Annex B, such as the
 [`RegExp` statics](https://github.com/claudepache/es-regexp-legacy-static-properties)
-and the `Error.prototype.stack` accessor property (TODO need link),
+and the
+[`Error.prototype.stack` accessor property](https://mail.mozilla.org/pipermail/es-discuss/2016-February/045579.html),
 are not safe for inclusion in SES and must be absent.
 
 At this time, to maximize compatability with normal ECMAScript, we do
@@ -378,7 +379,7 @@ practice, independent of host environment:
      Initializers](http://www.ecma-international.org/ecma-262/6.0/#sec-__proto__-property-names-in-object-initializers)
 
 All but the last of these have been
-[whitelisted in SES5](https://github.com/google/caja/blob/master/src/com/google/caja/ses/whitelist.js#L85)
+[whitelisted in the SESifier](https://github.com/google/caja/blob/master/src/com/google/caja/ses/whitelist.js#L85)
 for a long time without problem. (The last bullet above is syntax and
 so not subject to the SES5 whitelisting mechanism.)
 
@@ -521,10 +522,11 @@ not needed anyway.
 Because code within a SES realm is unable to cause any affects outside
 itself it is not given explicit access to, i.e., it is fully confined,
 `Reflect.confine` and the evaluators of SES realms should continue to
-operate even in environments in which CSP has forbidden normal
-evaluators. By analogy, CSP evaluator suppression does not suppress
+operate even in environments in which
+[CSP has forbidden normal evaluators](https://github.com/tc39/ecma262/issues/450). By
+analogy, CSP evaluator suppression does not suppress
 `JSON.parse`. There are few ways in which SES-confined code is more
-dangerous than JSON data. (TODO link to CSP discussions)
+dangerous than JSON data.
 
 Other possible proposals, like private state and defensible `const`
 classes, are likely to aid the defensive programming that is
@@ -548,10 +550,10 @@ and authority-free:
   * [`defaultLoader`](https://github.com/whatwg/loader/issues/34)
   * [`global`](https://github.com/tc39/proposal-global)
   * [`makeWeakRef`](https://github.com/tc39/proposal-weakrefs/blob/master/specs/weakrefs.md)
-  * `getStack`
-  * `getStackString`
+  * [`getStack`](https://mail.mozilla.org/pipermail/es-discuss/2016-February/045579.html)
+  * [`getStackString`](https://mail.mozilla.org/pipermail/es-discuss/2016-February/045579.html)
 
-(TODO link to proposals) they must be absent from the proto-SES realm,
+they must be absent from the proto-SES realm,
 or have their behavior grossly truncated into something safe. This
 spec will additionally need to say how they initially appear, if at
 all, in each individual SES realm.  In particular, we expect a pattern
