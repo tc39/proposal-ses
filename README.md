@@ -295,10 +295,11 @@ Map-Reduce frameworks vividly demonstrate the power of sending the
 code to the data, rather than the data to the code. Flexible
 distributed computing systems must be able to express both.
 
-Now that `Function.prototype.toString` will give a reliably evaluable
-string that can be sent (TODO link), SES provides a safe way for
-the receiver to evaluate it, in order to reconsitute that function's
-call behavior in a safe manner.
+Now that `Function.prototype.toString` will give a
+[reliably evaluable string](http://tc39.github.io/Function-prototype-toString-revision/)
+that can be sent, SES provides a safe way for the receiver to evaluate
+it, in order to reconsitute that function's call behavior in a safe
+manner.
 
 ```js
 class QPromise extends Promise {
@@ -341,10 +342,10 @@ realm. However, where Annex B states that these are normative
 mandatory in a web browser, there is no such requirement for SES. Even
 when run in a web browser, the SES environment, having no host
 specific globals, must be considered a non-browser environment. Note
-that some post-ES2015 APIs proposed for Annex B, such as the `RegExp`
-statics (TODO need link) and the `Error.prototype.stack` accessor
-property (TODO need link), are not safe for inclusion in SES and must
-be absent.
+that some post-ES2015 APIs proposed for Annex B, such as the
+[`RegExp` statics](https://github.com/claudepache/es-regexp-legacy-static-properties)
+and the `Error.prototype.stack` accessor property (TODO need link),
+are not safe for inclusion in SES and must be absent.
 
 At this time, to maximize compatability with normal ECMAScript, we do
 not alter the evaluators to evaluate code in strict mode by
@@ -544,9 +545,9 @@ clear what.
 For each of the upcoming proposed standard APIs that are not immutable
 and authority-free:
 
-  * `defaultLoader`
-  * `global`
-  * `makeWeakRef`
+  * [`defaultLoader`](https://github.com/whatwg/loader/issues/34)
+  * [`global`](https://github.com/tc39/proposal-global)
+  * [`makeWeakRef`](https://github.com/tc39/proposal-weakrefs/blob/master/specs/weakrefs.md)
   * `getStack`
   * `getStackString`
 
@@ -556,9 +557,9 @@ spec will additionally need to say how they initially appear, if at
 all, in each individual SES realm.  In particular, we expect a pattern
 to emerge for creating a fresh loader instance to be the default
 loader of a fresh SES realm. Once some proposed APIs are specced as
-being provided by import from builtin primordial modules, we will need
-to explain how they appear in SES. (TODO link to discussion of
-standardizing builtin modules)
+being provided by import from
+[builtin primordial modules](https://github.com/tc39/ecma262/issues/395),
+we will need to explain how they appear in SES.
 
 Prior to standard builtin primordial modules,
 
