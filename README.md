@@ -307,7 +307,7 @@ class RemotePromise extends QPromise {
   ...
   // callback must be a closed function
   there(callback, errback = void 0) {
-    const callbackSrc = Function.prototype.toString(callback);
+    const callbackSrc = Function.prototype.toString.call(callback);
     // Assume #farConfine is a remote promise for the Reflect.confine
     // of the realm that this promise's fulfillment will be in.
     // See https://github.com/kriskowal/q-connection
