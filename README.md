@@ -106,7 +106,7 @@ objects like `Array.prototype` -- that are mandated to exist before any code
 starts running. The time it takes to individually walk and freeze each of these
 objects makes the initial page load expensive, which has inhibited SES
 adoption. Here, we will refer to this implementation as the
-**SESifier**, since it polyfills an approximation of SES on any
+**SES-shim**, since it polyfills an approximation of SES on any
 platform conforming to ES5 or later.
 
 With the advent of ES2015, the number of primordials has ballooned,
@@ -379,7 +379,7 @@ practice, independent of host environment:
      Initializers](http://www.ecma-international.org/ecma-262/6.0/#sec-__proto__-property-names-in-object-initializers)
 
 All but the last of these have been
-[whitelisted in the SESifier](https://github.com/google/caja/blob/master/src/com/google/caja/ses/whitelist.js#L85)
+[whitelisted in the SES-shim](https://github.com/google/caja/blob/master/src/com/google/caja/ses/whitelist.js#L85)
 for a long time without problem. (The last bullet above is syntax and
 so not subject to the SES5 whitelisting mechanism.)
 
@@ -424,17 +424,20 @@ failures such as out-of-memory. In theory this means that a conforming
 ECMAScript implementation requires an infinite memory
 machine. Unfortunately, these are currently unavailable. Since
 JavaScript is an implicitly-allocating language, the out-of-memory
-condition could cause computation to fail at any time. If
-these failures are reported in a recoverable manner without rollback,
-such as by a thrown exception (cite JVM), then defensive programming
+condition could cause computation to fail at any time. If these
+failures are reported in a recoverable manner without rollback, such
+as by a thrown exception (cite JVM), then defensive programming
 becomes impossible. This would be contrary to the goals of at least
 SES and indeed to much JavaScript code. (TODO link to SAB discussion
 of containing failure.) Thus, at least SES computation, and any
 synchronous computation it is entangled with, on unpredictable errors
 must either be preemptively aborted without running further user code
-(cite Erlang, Joe-E/Waterken) or roll back to a previous safe point
-(cite Noether). If repeated attempts to roll forward from a safe point
-fail, preemptive termination is inevitable.
+(see [Erlang](http://c2.com/cgi/wiki?LetItCrash),
+[Joe-E/Waterken](http://waterken.sourceforge.net/),
+[Shared Array Buffers](https://github.com/tc39/ecmascript_sharedmem/issues/55))
+or roll back to a previous safe point (cite Noether). If repeated
+attempts to roll forward from a safe point fail, preemptive
+termination is inevitable.
 
 Even if ECMAScript were otherwise deterministically replayable, these
 unpredictable preemptive failures would prevent it. We examine instead
@@ -488,7 +491,8 @@ practice
 [safe meta programming](http://wiki.ecmascript.org/doku.php?id=conventions:safe_meta_programming)
 techniques so that these builtins are properly defensive. This
 technique is difficult to get right, especially if such self hosting
-is opened to browser extension authors (TODO need link). Instead,
+is
+[opened to JavaScript embedders](https://docs.google.com/document/d/1AT5-T0aHGp7Lt29vPWFr2-qG8r3l9CByyvKwEuA8Ec0/edit#heading=h.ma18njbt74u3). Instead,
 these builtin could be defined in a SES realm, making defensiveness
 easier to achieve with higher confidence.
 
