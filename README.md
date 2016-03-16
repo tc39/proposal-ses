@@ -65,14 +65,14 @@ that is, they can defend their own invariants and provide correct service to
 their well behaved clients, despite arbitrary or malicious misbehavior by their
 other clients.  Ocap languages thus provide a way to solve the coordination
 problem described above, of enabling disparate pieces of code from mutually
-suspicious parties to interoperate in way that is both safe and useful at the
+suspicious parties to interoperate in a way that is both safe and useful at the
 same time.
 
 In order to solve this problem in the ECMAScript environment, it would be ideal
 if ECMAScript was an ocap language.  However, although stock ECMAScript
 satisfies our first set of requirements for a strongly memory safe object
 language, it is *not* an ocap language.  The runtime environment specified by
-the ECMA-262 standard mandates globally accessible powerful objects with
+the ECMA-262 standard mandates globally accessible objects with
 mutable state.  Moreover, typical implementations provide default access to
 additional powerful objects that can affect parts of the outside world, such as
 the browser DOM or the Internet.  However, ECMAScript *can* be transformed into
@@ -109,14 +109,15 @@ adoption. Here, we will refer to this implementation as **SES5**, since it
 requires a platform compatible with at least ES5 and produces an ocap subset
 that includes all of ES5 but, currently, only small portions of ES2015.
 
-With the advent of ES2015, the number of primordials has ballooned, making the
-current implementation strategy even more expensive. However, this large
-per-page expense can avoided by making SES a standard part of the platform, so
-that an appropriately confined execution environment can be provided directly,
-while any necessary preamble computation need only be done once per browser
-startup as part of the browser implementation.  The mission of this document is
-to specify an API and a strategy for incorporating SES into the standard
-ECMAScript platform.
+With the advent of ES2015, the number of primordials has ballooned,
+making the current implementation strategy even more
+expensive. However, this large per-page expense can be avoided by
+making SES a standard part of the platform, so that an appropriately
+confined execution environment can be provided directly, while any
+necessary preamble computation need only be done once per browser
+startup as part of the browser implementation.  The mission of this
+document is to specify an API and a strategy for incorporating SES
+into the standard ECMAScript platform.
 
 We want the standard SES mechanism to be sufficiently lightweight that it can
 be used promiscuously.  Rather than simply isolating individual pieces of code
@@ -125,7 +126,8 @@ confined pieces as composable building blocks.  Consequently, code that is
 responsible for integrating separate isolated pieces also should be empowered
 to selectively connect them in controlled ways to each other, or to unconfined
 objects that selectively grant constrained access to sensitive operations that
-confined code would not otherwise have the power to do.
+confined code would not otherwise have the power to do. (TODO
+defensive consistency)
 
 This is in deliberate contrast to sandboxing strategies, which aim to simply
 partition a piece of subsidiary code from its host, without considering the
@@ -145,11 +147,12 @@ perform functions not normally available in a sandbox.
      objects or properties beyond those specified here. Specifically, it
      contains no host-specific objects. The global object is a plain object.
 
-  1. As a consequence of the deep immutability of the proto-SES realm, two of
-     its primordials must be modified from the standard: The proto-SES realm's
-     `Date` object has its `now()` method removed and its `new Date()`
-     constructor changed to throw a `TypeError` if invoked _(Would a different
-     error be more appropriate?)_.  The proto-SES realm's `Math` object has its
+  1. As a consequence of the deep immutability of the proto-SES realm,
+     two of its primordials must be modified from the standard: The
+     proto-SES realm's `Date` object has its `now()` method removed
+     and its constructor changed to throw a `TypeError` rather than
+     reveal the current time _(Would a different error be more
+     appropriate?)_.  The proto-SES realm's `Math` object has its
      `random()` method removed.
 
   1. Add to all realms, including the shared proto-SES realm, a new
@@ -243,36 +246,36 @@ emulate full ES2015.
 
 ```js
 function confinePlus(src, endowments) {
+  const now = Date.now;  // our own
+  const random = Math.random();  // our own
   const freshGlobal = Reflect.confine('this', {});
-  const {Date: SuperDate, Math: SuperMath} = freshGlobal;
-  function SubDate(...args) {
-    let OtherDate = SuperDate;
+  const freshEval = freshGlobal.eval;
+  const {Date: SharedDate, Math: SharedMath} = freshGlobal;
+  function FreshDate(...args) {
     if (new.target) {
       if (args.length === 0) {
-        OtherDate = Date;  // our own power
+        args = [+now()];  // our own
       }
-      return Reflect.construct(OtherDate, args, new.target);
+      return Reflect.construct(SharedDate, args, new.target);
     } else {
-      return OtherDate(...args);
+      return String(Date());  // our own
     }
   }
-  SubDate.__proto__ = SuperDate;
-  SubDate.now = () => Date.now();  // our own
-  SubDate.now.__proto__ = SuperDate.now;
-  SubDate.prototype = SuperDate.prototype;  // so instanceof works
-  SubDate.name = SuperDate.name;
-  freshGlobal.Date = SubDate;
+  FreshDate.__proto__ = SharedDate;
+  FreshDate.now = () => +now();  // our own
+  FreshDate.prototype = SharedDate.prototype;  // so instanceof works
+  FreshDate.name = SharedDate.name;
+  freshGlobal.Date = FreshDate;
 
-  const SubMath = {
-    __proto__: SuperMath,
-    random() { return Math.random(); }  // our own
+  const FreshMath = {
+    __proto__: SharedMath,
+    random() { return +random(); }  // our own
   };
-  SubMath.random.__proto__ = SuperMath.random;
-  freshGlobal.Math = SubMath;
+  freshGlobal.Math = FreshMath;
 
   // Do it separately last so it can overwrite what we wrote above
   Object.define(freshGlobal, endowments);
-  return freshGlobal.eval(src);
+  return freshEval(src);
 }
 ```
 
