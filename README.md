@@ -16,14 +16,14 @@ other.  The chance of such interference grows as the size and complexity of the
 application grows, and as the number of participants in the application's code
 ecosystem also grows.  The various parties contributing code to an application
 may be mutually suspicious, but even if they are not, any coordination among
-them is relatively weak, usually limited to what is imposed by the ECMAScript
-language itself and by the computational environment in which the code is
-running (typically a web browser or a Node.js instance).  And this is before we
-account for deliberate misbehavior.  The large user-base of a successful web
-application makes a tempting target for bad actors, yet the size and complexity
-of such an application (and the consequent large scope of software it
-encompasses) makes it especially vulnerable to the purposeful introduction of
-malicious components.
+them is now relatively weak, usually limited to what is imposed by the
+ECMAScript language itself and by the computational environment in which the
+code is running (typically a web browser or a Node.js instance).  And this is
+before we account for deliberate misbehavior.  The large user-base of a
+successful web application makes a tempting target for bad actors, yet the size
+and complexity of typical such applications (and the consequent large scope of
+software they encompass) makes them especially vulnerable to the purposeful
+introduction of malicious components.
 
 In software engineering, an historically successful strategy for reducing these
 kinds of coordination problems has been to isolate potentially interfering
@@ -57,7 +57,7 @@ any effect on the world outside itself is by using references it already holds,
 and (2) that no object has default or implicit access to any other objects
 (e.g., via language provided global variables) that are not already
 transitively immutable and powerless, we have an object-capability (ocap)
-language.  In an ocap language, granted references are the sole representation
+language.  In an ocap language, object references are the sole representation
 of permission.
 
 Ocap languages enable us to program objects that are defensively consistent --
@@ -81,13 +81,28 @@ simple changes to the default execution environment.
 
 SES -- Secure ECMAScript -- is such a subset.
 
-SES turns a conventional ES5 or ES2015 environment into an ocap environment by
-imposing various restrictions prior to any code being allowed to run.  Although
-programs are limited to a subset of the full ECMAScript language, SES will
-compatibly run nearly all ES5 or ES2015 code that follows recognized ES best
-practices. In fact, many features introduced in ES5 and ES2015 were put there
-specifically to enable this subsetting and restriction, so that we could
-realize a secure computing environment for JavaScript.
+SES derives an ocap environment from a conventional ES5 or ES2015 environment
+through a small number of carefully chosen modifications.  SES specifies two
+particular sets of such modifications: (1) it requires that all the primordial
+objects -- objects like `Array.prototype`, mandated by the ECMAScript language
+specification to exist before any code starts running -- be made transitively
+immutable, and (2) it forbids any references to any other objects that are not
+already transitively immutable and powerless from being reachable from the
+initial execution state of the environment (notably including such typical
+browser provided globals as `window` or `document`).
+
+These restrictions must be in place prior to to any (user) code being allowed
+to run.  This can be achieved either by arranging to run special code
+beforehand that introduces the restrictions by actually modifying the stock
+environment in place, or the restricted environment may be provided directly by
+the underlying execution engine.
+
+Although programs in SES are limited to a subset of the full ECMAScript
+language, SES will compatibly run nearly all ES5 or ES2015 code that follows
+recognized ES best practices. In fact, many features introduced in ES5 and
+ES2015 were put there specifically to enable this subsetting and restriction,
+so that we could realize a secure computing environment for JavaScript without
+additional special support from the engine.
 
 SES has a [formal semantics](http://research.google.com/pubs/pub37199.html)
 supporting automated verification of some security properties of SES code.  It
@@ -95,65 +110,62 @@ was developed as part of the Google [Caja](https://github.com/google/caja)
 project; you can read much more about SES specifically and Caja more generally
 on the Caja website.
 
-See the [Glossary](https://github.com/FUDCo/ses-realm/wiki/Glossary) for
-supporting definitions.
-
 SES is [currently implemented in JavaScript as a bundle of preamble
 code](https://github.com/google/caja/tree/master/src/com/google/caja/ses) that
-is run first on any SES-enabled web page.  To turn a regular JavaScript
-environment into an ocap environment, SES must freeze all primordial objects --
-objects like `Array.prototype` -- that are mandated to exist before any code
-starts running. The time it takes to individually walk and freeze each of these
-objects makes the initial page load expensive, which has inhibited SES
-adoption. Here, we will refer to this implementation as the
-**SES-shim**, since it polyfills an approximation of SES on any
-platform conforming to ES5 or later.
+is run first on any SES-enabled web page.  Here, we will refer to this
+implementation as the **SES-shim**, since it polyfills an approximation of SES
+on any platform conforming to ES5 or later.  To do its job, this preamble code
+must freeze all the primordials. The time it takes to individually walk and
+freeze each of these objects makes the initial page load expensive, which has
+inhibited SES adoption.
 
-With the advent of ES2015, the number of primordials has ballooned,
-making the current implementation strategy even more
-expensive. However, this large per-page expense can be avoided by
-making SES a standard part of the platform, so that an appropriately
-confined execution environment can be provided directly, while any
-necessary preamble computation need only be done once per browser
-startup as part of the browser implementation.  The mission of this
-document is to specify an API and a strategy for incorporating SES
-into the standard ECMAScript platform.
+With the advent of ES2015, the number of primordials has ballooned, making the
+SES-shim implementation strategy even more expensive. However, this large
+per-page expense can be avoided by making SES a standard part of the platform,
+so that an appropriately confined execution environment can be provided
+natively, while any necessary preamble computation need only be done once per
+browser startup as part of the browser implementation.  The mission of this
+document is to specify an API and a strategy for incorporating SES into the
+standard ECMAScript platform.
 
 We want the standard SES mechanism to be sufficiently lightweight that it can
 be used promiscuously.  Rather than simply isolating individual pieces of code
 so they can do no damage, we also want to make it possible to use these
 confined pieces as composable building blocks.  Consequently, code that is
-responsible for integrating separate isolated pieces also should be empowered
-to selectively connect them in controlled ways to each other, or to unconfined
-objects that selectively grant constrained access to sensitive operations that
-confined code would not otherwise have the power to do. (TODO
-defensive consistency)
+responsible for integrating separate isolated pieces also should be able to
+selectively connect them in controlled ways to each other, or to other,
+unconfined objects provided by this integration code to selectively grant
+constrained access to sensitive operations that the confined code would not
+otherwise have the power to do. (TODO defensive consistency)
 
 This is in deliberate contrast to sandboxing strategies, which aim to simply
 partition a piece of subsidiary code from its host, without considering the
 importance of interoperation or the deliberate injection of authority to
 perform functions not normally available in a sandbox.
 
+(See the [Glossary](https://github.com/FUDCo/ses-realm/wiki/Glossary) for
+supporting definitions.)
+
 
 ## Proposal
 
   1. Create a single shared **proto-SES realm** (global scope and set of
      primordial objects) in which all primordials are already transitively
-     immutable and authority-free. Unlike the *SES realms* we define below, in
-     this one shared proto-SES realm the global object itself is also
-     transitively immutable and authority-free. These primordials include *all*
-     the primordials defined as mandatory in ES2015 and all those defined by
-     later ratified ECMAScript specs.  These primordials must include no other
-     objects or properties beyond those specified here. Specifically, it
-     contains no host-specific objects. The global object is a plain object.
+     immutable and authority-free. These primordials include *all* the
+     primordials defined as mandatory in ES2015 and all those defined by later
+     ratified ECMAScript specs.  These primordials must include no other
+     objects or properties beyond those specified here. Unlike the *SES realms*
+     we define below, in this one shared proto-SES realm the global object
+     itself (which we here call the **proto-global object**) is also
+     transitively immutable and authority-free. Specifically, it contains no
+     host-specific objects. The proto-global object is a plain object.
 
-  1. As a consequence of the deep immutability of the proto-SES realm,
-     two of its primordials must be modified from the standard: The
-     proto-SES realm's `Date` object has its `now()` method removed
-     and its constructor changed to throw a `TypeError` rather than
-     reveal the current time _(Would a different error be more
-     appropriate?)_.  The proto-SES realm's `Math` object has its
-     `random()` method removed.
+  1. In order to attain the necessary deep immutability of the proto-SES realm,
+     two of its primordials must be modified from the standard: The proto-SES
+     realm's `Date` object has its `now()` method removed and its default
+     constructor changed to throw a `TypeError` rather than reveal the current
+     time _(Would a different error be more appropriate?)_.  The proto-SES
+     realm's `Math` object has its `random()` method removed.
 
   1. Add to all realms, including the shared proto-SES realm, a new
      builtin function `Reflect.confine(src, endowments)`, which
@@ -161,21 +173,23 @@ perform functions not normally available in a sandbox.
      (denoted in the explanation below by the symbol `freshGlobal`)
      that inherits from the proto-global object. This fresh global is
      also a plain object.
-       * The `freshGlobal` object is populated with overriding
-         bindings for the evaluators with global names (`eval` and
-         `Function`). It binds each of these names to fresh objects
-         that inherit from the corresponding objects from the
-         proto-SES realm.
-       * It then copies the own enumerable properties from
-         `endowments` onto this global (note that this copying happens
-         *after* binding the evaluators, so that the caller of
-         `confine` has the option to endow a SES realm with different
-         evaluators of its own choosing),
-       * evaluates `src` as if by calling the `eval` method originally used to
-         populate `freshGlobal` prior to copying in the endowments, and
-       * returns the completion value. When `src` is an expression,
-         the completion value is the value that the expression
-         evaluates to.
+
+       * The `freshGlobal` object is populated with overriding bindings for the
+         evaluators that have global names (specifically: `eval` and
+         `Function`). It binds each of these names to fresh objects that
+         inherit from the corresponding objects from the proto-SES realm.
+
+       * The own enumerable properties from `endowments` are then copied onto
+         this global.  Note that this copying happens *after* binding the
+         evaluators, so that the caller of `confine` has the option to endow a
+         SES realm with different evaluators of its own choosing.
+
+       * Evaluate `src` as if by calling the `eval` method originally used to
+         populate `freshGlobal` prior to copying in the endowments, then
+
+       * return the completion value as the value that the `confine` call
+         evaluates to. When `src` is an expression, this completion value is
+         the value that `src` evaluates to.
 
   1. The evaluators of the proto-SES realm evaluate code in the global
      scope of the proto-SES realm, using the proto-SES realm's frozen
