@@ -261,7 +261,7 @@ emulate full ES2015.
 ```js
 function confinePlus(src, endowments) {
   const now = Date.now;  // our own
-  const random = Math.random();  // our own
+  const random = Math.random;  // our own
   const freshGlobal = Reflect.confine('this', {});
   const freshEval = freshGlobal.eval;
   const {Date: SharedDate, Math: SharedMath} = freshGlobal;
