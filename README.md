@@ -720,12 +720,13 @@ by assignment. But it is compatible with overriding by classes and
 object literals, since they do `[[DefineOwnProperty]]` rather than
 assignment.
 
-Our sense is that not fixing the override mistake at all will
-[break too much legacy code](https://esdiscuss.org/topic/object-freeze-object-prototype-vs-reality). But
-if fully fixing the override mistake is too expensive, it might be
-that fixing a handful of properties on primordial prototypes that are
-overridden in practice (e.g., `constructor`, `toString`, ...) will
-reduce the breakage to a tolerable level. We need measurements.
+  Our sense is that not fixing the override mistake at all will [break too much
+  legacy
+  code](https://esdiscuss.org/topic/object-freeze-object-prototype-vs-reality). But
+  if fully fixing the override mistake is too expensive, it might be that
+  fixing a handful of properties on primordial prototypes that are overridden
+  in practice (e.g., `constructor`, `toString`, ...)  will reduce the breakage
+  to a tolerable level. We need measurements.
 
 * Although not officially a question within the jurisdiction of TC39, we
 should discuss whether the existing CSP "no script evaluation"
@@ -746,15 +747,15 @@ clear what.
   * when called as a constructor with no arguments, or
   * when called as a function (regardless of the arguments)
 
-Above we propose to censor the current time by having the proto-Date
-constructor throw a `TypeError` in those cases. Would another error
-type be more appropriate? Instead of throwing an Error, should `new
-Date()` produce an invalid date, equivalent to that produced by `new
-Date(NaN)`? If so, calling the `Date` constructor as a function should
-produce the corresponding string `"Invalid Date"`. If we go in this
-direction, conceivably we could even have `Date.now()` return
-`NaN`. The advantage of removing `Date.now` instead is to support the
-feature-testing style practiced by ECMAScript programmers.
+  Above we propose to censor the current time by having the proto-Date
+  constructor throw a `TypeError` in those cases. Would another error type be
+  more appropriate? Instead of throwing an Error, should `new Date()` produce
+  an invalid date, equivalent to that produced by `new Date(NaN)`? If so,
+  calling the `Date` constructor as a function should produce the corresponding
+  string `"Invalid Date"`. If we go in this direction, conceivably we could
+  even have `Date.now()` return `NaN`. The advantage of removing `Date.now`
+  instead is to support the feature-testing style practiced by ECMAScript
+  programmers.
 
 * Of course, there is the perpetual bikeshedding of names. We are not
 attached to the names we present here.
