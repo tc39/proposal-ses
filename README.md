@@ -302,7 +302,9 @@ We can make functions like `makeSESRealm` that first provides the
 missing functionality from our own `Date` and `Math.random`, to
 faithfully emulate full ES2016. Usually, non-determinism is not a
 threat of interest, in which case the following `makeSESRealmPlus` is
-perfectly safe to use instead.
+perfectly safe to use instead. Indeed, Caja has always provided the
+full functionality of `Date` and `Math` because its threat model did
+not demand that they be denied.
 
 ```js
 function makeSESRealmPlus() {
