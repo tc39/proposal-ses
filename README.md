@@ -523,12 +523,13 @@ down what we mean by "same implementation", which seems slippery and difficult.
 
 ### The punchlines
 
-However, even without pinning down the precise meaning of "implementation
-defined", a computation that is limited to fail-stop implementation-defined
-determinism _**cannot read covert channels and side channels**_ that it is not
-otherwise purposely enabled to read. Nothing can practically prevent signalling
-on covert channels and side channels, but approximations to determinism can
-practically prevent confined computations from perceiving these signals.
+Even without pinning down the precise meaning of "implementation
+defined", a computation that is limited to fail-stop
+implementation-defined determinism _**cannot read covert channels and
+side channels**_ that it is not otherwise purposely enabled to
+read. Nothing can practically prevent signalling on covert channels
+and side channels, but approximations to determinism can practically
+prevent confined computations from perceiving these signals.
 
 (TODO explain the anthropic side channel and how it differs from an
 information-flow termination channel.)
