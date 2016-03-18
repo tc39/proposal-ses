@@ -559,7 +559,8 @@ constructor. In a browser environment, a SES-based confined seamless
 iframe could be *very* lightweight, since it would avoid the need to
 create most per-frame primordials. Likewise, we could afford to place
 each [web component](http://webcomponents.org/) into its own
-confinement box.
+confinement box. By using Domado-like techniques, the actual DOM can
+be safely encapsulated behind the component's shadow DOM.
 
 Today, to self-host builtins by writing them in JavaScript, one must
 practice
