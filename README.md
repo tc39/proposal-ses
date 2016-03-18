@@ -236,7 +236,7 @@ supporting definitions.)
          evaluators of its own choosing.
 
        * Evaluate `src` as if by calling the `eval` method originally
-         added to `freshGlobal` prior to copying in the endowments.
+         added to `freshGlobal` by `Reflect.makeSESRealm`.
 
        * Return the completion value from evaluating `src`. When `src`
          is an expression, this completion value is the value that
