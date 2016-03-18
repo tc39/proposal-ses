@@ -216,12 +216,12 @@ supporting definitions.)
 
        * The own enumerable properties from `endowments` are then
          copied onto this global.  Note that this copying happens
-         *after* binding the evaluators, so that the caller of
-         `confine` has the option to endow a SES realm with different
-         evaluators of its own choosing.
+         *after* `makeSESRealm` binds the evaluators, so that the
+         caller of `confine` has the option to endow a SES realm with
+         different evaluators of its own choosing.
 
-       * Evaluate `src` as if by calling the `eval` method originally used to
-         populate `freshGlobal` prior to copying in the endowments.
+       * Evaluate `src` as if by calling the `eval` method originally
+         added to `freshGlobal` prior to copying in the endowments.
 
        * Return the completion value as the value that the `confine` call
          evaluates to. When `src` is an expression, this completion value is
