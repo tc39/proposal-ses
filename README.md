@@ -81,7 +81,7 @@ simple changes to the default execution environment.
 
 SES -- Secure ECMAScript -- is such a subset.
 
-SES derives an ocap environment from a conventional ES5 or ES2015 environment
+SES derives an ocap environment from a conventional ECMAScript environment
 through a small number of carefully chosen modifications.  SES specifies two
 particular sets of such modifications: (1) it requires that all the primordial
 objects -- objects like `Array.prototype`, mandated by the ECMAScript language
@@ -98,8 +98,9 @@ environment in place, or the restricted environment may be provided directly by
 the underlying execution engine.
 
 Although programs in SES are limited to a subset of the full ECMAScript
-language, SES will compatibly run nearly all ES5 or ES2015 code that follows
-recognized ES best practices. In fact, many features introduced in ES5 and
+language, SES will compatibly run nearly all ES5 or later code that follows
+recognized ECMAScript best practices. In fact, many features
+introduced in ES5 and
 ES2015 were put there specifically to enable this subsetting and restriction,
 so that we could realize a secure computing environment for JavaScript without
 additional special support from the engine.
@@ -152,8 +153,10 @@ supporting definitions.)
   1. Create a single shared **proto-SES realm** (global scope and set of
      primordial objects) in which all primordials are already transitively
      immutable and authority-free. These primordials include *all* the
-     primordials defined as mandatory in ES2015 and all those defined by later
-     ratified ECMAScript specs.  These primordials must include no other
+     primordials defined as mandatory in ES2016. (And those in
+     [draft ES2017](https://tc39.github.io/ecma262/) as of March 17,
+     2016, the time of this writing.)  These primordials
+     must include no other
      objects or properties beyond those specified here. Unlike the *SES realms*
      we define below, in this one shared proto-SES realm the global object
      itself (which we here call the **proto-global object**) is also
@@ -168,28 +171,18 @@ supporting definitions.)
      realm's `Math` object has its `random()` method removed.
 
   1. Add to all realms, including the shared proto-SES realm, a new
-     builtin function `Reflect.confine(src, endowments)`, which
+     fundamental builtin function `Reflect.makeSESRealm()`, which
      creates a new **SES realm** with its own fresh global object
      (denoted in the explanation below by the symbol `freshGlobal`)
-     that inherits from the proto-global object. This fresh global is
-     also a plain object.
+     whose `[[Prototype]]` is the proto-global object. This fresh
+     global is also a plain object.
 
-       * The `freshGlobal` object is populated with overriding bindings for the
-         evaluators that have global names (specifically: `eval` and
-         `Function`). It binds each of these names to fresh objects that
-         inherit from the corresponding objects from the proto-SES realm.
-
-       * The own enumerable properties from `endowments` are then copied onto
-         this global.  Note that this copying happens *after* binding the
-         evaluators, so that the caller of `confine` has the option to endow a
-         SES realm with different evaluators of its own choosing.
-
-       * Evaluate `src` as if by calling the `eval` method originally used to
-         populate `freshGlobal` prior to copying in the endowments, then
-
-       * return the completion value as the value that the `confine` call
-         evaluates to. When `src` is an expression, this completion value is
-         the value that `src` evaluates to.
+     * `Reflect.makeSESRealm()` then populates this `freshGlobal` with
+       overriding bindings for the evaluators that have global names
+       (currently only `eval` and `Function`). It binds each of these
+       names to fresh objects whose `[[Prototype]]`s are the
+       corresponding objects from the proto-SES realm. It returns that
+       fresh global object.
 
   1. The evaluators of the proto-SES realm evaluate code in the global
      scope of the proto-SES realm, using the proto-SES realm's frozen
@@ -197,33 +190,78 @@ supporting definitions.)
      realm evaluate code in the global scope of that SES realm, using
      that realm's global object as their global object.
 
-     The expression `Reflect.confine('this', {})` therefore simply
-     creates a fresh global for a new SES realm, populates it with its
-     own overriding evaluators, but otherwise inherits the globals
-     from the proto-SES realm's globals, and returns that new
-     global. Thus, one can obtain and fully customize the global of a
-     new SES realm before running confined code in that realm by
-     `freshGlobal.eval(src)`. This is illustrated in the Virtual
-     Powers example below.
-
      A SES realm's initial `eval` inherits from proto-SES's
-     `eval`. For each of the overriding constructors, their
-     `prototype` is the same as the constructor they inherit
-     from. Thus, a function `foo` from one SES realm passes the `foo
-     instanceof Function` test using the `Function` constructor of
-     another SES realm, etc. Among SES realms, `instanceof` on
-     primordial types simply works.
+     `eval`. For each of the overriding constructors (currently only
+     `Function`), their `prototype` is the same as the constructor
+     they inherit from. Thus, a function `foo` from one SES realm
+     passes the `foo instanceof Function` test using the `Function`
+     constructor of another SES realm, etc. Among SES realms,
+     `instanceof` on primordial types simply works.
 
-### Entire Fundamental API
+  1. Add to all realms, including the shared proto-SES realm, a new
+     property, `Reflect.SESProtoGlobal`, whose value is the shared
+     global of the proto-SES realm. This can trivially be derived from
+     `Reflect.makeSESRealm` by `Reflect.makeSESRealm().__proto__`. We
+     provide it directly only because it seems wasteful to create a
+     fresh realm and throw it away, only to access something shared.
+
+  1. Add to all realms, including the shared proto-SES realm, a new
+     derived builtin function `Reflect.confine(src, endowments)`. This
+     is only a convenience that can be defined in terms of the
+     fundamental `Reflect.makeSESRealm()` as shown by code below.
+
+       * `Reflect.confine` first calls (the original)
+         `Reflect.makeSESRealm()` to obtain the `freshGlobal` of a new
+         SES realm.
+
+       * The own enumerable properties from `endowments` are then
+         copied onto this global.  Note that this copying happens
+         *after* binding the evaluators, so that the caller of
+         `confine` has the option to endow a SES realm with different
+         evaluators of its own choosing.
+
+       * Evaluate `src` as if by calling the `eval` method originally used to
+         populate `freshGlobal` prior to copying in the endowments.
+
+       * Return the completion value as the value that the `confine` call
+         evaluates to. When `src` is an expression, this completion value is
+         the value that `src` evaluates to.
+
+
+
+### Entire API
 
 ```js
+Reflect.SESProtoGlobal  // global of the shared proto-SES realm
+Reflect.makeSESRealm()  // -> fresh global of new SES realm
 Reflect.confine(src, endowments)  // -> completion value
 ```
 
-Further derived API may be called for, to aid some patterns of
-use. For now, we assume that such conveniences will first be
-user-level libraries before appearing in a later proposal. The
-following examples demonstrate the need for such conveniences.
+These are not necessarily placed on the `Reflect` object. However,
+until the
+[Built-in Modules issue](https://github.com/tc39/ecma262/issues/395)
+is resolved, for concreteness we leave these on `Reflect`.
+
+`Reflect.confine` can be defined in terms of `Reflect.makeSESRealm` as
+follows. For expository purposes, we ignore the difference between
+original binding and current binding. Where the code below says, e.g.,
+`Reflect.makeSESRealm` we actually mean the original binding of that
+expression.
+
+```js
+function confine(src, endowments) {
+  const freshGlobal = Reflect.makeSESRealm();
+  // before possible overwrite by endowments
+  const freshEval = freshGlobal.eval;
+  Object.define(freshGlobal, endowments);
+  return freshEval(src);
+}
+```
+
+Beyond `confine`, further derived API may be called for, to aid some
+patterns of use. For now, we assume that such conveniences will first
+be user-level libraries before appearing in later proposals.
+
 
 ## Examples
 
@@ -254,16 +292,15 @@ killBill();
 
 ### Virtualized Powers
 
-We can make a `confine`-like function that first provides the missing
-functionality from our own `Date` and `Math.random`, to faithfully
-emulate full ES2015.
+We can make function like `makeSESRealm` that first provides the
+missing functionality from our own `Date` and `Math.random`, to
+faithfully emulate full ES2016.
 
 ```js
-function confinePlus(src, endowments) {
+function makeSESRealmPlus() {
   const now = Date.now;  // our own
   const random = Math.random;  // our own
-  const freshGlobal = Reflect.confine('this', {});
-  const freshEval = freshGlobal.eval;
+  const freshGlobal = Reflect.makeSESRealm();
   const {Date: SharedDate, Math: SharedMath} = freshGlobal;
   function FreshDate(...args) {
     if (new.target) {
@@ -276,27 +313,38 @@ function confinePlus(src, endowments) {
     }
   }
   FreshDate.__proto__ = SharedDate;
-  FreshDate.now = () => +now();  // our own
+  FreshDate.now = Object.freeze(() => +now());  // our own
   FreshDate.prototype = SharedDate.prototype;  // so instanceof works
   FreshDate.name = SharedDate.name;
-  freshGlobal.Date = FreshDate;
+  freshGlobal.Date = Object.freeze(FreshDate);
 
-  const FreshMath = {
+  const FreshMath = Object.freeze({
     __proto__: SharedMath,
     random() { return +random(); }  // our own
-  };
+  });
+  Object.freeze(FreshMath.now);
   freshGlobal.Math = FreshMath;
-
-  // Do it separately last so it can overwrite what we wrote above
-  Object.define(freshGlobal, endowments);
-  return freshEval(src);
+  return freshGlobal;
 }
 ```
 
-We can likewise create patterns for endowing with
-[virtualized emulations of expected host-provided globals](https://github.com/google/caja/blob/master/src/com/google/caja/plugin/domado.js),
-like `window` and `document`, possibly mapping into the caller's own
-or not.
+Alternatively, we could express such a convenience with a function for
+helping to create an endowments record seeded with such a `FreshDate`
+and `FreshMath`, to then be used in a normal `confine` call.
+
+We can likewise create patterns for endowing with virtualized
+emulations of expected host-provided globals, like `window` and
+`document`, possibly mapping into the caller's own or
+not. [Caja's Domado subsystem](https://github.com/google/caja/blob/master/src/com/google/caja/plugin/domado.js)
+uses exactly this technique to emulate most of the conventional
+browser and DOM APIs by mapping the confined code's virtual DOM into
+portions of the "physical" DOM, as specified by the confiner when
+instantiating Domado. In this sense, the confined code is like
+user-mode code in an operating system, whose virtual memory accesses
+are mapped to physical memory by a mapping it does not see or
+control. Domado remaps uri space in a similar manner. By emulating the
+browser api, much existing browser code runs compatibly in a
+virtualized browser environment as configured using SES and Domado.
 
 Of course, the Compartments and Virtualized Powers patterns can be
 composed, enabling one to *temporarily* invite potentially malicious
@@ -313,7 +361,12 @@ Now that `Function.prototype.toString` will give a
 [reliably evaluable string](http://tc39.github.io/Function-prototype-toString-revision/)
 that can be sent, SES provides a safe way for the receiver to evaluate
 it, in order to reconsitute that function's call behavior in a safe
-manner.
+manner. Below, assume that the RemotePromise constructor initializes
+the private instance variable `#farEval` of this
+[remote promise](https://github.com/kriskowal/q-connection) to be
+another remote promise, for the `Reflect.SESProtoGlobal.eval` of the
+location (vat, worker, agent, event loop, ...) where this promise's
+fulfillment will be.
 
 ```js
 class QPromise extends Promise {
@@ -323,33 +376,32 @@ class QPromise extends Promise {
 
 class RemotePromise extends QPromise {
   ...
-  // callback must be a closed function
+  // callback must be a closed function, i.e., one whose only free
+  // variables are the globals defined by ES2016 and therefore present
+  // on the proto-global.
   there(callback, errback = void 0) {
     const callbackSrc = Function.prototype.toString.call(callback);
-    // Assume #farConfine is a remote promise for the Reflect.confine
-    // of the realm that this promise's fulfillment will be in.
-    // See https://github.com/kriskowal/q-connection
-    const farCallback = #farConfine.fcall(callbackSrc,
-                                          RemotePromise.passByCopy({}));
+    const farCallback = #farEval.fcall(callbackSrc);
     return farCallback.fcall(this).catch(errback);
   }
 }
 ```
 
-The familiar expression `Promise.resolve(p).then(callback)` postpones
-the `callback` function to some future time after the promise `p` has
-been fulfilled. In like manner, the expression
-`RemotePromise.resolve(r).there(callback)` postpones and migrates the
-closed `callback` function to some future time and space, where the
-object that will be designated by the fulfilled remote promise `r` is
-located. This supports a federated form of the
+We explain `where` by analogy. The familiar expression
+`Promise.resolve(p).then(callback)` postpones the `callback` function
+to some future time after the promise `p` has been fulfilled. In like
+manner, the expression `RemotePromise.resolve(r).there(callback)`
+postpones and migrates the closed `callback` function to some future
+time and space, where the object that will be designated by the
+fulfilled remote promise `r` is located. This supports a federated
+form of the
 [Asynchronous Partitioned Global Address Space](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.464.557)
 concurrency model used by the X10 supercomputer language.
 
 
 ## Annex B considerations
 
-As of ES2015, most of the normative optionals of
+As of ES2016, most of the normative optionals of
 [Annex B](http://www.ecma-international.org/ecma-262/6.0/#sec-additional-ecmascript-features-for-web-browsers)
 seem safe for inclusion as normative optionals of the proto-SES
 realm. However, where Annex B states that these are normative
@@ -395,23 +447,14 @@ practice, independent of host environment:
 All but the last of these have been
 [whitelisted in the SES-shim](https://github.com/google/caja/blob/master/src/com/google/caja/ses/whitelist.js#L85)
 for a long time without problem. (The last bullet above is syntax and
-so not subject to the SES5 whitelisting mechanism.)
-
-SES should probably mandate that `RexExp.prototype.compile` be absent,
-since the observable mutations it causes are confusing. Alternatively,
-in SES, perhaps it still exists to provide the implementation with
-optimization advice but without causing observable mutation.
-
-I have no idea what
-[B.3.5](http://www.ecma-international.org/ecma-262/6.0/#sec-__proto__-property-names-in-object-initializers)
-is about.
+so not subject to the SES-shim whitelisting mechanism.)
 
 
 ## How Deterministic?
 
 _We do not include any form of replay within the goals of SES, so
 this "How Deterministic" section is only important because of the
-punchline at the end of this section._
+punchlines at the end of this section._
 
 Given a deterministic spec, one could be sure that two computations,
 starting from the same state, run on two conforming implementations,
@@ -471,7 +514,7 @@ implementation. They should be fail-stop reproducible when run on the same
 implementation. To make use of this for replay, however, we would need to pin
 down what we mean by "same implementation", which seems slippery and difficult.
 
-### The punchline
+### The punchlines
 
 However, even without pinning down the precise meaning of "implementation
 defined", a computation that is limited to fail-stop implementation-defined
@@ -482,6 +525,11 @@ practically prevent confined computations from perceiving these signals.
 
 (TODO explain the anthropic side channel and how it differs from an
 information-flow termination channel.)
+
+This fail-stop implementation-defined determinism is also a great boon
+to testing and debugging. All non-deterministic inputs, like the
+allegedly current time, can be mocked and provided in a reproducible
+manner.
 
 
 ## Discussion
@@ -530,7 +578,7 @@ property to point back at its own `Function`. The price of this
 technique is that we lose the pleasant property that `instanceof`
 works transparently between SES realms.
 
-In ES2015, the `GeneratorFunction` evaluator is not a named global, but
+In ES2016, the `GeneratorFunction` evaluator is not a named global, but
 rather an unnamed intrinsic. Upcoming evaluators are likely to include
 `AsyncFunction` and `AsyncGeneratorFunction`. These are likely to be
 specified as unnamed instrinsics as well. For all of these, the above
@@ -590,3 +638,15 @@ Reflect.confine(src, endowments)
 is the *entirety* of the new API proposed here. We believe it is all
 that is necessary. However, as we develop a better understanding of
 patterns of use, we may wish to add other conveniences as well.
+
+
+## Open Questions
+
+
+## Acknowledgements
+
+Many thanks to E. Dean Tribble, Kevin Reid, Michael Ficarra, Tom Van
+Cutsem, Kris Kowal, Kevin Smith, Terry Hayes, and Daniel
+Ehernberg. Thanks of the entire Caja team (Jasvir Nagra, Ihab Awad,
+Mike Samuel, Kevin Reid, Felix Lee) for building a system in which all
+the hardest issues were worked out.
