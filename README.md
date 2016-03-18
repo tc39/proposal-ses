@@ -332,7 +332,7 @@ function makeSESRealmPlus() {
     __proto__: SharedMath,
     random() { return +random(); }  // our own
   });
-  Object.freeze(FreshMath.now);
+  Object.freeze(FreshMath.random);
   freshGlobal.Math = FreshMath;
   return freshGlobal;
 }
