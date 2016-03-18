@@ -350,7 +350,9 @@ function makeSESRealmPlus() {
 
 Alternatively, we could express such a convenience with a function for
 helping to create an endowments record seeded with such a `FreshDate`
-and `FreshMath`, to then be used in a normal `confine` call.
+and `FreshMath`, to then be used in a normal `confine` call. Either
+way, this full-standard ses-plus realm consts and additional four
+allocations, bringing the total to seven.
 
 In addition to `Date` and `Math`, we can create libraries for seeding
 the fresh global with virtualized emulations of expected host-provided
