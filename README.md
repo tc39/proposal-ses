@@ -348,14 +348,14 @@ globals like `window` and `document`. These emulations may map into
 the caller's own or
 not. [Caja's Domado library](https://github.com/google/caja/blob/master/src/com/google/caja/plugin/domado.js)
 uses exactly this technique to emulate most of the conventional
-browser and DOM APIs by mapping the confined code's virtual DOM into
-portions of the "physical" DOM, as the caller specifies. In this
-sense, the confined code is like user-mode code in an operating
-system, whose virtual memory accesses are mapped to physical memory by
-a mapping it does not see or control. Domado remaps uri space in a
-similar manner. By emulating the browser api, much existing browser
-code runs compatibly in a virtualized browser environment as
-configured by the caller using SES and Domado.
+browser and DOM APIs, by mapping the confined code's virtual DOM into
+the portions of the caller's "physical" DOM that the caller
+specifies. In this sense, the confined code is like user-mode code in
+an operating system, whose virtual memory accesses are mapped to
+physical memory by a mapping it does not see or control. Domado remaps
+uri space in a similar manner. By emulating the browser api, much
+existing browser code runs compatibly in a virtualized browser
+environment as configured by the caller using SES and Domado.
 
 Of course, the Compartments and Virtualized Powers patterns can be
 composed, enabling one to *temporarily* invite potentially malicious
