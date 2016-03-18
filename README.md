@@ -170,6 +170,9 @@ supporting definitions.)
      time _(Would a different error be more appropriate?)_.  The proto-SES
      realm's `Math` object has its `random()` method removed.
 
+     See the Virtual Powers section below to see how a SES user can
+     effectively add these back in.
+
   1. Add to all realms, including the shared proto-SES realm, a new
      fundamental builtin function `Reflect.makeSESRealm()`, which
      creates a new **SES realm** with its own fresh global object
@@ -258,9 +261,10 @@ function confine(src, endowments) {
 }
 ```
 
-Beyond `confine`, further derived API may be called for, to aid some
-patterns of use. For now, we assume that such conveniences will first
-be user-level libraries before appearing in later proposals.
+Beyond `SESProtoGlobal` and `confine`, further derived API may be
+called for, to aid some patterns of use. For now, we assume that such
+conveniences will first be user-level libraries before appearing in
+later proposals.
 
 
 ## Examples
@@ -632,11 +636,13 @@ we will need to explain how they appear in SES.
 Prior to standard builtin primordial modules,
 
 ```js
-Reflect.confine(src, endowments)
+Reflect.SESProtoGlobal  // global of the shared proto-SES realm
+Reflect.makeSESRealm()  // -> fresh global of new SES realm
+Reflect.confine(src, endowments)  // -> completion value
 ```
 
 is the *entirety* of the new API proposed here. We believe it is all
-that is necessary. However, as we develop a better understanding of
+that is needed. However, as we develop a better understanding of
 patterns of use, we may wish to add other conveniences as well.
 
 
