@@ -185,7 +185,7 @@ supporting definitions.)
        (currently only `eval` and `Function`). It binds each of these
        names to fresh objects whose `[[Prototype]]`s are the
        corresponding objects from the proto-SES realm. It returns that
-       fresh global object unfrozen.
+       fresh global object.
 
   1. The evaluators of the proto-SES realm evaluate code in the global
      scope of the proto-SES realm, using the proto-SES realm's frozen
