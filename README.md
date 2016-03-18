@@ -9,8 +9,8 @@ standard ECMAScript platform.
 
 It is commonplace for ECMAScript developers to produce applications by
 co-mingling their own code with code provided by others -- frameworks and
-libraries, for example (of course this pattern is by no means limited to
-ECMAScript, but that's what we are concerned with here).  There are vast
+libraries, for example. (Of course this pattern is by no means limited to
+ECMAScript, but that's what we are concerned with here.)  There are vast
 opportunities for the operation of these various pieces to interfere with each
 other.  The chance of such interference grows as the size and complexity of the
 application grows, and as the number of participants in the application's code
