@@ -672,6 +672,9 @@ evaluators with strict-by-default wrappers will break their use for
 direct-eval. We need to do something about this, but it is not yet
 clear what.
 
+Of course, there is the perpetual bikeshedding of names. We are not
+attached to the names we present here.
+
 ## Acknowledgements
 
 Many thanks to E. Dean Tribble, Kevin Reid, Michael Ficarra, Tom Van
