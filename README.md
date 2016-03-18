@@ -661,7 +661,7 @@ the problem go away. This diverges from the current standard in a
 different way, but we have some evidence that such divergence will
 break almost no existing code other than test code that specifically
 probes for standards compliance. We could also leave it unfixed. This
-would break some good practice legacy patterns of overriding methods by
+would break some good-practice legacy patterns of overriding methods by
 assignment to prototypes, but is compatible with overriding by classes
 and object literals, since they do `[[DefineOwnProperty]]` rather than
 assignment.
