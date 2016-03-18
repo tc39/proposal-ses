@@ -370,9 +370,9 @@ existing browser code runs compatibly in a virtualized browser
 environment as configured by the caller using SES and Domado.
 
 By composing the Compartments and Virtualized Powers patterns, one can
-to *temporarily* invite potentially malicious code onto one's page,
-endow it with a subtree of one's own DOM as its virtual document, and
-then permanently and fully evict it.
+*temporarily* invite potentially malicious code onto one's page, endow
+it with a subtree of one's own DOM as its virtual document, and then
+permanently and fully evict it.
 
 ### Mobile code
 
