@@ -682,13 +682,14 @@ the problem go away. This diverges from the current standard in a
 different way, but we have some evidence that such divergence will
 break almost no existing code other than test code that specifically
 probes for standards compliance. We could also leave it unfixed. This
-would break some good-practice legacy patterns of
-[overriding methods by assignment](https://esdiscuss.org/topic/object-freeze-object-prototype-vs-reality),
-but is compatible with overriding by classes and object literals,
-since they do `[[DefineOwnProperty]]` rather than assignment.
+would break some good-practice legacy patterns of overriding methods
+by assignment, but is compatible with overriding by classes and object
+literals, since they do `[[DefineOwnProperty]]` rather than
+assignment.
 
-My sense is that not fixing the override mistake at all will break too
-much legacy code. But if fully fixing it is too expensive, it might be
+My sense is that not fixing the override mistake at all will
+[break too much legacy code](https://esdiscuss.org/topic/object-freeze-object-prototype-vs-reality). But
+if fully fixing the override mistake is too expensive, it might be
 that fixing only properties on prototypes that one expects to be
 overridden (e.g., `constructor`, `toString`, ...) will reduce the
 breakage to a tolerable level. We need measurements.
