@@ -62,6 +62,16 @@ transitively immutable and powerless, we have an object-capability (ocap)
 language.  In an ocap language, object references are the sole representation
 of permission.
 
+(An object is _transitively immutable_ if no mutable state is
+reachable in the object graph starting at that object. An object is
+_powerless_ if it is unable to cause I/O. For example, in Java, even
+the seemingly immutable square root function in a math library is not
+powerless because it is able to import java.io.File and delete all
+your files. If we include the external world in our notion of mutable
+state, then "transitively immutable" necessarily implies
+"powerless". In the remainder of this document, we use _transitively
+immutable_ for this joint restriction.)
+
 Ocap languages enable us to program objects that are defensively consistent --
 that is, they can defend their own invariants and provide correct service to
 their well behaved clients, despite arbitrary or malicious misbehavior by their
@@ -83,15 +93,16 @@ simple changes to the default execution environment.
 
 SES -- Secure ECMAScript -- is such a subset.
 
-SES derives an ocap environment from a conventional ECMAScript environment
-through a small number of carefully chosen modifications.  SES specifies two
-particular sets of such modifications: (1) it requires that all the primordial
-objects -- objects like `Array.prototype`, mandated by the ECMAScript language
-specification to exist before any code starts running -- be made transitively
-immutable, and (2) it forbids any references to any other objects that are not
-already transitively immutable and powerless from being reachable from the
-initial execution state of the environment (notably including such typical
-browser provided globals as `window` or `document`).
+SES derives an ocap environment from a conventional ECMAScript
+environment through a small number of carefully chosen modifications.
+SES specifies two particular sets of such modifications: (1) it
+requires that all the primordial objects -- objects like
+`Array.prototype`, mandated by the ECMAScript language specification
+to exist before any code starts running -- be made transitively
+immutable, and (2) it forbids any references to any other objects that
+are not already transitively immutable from being reachable from the
+initial execution state of the environment (notably including such
+typical browser provided globals as `window` or `document`).
 
 These restrictions must be in place prior to to any (user) code being allowed
 to run.  This can be achieved either by arranging to run special code
@@ -152,18 +163,18 @@ supporting definitions.)
 
 ## Proposal
 
-  1. Create a single shared **proto-SES realm** (global scope and set of
-     primordial objects) in which all primordials are already transitively
-     immutable and authority-free. These primordials include *all* the
+  1. Create a single shared **proto-SES realm** (global scope and set
+     of primordial objects) in which all primordials are already
+     transitively immutable. These primordials include *all* the
      primordials defined as mandatory in ES2016. (And those in
      [draft ES2017](https://tc39.github.io/ecma262/) as of March 17,
-     2016, the time of this writing.)  These primordials
-     must include no other
-     objects or properties beyond those specified here. Unlike the *SES realms*
-     we define below, in this one shared proto-SES realm the global object
-     itself (which we here call the **proto-global object**) is also
-     transitively immutable and authority-free. Specifically, it contains no
-     host-specific objects. The proto-global object is a plain object.
+     2016, the time of this writing.)  These primordials must include
+     no other objects or properties beyond those specified
+     here. Unlike the *SES realms* we define below, in this one shared
+     proto-SES realm the global object itself (which we here call the
+     **proto-global object**) is also transitively
+     immutable. Specifically, it contains no host-specific
+     objects. The proto-global object is a plain object.
 
   1. In order to attain the necessary deep immutability of the proto-SES realm,
      two of its primordials must be modified from the standard: The proto-SES
@@ -552,14 +563,14 @@ reproducible manner.
 
 ## Discussion
 
-Because the proto-SES realm is transitively immutable and
-authority-free, we can safely share it between JS programs that are
-otherwise fully isolated. This sharing gives them access to shared
-objects and shared identities, but no ability to communicate with each
-other or to affect any state outside themselves. We can even share
-proto-SES primordials between origins and between threads, since deep
-immutability at the specification level should make thread safety at
-the implementation level straightforward.
+Because the proto-SES realm is transitively immutable, we can safely
+share it between JS programs that are otherwise fully isolated. This
+sharing gives them access to shared objects and shared identities, but
+no ability to communicate with each other or to affect any state
+outside themselves. We can even share proto-SES primordials between
+origins and between threads, since deep immutability at the
+specification level should make thread safety at the implementation
+level straightforward.
 
 Each call to `Reflect.makeSESRealm()` allocates only three objects:
 the fresh global and its fresh `eval` function and `Function`
@@ -618,8 +629,8 @@ especially powerful in the context of SES. But because the utility of
 such defensive programming support is not limited to SES, they should
 remain independent proposals. (TODO link to relevant proposals)
 
-For each of the upcoming proposed standard APIs that are not immutable
-and authority-free:
+For each of the upcoming proposed standard APIs that are inherently
+not immutable and powerless:
 
   * [`defaultLoader`](https://github.com/whatwg/loader/issues/34)
   * [`global`](https://github.com/tc39/proposal-global)
@@ -627,13 +638,13 @@ and authority-free:
   * [`getStack`](https://mail.mozilla.org/pipermail/es-discuss/2016-February/045579.html)
   * [`getStackString`](https://mail.mozilla.org/pipermail/es-discuss/2016-February/045579.html)
 
-they must be absent from the proto-SES realm,
-or have their behavior grossly truncated into something safe. This
-spec will additionally need to say how they initially appear, if at
-all, in each individual SES realm.  In particular, we expect a pattern
-to emerge for creating a fresh loader instance to be the default
-loader of a fresh SES realm. Once some proposed APIs are specced as
-being provided by import from
+they must be absent from the proto-SES realm, or have their behavior
+grossly truncated into something safe. This spec will additionally
+need to say how they initially appear, if at all, in each individual
+SES realm.  In particular, we expect a pattern to emerge for creating
+a fresh loader instance to be the default loader of a fresh SES
+realm. Once some proposed APIs are specced as being provided by import
+from
 [builtin primordial modules](https://github.com/tc39/ecma262/issues/395),
 we will need to explain how they appear in SES.
 
