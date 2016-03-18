@@ -215,10 +215,10 @@ supporting definitions.)
          SES realm.
 
        * The own enumerable properties from `endowments` are then
-         copied onto this global.  Note that this copying happens
-         *after* `makeSESRealm` binds the evaluators, so that the
-         caller of `confine` has the option to endow a SES realm with
-         different evaluators of its own choosing.
+         copied onto this global.  This copying happens *after*
+         `makeSESRealm` binds the evaluators, so that the caller of
+         `confine` has the option to endow a SES realm with different
+         evaluators of its own choosing.
 
        * Evaluate `src` as if by calling the `eval` method originally
          added to `freshGlobal` prior to copying in the endowments.
@@ -414,8 +414,8 @@ seem safe for inclusion as normative optionals of the proto-SES
 realm. However, where Annex B states that these are normative
 mandatory in a web browser, there is no such requirement for SES. Even
 when run in a web browser, the SES environment, having no host
-specific globals, must be considered a non-browser environment. Note
-that some post-ES2015 APIs proposed for Annex B, such as the
+specific globals, must be considered a non-browser environment. Some
+post-ES2015 APIs proposed for Annex B, such as the
 [`RegExp` statics](https://github.com/claudepache/es-regexp-legacy-static-properties)
 and the
 [`Error.prototype.stack` accessor property](https://mail.mozilla.org/pipermail/es-discuss/2016-February/045579.html),
