@@ -12,7 +12,7 @@ code written by others, such as frameworks and libraries. These pieces
 may cooperate as the developer intends, or they may destructively
 interfere with each other.  Even under the best of intentions, the
 likelihood of interference grows as the size and complexity of the
-application grows, and as the application's ecosystem also grows. This
+application grows, and as the application's ecosystem grows. This
 coordination problem sets a limit of the scale and functionality of
 the software we can successfully compose.
 
@@ -56,12 +56,12 @@ about the evolution of the object reference graph over time.
 ECMAScript is a language with these properties.
 
 With two additional restrictions,
-  1. that the only way for an object to cause any effect on the world
-     outside itself is by using references it already holds, and
-  1. that no object has default or implicit access to any other
-     objects (e.g., via language provided global variables) that are
-     not already transitively immutable and powerless,
-     
+  * that the only way for an object to cause any effect on the world
+    outside itself is by using references it already holds, and
+  * that no object has default or implicit access to any other objects
+    (e.g., via language provided global variables) that are not
+    already transitively immutable and powerless,
+
 we have an object-capability (ocap) language.  In an ocap language,
 object references are the sole representation of permission.
 
@@ -101,14 +101,14 @@ compatible virtual host environment to the code it confines.)
 
 SES derives an ocap environment from a conventional ECMAScript
 environment through a small number of carefully chosen modifications:
-  1. SES requires that all the _primordial objects_ -- objects like
-     `Array.prototype`, mandated by the ECMAScript language
-     specification to exist before any code starts running -- be made
-     transitively immutable, and
-  1. SES forbids any references to any other objects that are not
-     already transitively immutable (including `window`, `browser`,
-     `XMLHttpRequest`, ...) from being reachable from the initial
-     execution state of the environment.
+  * SES requires that all the _primordial objects_ -- objects like
+    `Array.prototype`, mandated by the ECMAScript language
+    specification to exist before any code starts running -- be made
+    transitively immutable, and
+  * SES forbids any references to any other objects that are not
+    already transitively immutable (including `window`, `browser`,
+    `XMLHttpRequest`, ...) from being reachable from the initial
+    execution state of the environment.
 
 These restrictions must be in place before any (user) code is allowed
 to run.  We can achieve this by running special preamble code
@@ -154,6 +154,8 @@ We want the standard SES mechanism to be sufficiently lightweight that
 it can be used promiscuously.  Rather than simply isolating individual
 pieces of code so they can do no damage, we also want to make it
 possible to use these confined pieces as composable building blocks.
+
+(TODO rewrite runon)
 Consequently, code that is responsible for integrating separate
 isolated pieces also should be able to selectively connect them in
 controlled ways to each other, or to other, unconfined objects
@@ -180,11 +182,11 @@ supporting definitions.)
      immutable. Specifically, it contains no host-specific
      objects. The proto-global object is a plain object.
 
-  1. In order to attain the necessary deep immutability of the proto-SES realm,
-     two of its primordials must be modified from the standard: The proto-SES
-     realm's `Date` object has its `now()` method removed and its default
-     constructor changed to throw a `TypeError` rather than reveal the current
-     time _(Would a different error be more appropriate?)_.  The proto-SES
+  1. In order to attain the necessary deep immutability of the
+     proto-SES realm, two of its primordials must be modified from the
+     standard: The proto-SES realm's `Date` object has its `now()`
+     method removed and its default constructor changed to throw a
+     `TypeError` rather than reveal the current time.  The proto-SES
      realm's `Math` object has its `random()` method removed.
 
      See the Virtual Powers section below to see how a SES user can
@@ -193,9 +195,10 @@ supporting definitions.)
   1. Add to all realms, including the shared proto-SES realm, a new
      fundamental builtin function `Reflect.makeSESRealm()`, which
      creates a new **SES realm** with its own fresh global object
-     (denoted in the explanation below by the symbol `freshGlobal`)
-     whose `[[Prototype]]` is the proto-global object. This fresh
-     global is also a plain object.
+     (denoted below by the symbol `freshGlobal`) whose `[[Prototype]]`
+     is the proto-global object. This fresh global is also a plain
+     object. Unlike the proto-global, the `freshGlobal` is not frozen
+     by default.
 
      * `Reflect.makeSESRealm()` then populates this `freshGlobal` with
        overriding bindings for the evaluators that have global names
@@ -203,6 +206,10 @@ supporting definitions.)
        names to fresh objects whose `[[Prototype]]`s are the
        corresponding objects from the proto-SES realm. It returns that
        fresh global object.
+
+     The total cost of a new SES realm is three objects: the
+     `freshGlobal` and the `eval` function and `Function` constructor
+     specific to it.
 
   1. The evaluators of the proto-SES realm evaluate code in the global
      scope of the proto-SES realm, using the proto-SES realm's frozen
@@ -212,10 +219,10 @@ supporting definitions.)
 
      A SES realm's initial `eval` inherits from proto-SES's
      `eval`. For each of the overriding constructors (currently only
-     `Function`), their `prototype` is the same as the constructor
-     they inherit from. Thus, a function `foo` from one SES realm
-     passes the `foo instanceof Function` test using the `Function`
-     constructor of another SES realm, etc. Among SES realms,
+     `Function`), their `"prototype"` property initially has the same
+     as the constructor they inherit from. Thus, a function `foo` from
+     one SES realm passes the `foo instanceof Function` test using the
+     `Function` constructor of another SES realm. Among SES realms,
      `instanceof` on primordial types simply works.
 
   1. Add to all realms, including the shared proto-SES realm, a new
@@ -246,11 +253,11 @@ supporting definitions.)
 
 
 
-### Entire API
+### The Entire API
 
 ```js
 Reflect.SESProtoGlobal  // global of the shared proto-SES realm
-Reflect.makeSESRealm()  // -> fresh global of new SES realm
+Reflect.makeSESRealm()  // -> fresh global of a new SES realm
 Reflect.confine(src, endowments)  // -> completion value
 ```
 
@@ -283,6 +290,9 @@ later proposals.
 
 ## Examples
 
+The "Compartments", "Virtual Powers" and "Mobile Code" examples each
+illustrate very different aspect of SES's power. Please look at all three.
+
 ### Compartments
 
 By composing
@@ -303,20 +313,29 @@ const {wrapper: bill,
 const {wrapper: joan,
        revoke: killJoan} = makeCompartment(joanSrc, endowments);
 
-// ... introduce mutually suspicious Bill and Joan. Use both ...
+// ... introduce mutually suspicious Bill and Joan to each other...
+// ... use both ...
 killBill();
 // ... Bill is inaccessible to us and to Joan. GC can collect Bill ...
 ```
 
+After `killBill` is called, there is nothing the Bill code can do to
+cause further effects, or even to continue to occupy memory.
+
 ### Virtualized Powers
 
-We can make functions like `makeSESRealm` that first provides the
-missing functionality from our own `Date` and `Math.random`, to
-faithfully emulate full ES2016. Usually non-determinism is not a
-threat of interest, in which case the following `makeSESRealmPlus` is
-perfectly safe to use instead. Indeed, Caja has always provided the
+In the Punchlines section below, we explain the non-overt channel
+threats that motivates the removal of `Date.now` and
+`Math.random`. However, usually this threat is not of interest, in
+which case we'd rather include the full API of ES2016, since it is
+otherwise safe. ndeed, Caja has always provided the
 full functionality of `Date` and `Math` because its threat model did
 not demand that they be denied.
+
+The following `makeSESRealmPlus` is a function similar to
+`makeSESRealm` that also provides the missing functionality from our
+own `Date` and `Math.random`, i.e., the `Date` and `Math.random` of
+the realm this function definition is evaluated in.
 
 ```js
 function makeSESRealmPlus() {
@@ -350,16 +369,16 @@ function makeSESRealmPlus() {
 }
 ```
 
-Alternatively, we could express such a convenience with a function for
-helping to create an endowments record seeded with such a `FreshDate`
-and `FreshMath`, to then be used in a normal `confine` call. Either
-way, this full-standard ses-realm-plus costs an additional four
-allocations, bringing the total to seven.
+Alternatively, we could express a similar convenience with a function
+for helping to create an endowments record seeded with such a
+`FreshDate` and `FreshMath`, to then be used in a normal `confine`
+call. Either way, this full-standard ses-realm-plus costs an
+additional four allocations, bringing the total to seven.
 
 In addition to `Date` and `Math`, we can create libraries for seeding
 the fresh global with virtualized emulations of expected host-provided
-globals like `window` and `document`. These emulations may map into
-the caller's own or
+globals like `window`, `document`, and `XMLHttpRequest`. These
+emulations may map into the caller's own or
 not. [Caja's Domado library](https://github.com/google/caja/blob/master/src/com/google/caja/plugin/domado.js)
 uses exactly this technique to emulate most of the conventional
 browser and DOM APIs, by mapping the confined code's virtual DOM into
@@ -370,6 +389,26 @@ physical memory by a mapping it does not see or control. Domado remaps
 uri space in a similar manner. By emulating the browser api, much
 existing browser code runs compatibly in a virtualized browser
 environment as configured by the caller using SES and Domado.
+
+To run legacy code successfully, the `freshGlobal` should remain
+unfrozen, since even good-practice legacy scripts approximate
+"inter-module linkage" by modifying their shared global
+environment. Prior to real modules, they did not have much
+choice. When setting up a SES environment expecting to run only
+modules, it may well be reasonable to freeze the `freshGlobal` before
+running confined code in that realm. To leave the SES user free to
+make that choice, the API proposed here leaves the `freshGlobal`
+unfrozen.
+
+Because `eval`, `Function`, and the above `Date` and `Math` observably
+shadow the corresponding objects from the proto-SES realm, the SES
+environment is not a fully faithful emulation of standard non-SES
+ECMAScript. However, these breaks in the illusion are a necessary
+consequence of this design. We have chosen these carefully to be
+compatible with virtually all code not written specifically to test
+standards conformance. The virtualization of host-provided objects
+suffers no such cost. There is no similar constraint preventing the
+SES user from faithfully emulating a host API.
 
 By composing the Compartments and Virtualized Powers patterns, one can
 *temporarily* invite potentially malicious code onto one's page, endow
@@ -415,7 +454,7 @@ class RemotePromise extends QPromise {
 }
 ```
 
-We explain `where` by analogy. The familiar expression
+We explain `there` by analogy. The familiar expression
 `Promise.resolve(p).then(callback)` postpones the `callback` function
 to some future time after the promise `p` has been fulfilled. In like
 manner, the expression `RemotePromise.resolve(r).there(callback)`
@@ -428,6 +467,86 @@ This supports a federated form of the
 [Asynchronous Partitioned Global Address Space](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.464.557)
 concurrency model used by the X10 supercomputer language, integrated
 smoothly with our promise framework for handling asynchrony.
+
+
+## How Deterministic?
+
+_We do not include any form of replay within the goals of SES, so
+this "How Deterministic" section is only important because of the
+punchlines at the end of this section._
+
+Given a deterministic spec, one could be sure that two computations,
+run on two conforming implementations, starting from the same state
+and fed the same inputs, will compute the same new states and
+outputs. The ES5 and ES2015 specs come tantalizingly close to being
+deterministic. We have avoided some common but unnecessary sources of
+non-determinism like Java's `System.identityHashCode`. But the
+ECMAScript specs fail for three reasons:
+
+  * Genuine non-determinism, such as by `Math.random()`.
+  * Unspecified but unavoidable failure, such as out-of-memory.
+  * Explicit underspecification, i.e. leaving some observable behavior
+    up to the implementation.
+
+The explicitly non-deterministic abilities to sense the current time
+(via `Date()` and `Date.now()`) or generate random numbers (via
+`Math.random()`) are disabled in the proto-SES realm, and therefore by
+default in each SES realm. New sources of non-determinism, like
+`makeWeakRef` and `getStack` will not be added to the proto-SES realm
+or will be similarly disabled.
+
+The ECMAScript specs to date have never admitted the possibility of
+failures such as out-of-memory. In theory this means that a conforming
+ECMAScript implementation requires an infinite memory
+machine. Unfortunately, these are currently in short supply. Since
+ECMAScript is an implicitly-allocating language, the out-of-memory
+condition could cause computation to fail at any time. If these
+failures are reported by
+[unpredictably throwing a catchable exception](https://docs.oracle.com/javase/8/docs/api/java/lang/VirtualMachineError.html),
+then defensive programming becomes impossible. This would be contrary
+to the goals of SES and indeed
+[of much ECMAScript code](https://github.com/tc39/ecmascript_sharedmem/issues/55). Thus,
+at least SES computation, and any synchronous computation it is
+entangled with, on encountering an unpredictable error, must
+[preemptively abort without running further user code](https://github.com/tc39/ecmascript_sharedmem/issues/55)).
+
+Even if ECMAScript were otherwise deterministically replayable, these
+unpredictable preemptive failures would prevent it. We examine instead
+the weaker property of *fail-stop determinism*, where each replica
+either fails, or succeeds in a manner identical to every other
+non-failing replica.
+
+Although they are few in number, there are a number of specification
+issues that are observably left to implementations, on which
+implementations differ. Some of these may eventually be closed by
+future TC39 agreement, such as enumeration order if objects are
+modified during enumeration (TODO link). Others, like the sort
+algorithm used by `Array.prototype.sort` are less likely to be
+closed. However, *implementation-defined* is not necessarily genuine
+non-determinism. On a given implementation, operations which are only
+implementation-defined can be deterministic within the scope of that
+implementation. They should be fail-stop reproducible when run on the
+same implementation. To make use of this for replay, however, we would
+need to pin down what we mean by "same implementation", which seems
+slippery and difficult.
+
+### The punchlines
+
+Even without pinning down the precise meaning of "implementation
+defined", a computation that is limited to fail-stop
+implementation-defined determinism _**cannot read covert channels and
+side channels**_ that it was not explicitly enabled to read. Nothing
+can practically prevent signalling on covert channels and side
+channels, but approximations to determinism can practically prevent
+confined computations from perceiving these signals.
+
+(TODO explain the anthropic side channel and how it differs from an
+information-flow termination channel.)
+
+Fail-stop implementation-defined determinism is a **great boon to
+testing and debugging**. All non-deterministic _dependencies_, like
+the allegedly current time, can be mocked and _injected_ in a
+reproducible manner.
 
 
 ## Annex B considerations
@@ -481,91 +600,6 @@ for a long time without problem. (The last bullet above is syntax and
 so not subject to the SES-shim whitelisting mechanism.)
 
 
-## How Deterministic?
-
-_We do not include any form of replay within the goals of SES, so
-this "How Deterministic" section is only important because of the
-punchlines at the end of this section._
-
-Given a deterministic spec, one could be sure that two computations,
-starting from the same state, run on two conforming implementations,
-and fed the same inputs, will compute the same new states and outputs. The
-ECMAScript 5 and 2015 specs come tantalizingly close to being
-deterministic. They have avoided some common but unnecessary sources
-of non-determinism like Java's `Object.hashCode`. But the ECMAScript
-specs fail for three reasons:
-
-  * Genuine non-determinism, such as by `Math.random()`.
-  * Unspecified but unavoidable failure, such as out-of-memory.
-  * Explicit underspecification, i.e. leaving some observable behavior
-    up to the implementation.
-
-The explicitly non-deterministic abilities to sense the current time
-(via `Date()` and `Date.now()`) or generate random numbers (via
-`Math.random()`) are disabled in the proto-SES realm, and therefore by
-default in each SES realm. New sources of non-determinism, like
-`makeWeakRef` and `getStack` will not be added to the proto-SES realm
-or will be similarly disabled.
-
-The ECMAScript specs to date have never admitted the possibility of
-failures such as out-of-memory. In theory this means that a conforming
-ECMAScript implementation requires an infinite memory
-machine. Unfortunately, these are currently unavailable. Since
-ECMAScript is an implicitly-allocating language, the out-of-memory
-condition could cause computation to fail at any time. If these
-failures are reported in a recoverable manner without rollback, such
-as by a thrown exception (cite JVM), then defensive programming
-becomes impossible. This would be contrary to the goals of at least
-SES and indeed to much ECMAScript code. (TODO link to SAB discussion
-of containing failure.) Thus, at least SES computation, and any
-synchronous computation it is entangled with, on unpredictable errors
-must either be preemptively aborted without running further user code
-(see [Erlang](http://c2.com/cgi/wiki?LetItCrash),
-[Joe-E/Waterken](http://waterken.sourceforge.net/),
-[Shared Array Buffers](https://github.com/tc39/ecmascript_sharedmem/issues/55))
-or roll back to a previous safe point (cite Noether). If repeated
-attempts to roll forward from a safe point fail, preemptive
-termination is inevitable.
-
-Even if ECMAScript were otherwise deterministically replayable, these
-unpredictable preemptive failures would prevent it. We examine instead
-the weaker property of *fail-stop determinism*, where each replica
-either fails, or succeeds in a manner identical to every other
-non-failing replica.
-
-Although they are few in number, there are a number of specification
-issues that are observably left to implementations, on which
-implementations differ. Some of these may eventually be closed by
-future TC39 agreement, such as enumeration order if objects are
-modified during enumeration (TODO link). Others, like the sort
-algorithm used by `Array.prototype.sort` are less likely. However,
-*implementatiion-defined* is not necessarily genuine
-non-determinism. On a given implementation, operations which are only
-implementation-defined can be deterministic within the scope of that
-implementation. They should be fail-stop reproducible when run on the
-same implementation. To make use of this for replay, however, we would
-need to pin down what we mean by "same implementation", which seems
-slippery and difficult.
-
-### The punchlines
-
-Even without pinning down the precise meaning of "implementation
-defined", a computation that is limited to fail-stop
-implementation-defined determinism _**cannot read covert channels and
-side channels**_ that it is not otherwise explicitly enabled to
-read. Nothing can practically prevent signalling on covert channels
-and side channels, but approximations to determinism can practically
-prevent confined computations from perceiving these signals.
-
-(TODO explain the anthropic side channel and how it differs from an
-information-flow termination channel.)
-
-Fail-stop implementation-defined determinism will be a great boon to
-testing and debugging. All non-deterministic _dependencies_, like the
-allegedly current time, can be mocked and _injected_ in a reproducible
-manner.
-
-
 ## Discussion
 
 Because the proto-SES realm is transitively immutable, we can safely
@@ -580,11 +614,11 @@ level straightforward.
 Each call to `Reflect.makeSESRealm()` allocates only three objects:
 the fresh global and its fresh `eval` function and `Function`
 constructor. In a browser environment, a SES-based confined seamless
-iframe could be *very* lightweight, since it would avoid the need to
-create most per-frame primordials. Likewise, we could afford to place
-each [web component](http://webcomponents.org/) into its own
-confinement box. By using Domado-like techniques, the actual DOM can
-be safely encapsulated behind the component's shadow DOM.
+iframe could be lightweight, since it would avoid the need to create
+most per-frame primordials. Likewise, we could afford to place each
+[web component](http://webcomponents.org/) into its own confinement
+box. By using Domado-like techniques, the actual DOM can be safely
+encapsulated behind the component's shadow DOM.
 
 Today, to self-host builtins by writing them in ECMAScript, one must
 practice
@@ -659,7 +693,7 @@ Prior to standard builtin primordial modules,
 
 ```js
 Reflect.SESProtoGlobal  // global of the shared proto-SES realm
-Reflect.makeSESRealm()  // -> fresh global of new SES realm
+Reflect.makeSESRealm()  // -> fresh global of a new SES realm
 Reflect.confine(src, endowments)  // -> completion value
 ```
 
@@ -685,16 +719,16 @@ different way, but we have some evidence that such divergence will
 break almost no existing code other than test code that specifically
 probes for standards compliance. We could also leave it unfixed. This
 would break some good-practice legacy patterns of overriding methods
-by assignment, but is compatible with overriding by classes and object
-literals, since they do `[[DefineOwnProperty]]` rather than
+by assignment. But it is compatible with overriding by classes and
+object literals, since they do `[[DefineOwnProperty]]` rather than
 assignment.
 
-My sense is that not fixing the override mistake at all will
+Our sense is that not fixing the override mistake at all will
 [break too much legacy code](https://esdiscuss.org/topic/object-freeze-object-prototype-vs-reality). But
 if fully fixing the override mistake is too expensive, it might be
-that fixing only properties on prototypes that one expects to be
-overridden (e.g., `constructor`, `toString`, ...) will reduce the
-breakage to a tolerable level. We need measurements.
+that fixing a handful of properties on primordial prototypes that are
+overridden in practice (e.g., `constructor`, `toString`, ...) will
+reduce the breakage to a tolerable level. We need measurements.
 
 Although not officially a question within the jurisdiction of TC39, we
 should discuss whether the existing CSP "no script evaluation"
@@ -711,6 +745,20 @@ evaluators with strict-by-default wrappers will break their use for
 direct-eval. We need to do something about this, but it is not yet
 clear what.
 
+The standard `Date` constructor reveals the current time either
+  * when called as a constructor with no arguments, or
+  * when called as a function (regardless of the arguments)
+
+Above we propose to censor the current time by having the proto-Date
+constructor throw a `TypeError` in those cases. Would another error
+type be more appropriate? Instead of throwing an Error, should `new
+Date()` produce an invalid date, equivalent to that produced by `new
+Date(NaN)`? If so, calling the `Date` constructor as a function should
+produce the corresponding string `"Invalid Date"`. If we go in this
+direction, conceivably we could even have `Date.now()` return
+`NaN`. The advantage of removing `Date.now` instead is to support the
+feature-testing style practiced by ECMAScript programmers.
+
 Of course, there is the perpetual bikeshedding of names. We are not
 attached to the names we present here.
 
@@ -720,4 +768,4 @@ Many thanks to E. Dean Tribble, Kevin Reid, Michael Ficarra, Tom Van
 Cutsem, Kris Kowal, Kevin Smith, Terry Hayes, and Daniel
 Ehernberg. Thanks of the entire Caja team (Jasvir Nagra, Ihab Awad,
 Mike Samuel, Kevin Reid, Felix Lee) for building a system in which all
-the hardest issues were worked out.
+the hardest issues have already been worked out.
