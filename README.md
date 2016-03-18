@@ -336,9 +336,10 @@ Alternatively, we could express such a convenience with a function for
 helping to create an endowments record seeded with such a `FreshDate`
 and `FreshMath`, to then be used in a normal `confine` call.
 
-We can likewise create patterns for endowing with virtualized
-emulations of expected host-provided globals, like `window` and
-`document`, possibly mapping into the caller's own or
+In addition to `Date` and `Math`, we can create libraries for seeding
+the fresh global with virtualized emulations of expected host-provided
+globals like `window` and `document`. These emulations may map into
+the caller's own or
 not. [Caja's Domado subsystem](https://github.com/google/caja/blob/master/src/com/google/caja/plugin/domado.js)
 uses exactly this technique to emulate most of the conventional
 browser and DOM APIs by mapping the confined code's virtual DOM into
@@ -348,7 +349,8 @@ user-mode code in an operating system, whose virtual memory accesses
 are mapped to physical memory by a mapping it does not see or
 control. Domado remaps uri space in a similar manner. By emulating the
 browser api, much existing browser code runs compatibly in a
-virtualized browser environment as configured using SES and Domado.
+virtualized browser environment as configured by the caller using SES
+and Domado.
 
 Of course, the Compartments and Virtualized Powers patterns can be
 composed, enabling one to *temporarily* invite potentially malicious
