@@ -252,11 +252,6 @@ Reflect.makeSESRealm()  // -> fresh global of new SES realm
 Reflect.confine(src, endowments)  // -> completion value
 ```
 
-These are not necessarily placed on the `Reflect` object. However,
-until the
-[Built-in Modules issue](https://github.com/tc39/ecma262/issues/395)
-is resolved, for concreteness we leave these on `Reflect`.
-
 `Reflect.SESProtoGlobal` can trivially be derived from
 `Reflect.makeSESRealm` by `Reflect.makeSESRealm().__proto__`. We
 provide it directly only because it seems wasteful to create a fresh
@@ -667,6 +662,11 @@ patterns of use, we may wish to add other conveniences as well.
 ---
 
 ## Open Questions
+
+The three elements of our API are not necessarily found on the
+`Reflect` object. However, until the
+[Built-in Modules issue](https://github.com/tc39/ecma262/issues/395)
+is resolved, for concreteness we leave these on `Reflect`.
 
 It remains unclear how we should cope with the override
 mistake. Above, we propose the tamper proofing pattern, but this
