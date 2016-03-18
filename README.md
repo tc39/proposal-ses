@@ -203,10 +203,7 @@ supporting definitions.)
 
   1. Add to all realms, including the shared proto-SES realm, a new
      property, `Reflect.SESProtoGlobal`, whose value is the shared
-     global of the proto-SES realm. This can trivially be derived from
-     `Reflect.makeSESRealm` by `Reflect.makeSESRealm().__proto__`. We
-     provide it directly only because it seems wasteful to create a
-     fresh realm and throw it away, only to access something shared.
+     global of the proto-SES realm.
 
   1. Add to all realms, including the shared proto-SES realm, a new
      derived builtin function `Reflect.confine(src, endowments)`. This
@@ -244,6 +241,11 @@ These are not necessarily placed on the `Reflect` object. However,
 until the
 [Built-in Modules issue](https://github.com/tc39/ecma262/issues/395)
 is resolved, for concreteness we leave these on `Reflect`.
+
+`Reflect.SESProtoGlobal` can trivially be derived from
+`Reflect.makeSESRealm` by `Reflect.makeSESRealm().__proto__`. We
+provide it directly only because it seems wasteful to create a fresh
+realm and throw it away, only to access something shared.
 
 `Reflect.confine` can be defined in terms of `Reflect.makeSESRealm` as
 follows. For expository purposes, we ignore the difference between
