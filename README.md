@@ -21,7 +21,8 @@ deliberate misbehavior.  The large user-base of a successful web
 application makes a tempting target for bad actors. Yet the size and
 complexity of such applications, and the diversity of their
 components, makes them vulnerable to the introduction of malicious
-components.
+components. With scale, the target is both more valuable and more
+vulnerable.
 
 In software engineering, a successful strategy for reducing these
 coordination problems has been to isolate potentially interfering
@@ -55,15 +56,16 @@ propagate from one holder to another, and thus can reason reliably
 about the evolution of the object reference graph over time.
 ECMAScript is a language with these properties.
 
-With two additional restrictions,
-  * that the only way for an object to cause any effect on the world
-    outside itself is by using references it already holds, and
-  * that no object has default or implicit access to any other objects
+With two additional restrictions, we have an object-capability (ocap)
+language.
+  * The only way for an object to cause any effect on the world
+    outside itself is by using references it already holds.
+  * No object has default or implicit access to any other objects
     (for example, via language provided global variables) that are not
-    already transitively immutable and powerless,
+    already transitively immutable and powerless.
 
-we have an object-capability (ocap) language.  In an ocap language,
-object references are the sole representation of permission.
+In an ocap language, object references are the sole representation of
+permission.
 
 (An object is _transitively immutable_ if no mutable state is
 reachable in the object graph starting at that object. An object is
@@ -79,8 +81,8 @@ Ocap languages enable us to program objects that are defensively
 consistent -- that is, they can defend their own invariants and
 provide correct service to their well behaved clients, despite
 arbitrary or malicious misbehavior by their other clients.  Ocap
-languages help address the coordination problem described above, of
-enabling disparate pieces of code from mutually suspicious parties to
+languages help us address the coordination problem by enabling
+disparate pieces of code from mutually suspicious parties to
 interoperate in a way that is both safe and useful at the same time.
 
 Although stock ECMAScript satisfies our first set of requirements for
@@ -104,17 +106,17 @@ environment through a small number of carefully chosen modifications:
   * SES requires that all the _primordial objects_ -- objects like
     `Array.prototype`, mandated by the ECMAScript language
     specification to exist before any code starts running -- be made
-    transitively immutable, and
+    transitively immutable.
   * SES forbids any references to any other objects that are not
-    already transitively immutable (including `window`, `browser`,
+    already transitively immutable (including `window`, `document`,
     `XMLHttpRequest`, ...) from being reachable from the initial
     execution state of the environment.
 
-These restrictions must be in place before any (user) code is allowed
-to run.  We can achieve this by running special preamble code
-beforehand that enforces these restrictions by modifying a stock
-environment in place, or by providing the restricted environment
-directly as part of the underlying execution engine.
+These restrictions must be in place before any (user) code runs.  We
+can achieve this by running special preamble code beforehand that
+enforces these restrictions by modifying a stock environment in place,
+or by providing the restricted environment directly as part of the
+underlying execution engine.
 
 Although programs in SES are limited to a subset of the full
 ECMAScript language, SES will compatibly run nearly all ES5 or later
@@ -144,7 +146,7 @@ With the advent of ES2015, the number of primordials has ballooned,
 making the SES-shim implementation strategy even more
 expensive. However, we can avoid this large per-page expense by making
 SES a standard part of the platform, so that an appropriately confined
-execution environment can be provided natively. Any necessary
+execution environment is provided natively. Any necessary
 preamble computation need only be done once per browser startup as
 part of the browser implementation.  The mission of this document is
 to specify an API and a strategy for incorporating SES into the
@@ -217,10 +219,10 @@ supporting definitions.)
      A SES realm's initial `eval` inherits from proto-SES's
      `eval`. For each of the overriding constructors (currently only
      `Function`), their `"prototype"` property initially has the same
-     as the constructor they inherit from. Thus, a function `foo` from
-     one SES realm passes the `foo instanceof Function` test using the
-     `Function` constructor of another SES realm. Among SES realms,
-     `instanceof` on primordial types simply works.
+     value as the constructor they inherit from. Thus, a function
+     `foo` from one SES realm passes the `foo instanceof Function`
+     test using the `Function` constructor of another SES realm. Among
+     SES realms, `instanceof` on primordial types simply works.
 
   1. Add to all realms, including the shared proto-SES realm, a new
      property, `Reflect.theProtoGlobal`, whose value is the shared
@@ -287,8 +289,8 @@ later proposals.
 
 ## Examples
 
-The **Compartments**, **Virtualized Powers**, and **Mobile Code** examples each
-illustrate very different aspect of SES's power. Please look at all three.
+The **Compartments**, **Virtualized Powers**, and **Mobile Code**
+examples each illustrate very different aspect of SES's power.
 
 ### Compartments
 
@@ -393,8 +395,8 @@ unfrozen, since even good-practice legacy scripts approximate
 environment. Prior to real modules, they did not have much
 choice. When setting up a SES environment expecting to run only
 modules, it may well be reasonable to freeze the `freshGlobal` before
-running confined code in that realm. To leave the SES user free to
-make that choice, the API proposed here leaves the `freshGlobal`
+running confined code in that realm. We leave the SES user free to
+make that choice by proposing API that leaves the `freshGlobal`
 unfrozen.
 
 Because `eval`, `Function`, and the above `Date` and `Math` observably
@@ -486,7 +488,7 @@ ECMAScript specs fail for three reasons:
     up to the implementation.
 
 The explicitly non-deterministic abilities to sense the current time
-(via `Date()` and `Date.now()`) or generate random numbers (via
+(via `new Date()` and `Date.now()`) or generate random numbers (via
 `Math.random()`) are disabled in the proto-SES realm, and therefore by
 default in each SES realm. New sources of non-determinism, like
 `makeWeakRef` and `getStack` will not be added to the proto-SES realm
@@ -505,7 +507,7 @@ to the goals of SES and indeed
 [of much ECMAScript code](https://github.com/tc39/ecmascript_sharedmem/issues/55). Thus,
 at least SES computation, and any synchronous computation it is
 entangled with, on encountering an unpredictable error, must
-[preemptively abort without running further user code](https://github.com/tc39/ecmascript_sharedmem/issues/55)).
+[preemptively abort without running further user code](https://github.com/tc39/ecmascript_sharedmem/issues/55).
 
 Even if ECMAScript were otherwise deterministically replayable, these
 unpredictable preemptive failures would prevent it. We examine instead
@@ -765,5 +767,5 @@ attached to the names we present here.
 Many thanks to E. Dean Tribble, Kevin Reid, Michael Ficarra, Tom Van
 Cutsem, Kris Kowal, Kevin Smith, Terry Hayes, and Daniel
 Ehrenberg. Thanks to the entire Caja team (Jasvir Nagra, Ihab Awad,
-Mike Samuel, Kevin Reid, Felix Lee) for building a system in which all
-the hardest issues have already been worked out.
+Mike Stay, Mike Samuel, Felix Lee, and Kevin Reid) for building a
+system in which all the hardest issues have already been worked out.
