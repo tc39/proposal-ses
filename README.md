@@ -80,16 +80,18 @@ problem described above, of enabling disparate pieces of code from mutually
 suspicious parties to interoperate in a way that is both safe and useful at the
 same time.
 
-In order to solve this problem in the ECMAScript environment, it would be ideal
-if ECMAScript was an ocap language.  However, although stock ECMAScript
-satisfies our first set of requirements for a strongly memory safe object
-language, it is *not* an ocap language.  The runtime environment specified by
-the ECMA-262 standard mandates globally accessible objects with
-mutable state.  Moreover, typical implementations provide default access to
-additional powerful objects that can affect parts of the outside world, such as
-the browser DOM or the Internet.  However, ECMAScript *can* be transformed into
-an ocap language by careful language subsetting combined with some fairly
-simple changes to the default execution environment.
+In order to solve this problem in the ECMAScript environment, it would
+be ideal if ECMAScript was an ocap language.  However, although stock
+ECMAScript satisfies our first set of requirements for a strongly
+memory safe object language, it is *not* an ocap language.  The
+runtime environment specified by the ECMA-262 standard mandates
+globally accessible objects with mutable state.  Moreover, typical
+hosting environments, browsers and servers, provide default access to
+additional powerful objects that can affect parts of the outside
+world, such as the browser DOM or the Internet.  However, ECMAScript
+*can* be transformed into an ocap language by careful language
+subsetting combined with some fairly simple changes to the default
+execution environment.
 
 SES -- Secure ECMAScript -- is such a subset.
 
