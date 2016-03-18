@@ -7,60 +7,63 @@ standard ECMAScript platform.
 
 ## Background
 
-It is commonplace for ECMAScript developers to produce applications by
-co-mingling their own code with code provided by others -- frameworks and
-libraries, for example. (Of course this pattern is by no means limited to
-ECMAScript, but that's what we are concerned with here.)  There are vast
-opportunities for the operation of these various pieces to interfere with each
-other.  The chance of such interference grows as the size and complexity of the
-application grows, and as the number of participants in the application's code
-ecosystem also grows.
+ECMAScript developers produce applications by mingling their code with
+code written by others, such as frameworks and libraries. These pieces
+may cooperate as the developer intends, or they may destructively
+interfere with each other.  Even under the best of intentions, the
+likelihood of interference grows as the size and complexity of the
+application grows, and as the application's ecosystem also grows. This
+coordination problem sets a limit of the scale and functionality of
+the software we can successfully compose.
 
-The various parties contributing code to an application
-may be mutually suspicious, but even if they are not, any coordination among
-them is now relatively weak, usually limited to what is imposed by the
-ECMAScript language itself and by the computational environment in which the
-code is running (typically a web browser or a Node.js instance).  And this is
-before we account for deliberate misbehavior.  The large user-base of a
-successful web application makes a tempting target for bad actors, yet the size
-and complexity of typical such applications (and the consequent large scope of
-software they encompass) makes them especially vulnerable to the purposeful
-introduction of malicious components.
+This coordination problem becomes harder once we account for
+deliberate misbehavior.  The large user-base of a successful web
+application makes a tempting target for bad actors. Yet the size and
+complexity of such applications, and the diversity of their
+components, makes them vulnerable to the introduction of malicious
+components.
 
-In software engineering, an historically successful strategy for reducing these
-kinds of coordination problems has been to isolate potentially interfering
+In software engineering, a successful strategy for reducing these
+coordination problems has been to isolate potentially interfering
 components from each other, limiting their interactions to selected,
-well-defined channels.  This has been the motivation behind many of the
-advances in the field, including lexical scoping, object-oriented programming,
-module systems, and memory safety, to name just a few examples.  In the world
-of object-oriented programming, the gold standard for such isolation is the
-object capability (ocap) model.  The ocap model is perhaps best understood in
-contrast to more conventional object systems.
+well-defined channels.  This has been the motivation behind many of
+the advances in the field, including lexical scoping, object-oriented
+programming, module systems, and memory safety, to name just a few
+examples.  In the world of object-oriented programming, the gold
+standard for such isolation is the object capability (ocap) model.
+The ocap model is perhaps best understood in contrast to more
+conventional object systems.
 
-In a memory-safe object language, an object reference allows its holder to
+In an object language, an object reference allows its holder to
 invoke methods on the public interface of the object it designates. Such an
 invocation in turn grants to the called object the means to similarly make
-method invocations on any object references that are passed as arguments.  In a
-system in which object references are unforgeable (that is, there is no way
-within the language for code to "manufacture" a reference to a pre-existing
-object) and in which encapsulation is unbreakable (that is, objects may hold
-state -- including references to other objects -- that is totally inaccessible
-to code outside themselves), then we can guarantee that the only way for one
-object to come to possess a reference to a second object is for them to have
-been given that reference by somebody else, or for one of them to have been the
-creator of the other.  In a language with these properties, we can make strong,
-provable assertions about the ability of object references to propagate from
-one holder to another, and can thus reason reliably about the evolution of the
-object reference graph over time.  ECMAScript (JavaScript) is a language with
-these properties.
+method invocations on any object references that are passed as arguments.
 
-With two additional restrictions, (1) that the only way for an object to cause
-any effect on the world outside itself is by using references it already holds,
-and (2) that no object has default or implicit access to any other objects
-(e.g., via language provided global variables) that are not already
-transitively immutable and powerless, we have an object-capability (ocap)
-language.  In an ocap language, object references are the sole representation
-of permission.
+In a memory-safe object language, object references are _unforgeable_,
+that is, there is no way within the language for code to "manufacture"
+a reference to a pre-existing object. In a memory-safe object language
+in which _encapsulation) is unbreakable, objects may hold state --
+including references to other objects -- that is totally inaccessible
+to code outside themselves.
+
+With these familiar restrictions we can guarantee that the only way
+for one object to come to possess a reference to a second object is
+for them to have been given that reference by somebody else, or for
+one of them to have been the creator of the other. We can make strong,
+provable assertions about the ability of object references to
+propagate from one holder to another, and thus can reason reliably
+about the evolution of the object reference graph over time.
+ECMAScript is a language with these properties.
+
+With two additional restrictions,
+  1. that the only way for an object to cause any effect on the world
+     outside itself is by using references it already holds, and
+  1. that no object has default or implicit access to any other
+     objects (e.g., via language provided global variables) that are
+     not already transitively immutable and powerless,
+     
+we have an object-capability (ocap) language.  In an ocap language,
+object references are the sole representation of permission.
 
 (An object is _transitively immutable_ if no mutable state is
 reachable in the object graph starting at that object. An object is
@@ -72,92 +75,91 @@ state, then "transitively immutable" necessarily implies
 "powerless". In the remainder of this document, we use _transitively
 immutable_ for this joint restriction.)
 
-Ocap languages enable us to program objects that are defensively consistent --
-that is, they can defend their own invariants and provide correct service to
-their well behaved clients, despite arbitrary or malicious misbehavior by their
-other clients.  Ocap languages thus provide a way to solve the coordination
-problem described above, of enabling disparate pieces of code from mutually
-suspicious parties to interoperate in a way that is both safe and useful at the
-same time.
+Ocap languages enable us to program objects that are defensively
+consistent -- that is, they can defend their own invariants and
+provide correct service to their well behaved clients, despite
+arbitrary or malicious misbehavior by their other clients.  Ocap
+languages help address the coordination problem described above, of
+enabling disparate pieces of code from mutually suspicious parties to
+interoperate in a way that is both safe and useful at the same time.
 
-In order to solve this problem in the ECMAScript environment, it would
-be ideal if ECMAScript was an ocap language.  However, although stock
-ECMAScript satisfies our first set of requirements for a strongly
-memory safe object language, it is *not* an ocap language.  The
-runtime environment specified by the ECMA-262 standard mandates
-globally accessible objects with mutable state.  Moreover, typical
-hosting environments, browsers and servers, provide default access to
-additional powerful objects that can affect parts of the outside
-world, such as the browser DOM or the Internet.  However, ECMAScript
-*can* be transformed into an ocap language by careful language
-subsetting combined with some fairly simple changes to the default
-execution environment.
+Although stock ECMAScript satisfies our first set of requirements for
+a strongly memory safe object language with unbreakable encapsulation,
+it is *not* an ocap language.  The runtime environment specified by
+the ECMA-262 standard mandates globally accessible objects with
+mutable state.  Moreover, typical hosting environments, browsers and
+servers, provide default access to additional powerful objects that
+can affect parts of the outside world, such as the browser DOM or the
+Internet.  However, ECMAScript *can* be transformed into an ocap
+language by careful language subsetting combined with some fairly
+simple changes to the default execution environment.
 
 SES -- Secure ECMAScript -- is such a subset.
 
+(The Virtual Powers example below shows how a SES user can provide a
+compatible virtual host environment to the code it confines.)
+
 SES derives an ocap environment from a conventional ECMAScript
-environment through a small number of carefully chosen modifications.
-SES specifies two particular sets of such modifications: (1) it
-requires that all the primordial objects -- objects like
-`Array.prototype`, mandated by the ECMAScript language specification
-to exist before any code starts running -- be made transitively
-immutable, and (2) it forbids any references to any other objects that
-are not already transitively immutable from being reachable from the
-initial execution state of the environment (notably including such
-typical browser provided globals as `window` or `document`).
+environment through a small number of carefully chosen modifications:
+  1. SES requires that all the _primordial objects_ -- objects like
+     `Array.prototype`, mandated by the ECMAScript language
+     specification to exist before any code starts running -- be made
+     transitively immutable, and
+  1. SES forbids any references to any other objects that are not
+     already transitively immutable (including `window`, `browser`,
+     `XMLHttpRequest`, ...) from being reachable from the initial
+     execution state of the environment.
 
-These restrictions must be in place prior to to any (user) code being allowed
-to run.  This can be achieved either by arranging to run special code
-beforehand that introduces the restrictions by actually modifying the stock
-environment in place, or the restricted environment may be provided directly by
-the underlying execution engine.
+These restrictions must be in place before any (user) code is allowed
+to run.  We can achieve this by running special preamble code
+beforehand that enforces these restrictions by modifying a stock
+environment in place, or by providing the restricted environment
+directly as part of the underlying execution engine.
 
-Although programs in SES are limited to a subset of the full ECMAScript
-language, SES will compatibly run nearly all ES5 or later code that follows
-recognized ECMAScript best practices. In fact, many features
-introduced in ES5 and
-ES2015 were put there specifically to enable this subsetting and restriction,
-so that we could realize a secure computing environment for JavaScript without
-additional special support from the engine.
+Although programs in SES are limited to a subset of the full
+ECMAScript language, SES will compatibly run nearly all ES5 or later
+code that follows recognized ECMAScript best practices. In fact, many
+features introduced in ES5 and ES2015 were put there specifically to
+enable this subsetting and restriction, so that we could realize a
+secure computing environment for ECMAScript without additional special
+support from the engine.
 
-SES has a [formal semantics](http://research.google.com/pubs/pub37199.html)
-supporting automated verification of some security properties of SES code.  It
-was developed as part of the Google [Caja](https://github.com/google/caja)
-project; you can read much more about SES specifically and Caja more generally
-on the Caja website.
+SES has a
+[formal semantics](http://research.google.com/pubs/pub37199.html)
+supporting automated verification of some security properties of SES
+code.  It was developed as part of the Google
+[Caja](https://github.com/google/caja) project; you can read more
+about SES and Caja on the Caja website.
 
-SES is [currently implemented in JavaScript as a bundle of preamble
-code](https://github.com/google/caja/tree/master/src/com/google/caja/ses) that
-is run first on any SES-enabled web page.  Here, we will refer to this
-implementation as the **SES-shim**, since it polyfills an approximation of SES
-on any platform conforming to ES5 or later.  To do its job, this preamble code
-must freeze all the primordials. The time it takes to individually walk and
-freeze each of these objects makes the initial page load expensive, which has
-inhibited SES adoption.
+SES is
+[currently implemented in ECMAScript as a bundle of preamble code](https://github.com/google/caja/tree/master/src/com/google/caja/ses)
+that is run first on any SES-enabled web page.  Here, we will refer to
+this implementation as the **SES-shim**, since it polyfills an
+approximation of SES on any platform conforming to ES5 or later.  To
+do its job, this preamble code must freeze all the primordials. The
+time it takes to individually walk and freeze each of these objects
+makes initial page load expensive, which has inhibited SES adoption.
 
-With the advent of ES2015, the number of primordials has ballooned, making the
-SES-shim implementation strategy even more expensive. However, this large
-per-page expense can be avoided by making SES a standard part of the platform,
-so that an appropriately confined execution environment can be provided
-natively, while any necessary preamble computation need only be done once per
-browser startup as part of the browser implementation.  The mission of this
-document is to specify an API and a strategy for incorporating SES into the
+With the advent of ES2015, the number of primordials has ballooned,
+making the SES-shim implementation strategy even more
+expensive. However, we can avoid this large per-page expense by making
+SES a standard part of the platform, so that an appropriately confined
+execution environment can be provided natively. Any necessary
+preamble computation need only be done once per browser startup as
+part of the browser implementation.  The mission of this document is
+to specify an API and a strategy for incorporating SES into the
 standard ECMAScript platform.
 
-We want the standard SES mechanism to be sufficiently lightweight that it can
-be used promiscuously.  Rather than simply isolating individual pieces of code
-so they can do no damage, we also want to make it possible to use these
-confined pieces as composable building blocks.  Consequently, code that is
-responsible for integrating separate isolated pieces also should be able to
-selectively connect them in controlled ways to each other, or to other,
-unconfined objects provided by this integration code to selectively grant
-constrained access to sensitive operations that the confined code would not
-otherwise have the power to do. (TODO defensive consistency)
-
-This is in deliberate contrast to sandboxing strategies, which aim to simply
-partition a piece of subsidiary code from its host, without considering the
-importance of interoperation or the deliberate injection of authority to
-perform functions not normally available in a sandbox.
+We want the standard SES mechanism to be sufficiently lightweight that
+it can be used promiscuously.  Rather than simply isolating individual
+pieces of code so they can do no damage, we also want to make it
+possible to use these confined pieces as composable building blocks.
+Consequently, code that is responsible for integrating separate
+isolated pieces also should be able to selectively connect them in
+controlled ways to each other, or to other, unconfined objects
+provided by this integration code to selectively grant constrained
+access to sensitive operations that the confined code would not
+otherwise have the power to do.
 
 (See the [Glossary](https://github.com/FUDCo/ses-realm/wiki/Glossary) for
 supporting definitions.)
@@ -509,12 +511,12 @@ The ECMAScript specs to date have never admitted the possibility of
 failures such as out-of-memory. In theory this means that a conforming
 ECMAScript implementation requires an infinite memory
 machine. Unfortunately, these are currently unavailable. Since
-JavaScript is an implicitly-allocating language, the out-of-memory
+ECMAScript is an implicitly-allocating language, the out-of-memory
 condition could cause computation to fail at any time. If these
 failures are reported in a recoverable manner without rollback, such
 as by a thrown exception (cite JVM), then defensive programming
 becomes impossible. This would be contrary to the goals of at least
-SES and indeed to much JavaScript code. (TODO link to SAB discussion
+SES and indeed to much ECMAScript code. (TODO link to SAB discussion
 of containing failure.) Thus, at least SES computation, and any
 synchronous computation it is entangled with, on unpredictable errors
 must either be preemptively aborted without running further user code
@@ -567,7 +569,7 @@ manner.
 ## Discussion
 
 Because the proto-SES realm is transitively immutable, we can safely
-share it between JS programs that are otherwise fully isolated. This
+share it between ECMAScript programs that are otherwise fully isolated. This
 sharing gives them access to shared objects and shared identities, but
 no ability to communicate with each other or to affect any state
 outside themselves. We can even share proto-SES primordials between
@@ -584,13 +586,13 @@ each [web component](http://webcomponents.org/) into its own
 confinement box. By using Domado-like techniques, the actual DOM can
 be safely encapsulated behind the component's shadow DOM.
 
-Today, to self-host builtins by writing them in JavaScript, one must
+Today, to self-host builtins by writing them in ECMAScript, one must
 practice
 [safe meta programming](http://wiki.ecmascript.org/doku.php?id=conventions:safe_meta_programming)
 techniques so that these builtins are properly defensive. This
 technique is difficult to get right, especially if such self hosting
 is
-[opened to JavaScript embedders](https://docs.google.com/document/d/1AT5-T0aHGp7Lt29vPWFr2-qG8r3l9CByyvKwEuA8Ec0/edit#heading=h.ma18njbt74u3). Instead,
+[opened to ECMAScript embedders](https://docs.google.com/document/d/1AT5-T0aHGp7Lt29vPWFr2-qG8r3l9CByyvKwEuA8Ec0/edit#heading=h.ma18njbt74u3). Instead,
 these builtin could be defined in a SES realm, making defensiveness
 easier to achieve with higher confidence.
 
