@@ -385,6 +385,7 @@ class QPromise extends Promise {
   // All we actually use below is fcall
 }
 
+// See https://github.com/kriskowal/q-connection
 class RemotePromise extends QPromise {
   ...
   // callback must be a closed function, i.e., one whose only free
