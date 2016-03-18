@@ -558,10 +558,10 @@ prevent confined computations from perceiving these signals.
 (TODO explain the anthropic side channel and how it differs from an
 information-flow termination channel.)
 
-This fail-stop implementation-defined determinism is also a great boon
-to testing and debugging. All non-deterministic _dependencies_, like
-the allegedly current time, can be mocked and _injected_ in a
-reproducible manner.
+Fail-stop implementation-defined determinism will be a great boon to
+testing and debugging. All non-deterministic _dependencies_, like the
+allegedly current time, can be mocked and _injected_ in a reproducible
+manner.
 
 
 ## Discussion
