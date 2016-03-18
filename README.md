@@ -14,7 +14,9 @@ ECMAScript, but that's what we are concerned with here).  There are vast
 opportunities for the operation of these various pieces to interfere with each
 other.  The chance of such interference grows as the size and complexity of the
 application grows, and as the number of participants in the application's code
-ecosystem also grows.  The various parties contributing code to an application
+ecosystem also grows.
+
+The various parties contributing code to an application
 may be mutually suspicious, but even if they are not, any coordination among
 them is now relatively weak, usually limited to what is imposed by the
 ECMAScript language itself and by the computational environment in which the
