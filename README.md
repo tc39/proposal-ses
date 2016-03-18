@@ -371,11 +371,10 @@ Now that `Function.prototype.toString` will give a
 that can be sent, SES provides a safe way for the receiver to evaluate
 it, in order to reconsitute that function's call behavior in a safe
 manner. Below, assume that the RemotePromise constructor initializes
-the private instance variable `#farEval` of this
-[remote promise](https://github.com/kriskowal/q-connection) to be
-another remote promise, for the `Reflect.SESProtoGlobal.eval` of the
-location (vat, worker, agent, event loop, ...) where this promise's
-fulfillment will be.
+this [remote promise](https://github.com/kriskowal/q-connection)'s
+private instance variable `#farEval` to be another remote promise, for
+the `Reflect.SESProtoGlobal.eval` of the location (vat, worker, agent,
+event loop, ...) where this promise's fulfillment will be.
 
 ```js
 class QPromise extends Promise {
