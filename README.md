@@ -527,17 +527,19 @@ the weaker property of *fail-stop determinism*, where each replica
 either fails, or succeeds in a manner identical to every other
 non-failing replica.
 
-Although they are few in number, there are a number of specification issues
-that are observably left to implementations, on which implementations
-differ. Some of these may eventually be closed by future TC39 agreement, such
-as enumeration order if objects are modified during enumeration (TODO
-link). Others, like the sort algorithm used by `Array.prototype.sort` are less
-likely. However, *implementatiion-defined* is not necessarily genuine
+Although they are few in number, there are a number of specification
+issues that are observably left to implementations, on which
+implementations differ. Some of these may eventually be closed by
+future TC39 agreement, such as enumeration order if objects are
+modified during enumeration (TODO link). Others, like the sort
+algorithm used by `Array.prototype.sort` are less likely. However,
+*implementatiion-defined* is not necessarily genuine
 non-determinism. On a given implementation, operations which are only
-implementation-defined can be non-deterministic within the scope of that
-implementation. They should be fail-stop reproducible when run on the same
-implementation. To make use of this for replay, however, we would need to pin
-down what we mean by "same implementation", which seems slippery and difficult.
+implementation-defined can be deterministic within the scope of that
+implementation. They should be fail-stop reproducible when run on the
+same implementation. To make use of this for replay, however, we would
+need to pin down what we mean by "same implementation", which seems
+slippery and difficult.
 
 ### The punchlines
 
