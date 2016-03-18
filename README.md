@@ -150,18 +150,15 @@ part of the browser implementation.  The mission of this document is
 to specify an API and a strategy for incorporating SES into the
 standard ECMAScript platform.
 
-We want the standard SES mechanism to be sufficiently lightweight that
-it can be used promiscuously.  Rather than simply isolating individual
-pieces of code so they can do no damage, we also want to make it
-possible to use these confined pieces as composable building blocks.
-
-(TODO rewrite runon)
-Consequently, code that is responsible for integrating separate
-isolated pieces also should be able to selectively connect them in
-controlled ways to each other, or to other, unconfined objects
-provided by this integration code to selectively grant constrained
-access to sensitive operations that the confined code would not
-otherwise have the power to do.
+We want the standard SES mechanism to be sufficiently lightweight that it can
+be used promiscuously.  Rather than simply isolating individual pieces of code
+so they can do no damage, we also want to make it possible to use these
+confined pieces as composable building blocks.  Consequently, code doing such
+composition needs a way to selectively make controlled connections between the
+otherwise isolated parts.  It may also need to carefully provide some of those
+pieces with constrained access to sensitive operations that confined code would
+not ordinarily have the power to do.  The design we propose below achieves
+these aims.
 
 (See the [Glossary](https://github.com/FUDCo/ses-realm/wiki/Glossary) for
 supporting definitions.)
