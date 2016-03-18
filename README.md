@@ -408,7 +408,7 @@ concurrency model used by the X10 supercomputer language.
 
 ## Annex B considerations
 
-As of ES2016, most of the normative optionals of
+As of ES2016, the normative optionals of
 [Annex B](http://www.ecma-international.org/ecma-262/6.0/#sec-additional-ecmascript-features-for-web-browsers)
 seem safe for inclusion as normative optionals of the proto-SES
 realm. However, where Annex B states that these are normative
