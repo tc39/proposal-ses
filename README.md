@@ -376,7 +376,8 @@ manner. Below, assume that the RemotePromise constructor initializes
 this [remote promise](https://github.com/kriskowal/q-connection)'s
 private instance variable `#farEval` to be another remote promise, for
 the `Reflect.SESProtoGlobal.eval` of the location (vat, worker, agent,
-event loop, ...) where this promise's fulfillment will be.
+event loop, ...) where this promise's fulfillment will be. If this
+promise rejects, then the `#farEval` promise likewise rejects.
 
 ```js
 class QPromise extends Promise {
