@@ -346,7 +346,7 @@ In addition to `Date` and `Math`, we can create libraries for seeding
 the fresh global with virtualized emulations of expected host-provided
 globals like `window` and `document`. These emulations may map into
 the caller's own or
-not. [Caja's Domado subsystem](https://github.com/google/caja/blob/master/src/com/google/caja/plugin/domado.js)
+not. [Caja's Domado library](https://github.com/google/caja/blob/master/src/com/google/caja/plugin/domado.js)
 uses exactly this technique to emulate most of the conventional
 browser and DOM APIs by mapping the confined code's virtual DOM into
 portions of the "physical" DOM, as the caller specifies. In this
