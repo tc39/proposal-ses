@@ -405,10 +405,13 @@ to some future time after the promise `p` has been fulfilled. In like
 manner, the expression `RemotePromise.resolve(r).there(callback)`
 postpones and migrates the closed `callback` function to some future
 time and space, where the object that will be designated by the
-fulfilled remote promise `r` is located. This supports a federated
-form of the
+fulfilled remote promise `r` is located. Both `then` and `there`
+return a promise for what `callback` or `errback` will return.
+
+This supports a federated form of the
 [Asynchronous Partitioned Global Address Space](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.464.557)
-concurrency model used by the X10 supercomputer language.
+concurrency model used by the X10 supercomputer language, integrated
+smoothly with our promise framework for handling asynchrony.
 
 
 ## Annex B considerations
