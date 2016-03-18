@@ -12,8 +12,8 @@ code written by others, such as frameworks and libraries. These pieces
 may cooperate as the developer intends, or they may destructively
 interfere with each other.  Even under the best of intentions, the
 likelihood of interference grows as the size and complexity of the
-application grows, and as the application's ecosystem grows. This
-coordination problem sets a limit of the scale and functionality of
+application grows, and as the application's code ecosystem grows. This
+coordination problem limits the scale and functionality of
 the software we can successfully compose.
 
 This coordination problem becomes harder once we account for
@@ -42,7 +42,7 @@ method invocations on any object references that are passed as arguments.
 In a memory-safe object language, object references are _unforgeable_,
 that is, there is no way within the language for code to "manufacture"
 a reference to a pre-existing object. In a memory-safe object language
-in which _encapsulation) is unbreakable, objects may hold state --
+in which _encapsulation_ is unbreakable, objects may hold state --
 including references to other objects -- that is totally inaccessible
 to code outside themselves.
 
@@ -59,7 +59,7 @@ With two additional restrictions,
   * that the only way for an object to cause any effect on the world
     outside itself is by using references it already holds, and
   * that no object has default or implicit access to any other objects
-    (e.g., via language provided global variables) that are not
+    (for example, via language provided global variables) that are not
     already transitively immutable and powerless,
 
 we have an object-capability (ocap) language.  In an ocap language,
@@ -96,7 +96,7 @@ simple changes to the default execution environment.
 
 SES -- Secure ECMAScript -- is such a subset.
 
-(The Virtual Powers example below shows how a SES user can provide a
+(The **Virtualized Powers** example below shows how a SES user can provide a
 compatible virtual host environment to the code it confines.)
 
 SES derives an ocap environment from a conventional ECMAScript
@@ -184,23 +184,23 @@ supporting definitions.)
 
   1. In order to attain the necessary deep immutability of the
      proto-SES realm, two of its primordials must be modified from the
-     standard: The proto-SES realm's `Date` object has its `now()`
+     existing standard: The proto-SES realm's `Date` object has its `now()`
      method removed and its default constructor changed to throw a
      `TypeError` rather than reveal the current time.  The proto-SES
      realm's `Math` object has its `random()` method removed.
 
-     See the Virtual Powers section below to see how a SES user can
-     effectively add these back in.
+     See the **Virtualized Powers** section below to see how a SES user can
+     effectively add these back in when appropriate.
 
   1. Add to all realms, including the shared proto-SES realm, a new
-     fundamental builtin function `Reflect.makeSESRealm()`, which
+     fundamental builtin function `Reflect.makeIsolatedRealm()`, which
      creates a new **SES realm** with its own fresh global object
      (denoted below by the symbol `freshGlobal`) whose `[[Prototype]]`
      is the proto-global object. This fresh global is also a plain
      object. Unlike the proto-global, the `freshGlobal` is not frozen
      by default.
 
-     * `Reflect.makeSESRealm()` then populates this `freshGlobal` with
+     * `Reflect.makeIsolatedRealm()` then populates this `freshGlobal` with
        overriding bindings for the evaluators that have global names
        (currently only `eval` and `Function`). It binds each of these
        names to fresh objects whose `[[Prototype]]`s are the
@@ -226,26 +226,26 @@ supporting definitions.)
      `instanceof` on primordial types simply works.
 
   1. Add to all realms, including the shared proto-SES realm, a new
-     property, `Reflect.SESProtoGlobal`, whose value is the shared
+     property, `Reflect.theProtoGlobal`, whose value is the shared
      global of the proto-SES realm.
 
   1. Add to all realms, including the shared proto-SES realm, a new
      derived builtin function `Reflect.confine(src, endowments)`. This
      is only a convenience that can be defined in terms of the
-     fundamental `Reflect.makeSESRealm()` as shown by code below.
+     fundamental `Reflect.makeIsolatedRealm()` as shown by code below.
 
        * `Reflect.confine` first calls (the original)
-         `Reflect.makeSESRealm()` to obtain the `freshGlobal` of a new
+         `Reflect.makeIsolatedRealm()` to obtain the `freshGlobal` of a new
          SES realm.
 
        * The own enumerable properties from `endowments` are then
          copied onto this global.  This copying happens *after*
-         `makeSESRealm` binds the evaluators, so that the caller of
+         `makeIsolatedRealm` binds the evaluators, so that the caller of
          `confine` has the option to endow a SES realm with different
          evaluators of its own choosing.
 
        * Evaluate `src` as if by calling the `eval` method originally
-         added to `freshGlobal` by `Reflect.makeSESRealm`.
+         added to `freshGlobal` by `Reflect.makeIsolatedRealm`.
 
        * Return the completion value from evaluating `src`. When `src`
          is an expression, this completion value is the value that
@@ -256,25 +256,25 @@ supporting definitions.)
 ### The Entire API
 
 ```js
-Reflect.SESProtoGlobal  // global of the shared proto-SES realm
-Reflect.makeSESRealm()  // -> fresh global of a new SES realm
+Reflect.theProtoGlobal  // global of the shared proto-SES realm
+Reflect.makeIsolatedRealm()  // -> fresh global of a new, isolated SES realm
 Reflect.confine(src, endowments)  // -> completion value
 ```
 
-`Reflect.SESProtoGlobal` can trivially be derived from
-`Reflect.makeSESRealm` by `Reflect.makeSESRealm().__proto__`. We
+`Reflect.theProtoGlobal` can trivially be derived from
+`Reflect.makeIsolatedRealm` by `Reflect.makeIsolatedRealm().__proto__`. We
 provide it directly only because it seems wasteful to create a fresh
 realm and throw it away, only to access something shared.
 
-`Reflect.confine` can be defined in terms of `Reflect.makeSESRealm` as
+`Reflect.confine` can be defined in terms of `Reflect.makeIsolatedRealm` as
 follows. For expository purposes, we ignore the difference between
 original binding and current binding. Where the code below says, e.g.,
-`Reflect.makeSESRealm` we actually mean the original binding of that
+`Reflect.makeIsolatedRealm` we actually mean the original binding of that
 expression.
 
 ```js
 function confine(src, endowments) {
-  const freshGlobal = Reflect.makeSESRealm();
+  const freshGlobal = Reflect.makeIsolatedRealm();
   // before possible overwrite by endowments
   const freshEval = freshGlobal.eval;
   Object.define(freshGlobal, endowments);
@@ -282,7 +282,7 @@ function confine(src, endowments) {
 }
 ```
 
-Beyond `SESProtoGlobal` and `confine`, further derived API may be
+Beyond `theProtoGlobal` and `confine`, further derived API may be
 called for, to aid some patterns of use. For now, we assume that such
 conveniences will first be user-level libraries before appearing in
 later proposals.
@@ -290,7 +290,7 @@ later proposals.
 
 ## Examples
 
-The "Compartments", "Virtual Powers" and "Mobile Code" examples each
+The **Compartments**, **Virtualized Powers**, and **Mobile Code** examples each
 illustrate very different aspect of SES's power. Please look at all three.
 
 ### Compartments
@@ -324,24 +324,24 @@ cause further effects, or even to continue to occupy memory.
 
 ### Virtualized Powers
 
-In the Punchlines section below, we explain the non-overt channel
-threats that motivates the removal of `Date.now` and
+In the **Punchlines** section below, we explain the non-overt channel
+threats that motivate the removal of `Date.now` and
 `Math.random`. However, usually this threat is not of interest, in
 which case we'd rather include the full API of ES2016, since it is
-otherwise safe. ndeed, Caja has always provided the
+otherwise safe. Indeed, Caja has always provided the
 full functionality of `Date` and `Math` because its threat model did
 not demand that they be denied.
 
-The following `makeSESRealmPlus` is a function similar to
-`makeSESRealm` that also provides the missing functionality from our
+The following `makeIsolatedRealmPlus` is a function similar to
+`makeIsolatedRealm` that also provides the missing functionality from our
 own `Date` and `Math.random`, i.e., the `Date` and `Math.random` of
 the realm this function definition is evaluated in.
 
 ```js
-function makeSESRealmPlus() {
+function makeIsolatedRealmPlus() {
   const now = Date.now;  // our own
   const random = Math.random;  // our own
-  const freshGlobal = Reflect.makeSESRealm();
+  const freshGlobal = Reflect.makeIsolatedRealm();
   const {Date: SharedDate, Math: SharedMath} = freshGlobal;
   function FreshDate(...args) {
     if (new.target) {
@@ -369,13 +369,13 @@ function makeSESRealmPlus() {
 }
 ```
 
-Alternatively, we could express a similar convenience with a function
-for helping to create an endowments record seeded with such a
-`FreshDate` and `FreshMath`, to then be used in a normal `confine`
-call. Either way, this full-standard ses-realm-plus costs an
-additional four allocations, bringing the total to seven.
+Alternatively, we could express a similar convenience with a function for
+helping to create an endowments record seeded with standard capabilities such
+as `FreshDate` and `FreshMath`, which then may be used in a normal `confine`
+call. Either way, this full-standard ses-realm-plus costs an additional four
+allocations, bringing the total to seven.
 
-In addition to `Date` and `Math`, we can create libraries for seeding
+In addition to `Date` and `Math`, we could create libraries to seed
 the fresh global with virtualized emulations of expected host-provided
 globals like `window`, `document`, and `XMLHttpRequest`. These
 emulations may map into the caller's own or
@@ -386,7 +386,7 @@ the portions of the caller's "physical" DOM that the caller
 specifies. In this sense, the confined code is like user-mode code in
 an operating system, whose virtual memory accesses are mapped to
 physical memory by a mapping it does not see or control. Domado remaps
-uri space in a similar manner. By emulating the browser api, much
+URI space in a similar manner. By emulating the browser API, much
 existing browser code runs compatibly in a virtualized browser
 environment as configured by the caller using SES and Domado.
 
@@ -410,7 +410,7 @@ standards conformance. The virtualization of host-provided objects
 suffers no such cost. There is no similar constraint preventing the
 SES user from faithfully emulating a host API.
 
-By composing the Compartments and Virtualized Powers patterns, one can
+By composing the **Compartments** and **Virtualized Powers** patterns, one can
 *temporarily* invite potentially malicious code onto one's page, endow
 it with a subtree of one's own DOM as its virtual document, and then
 permanently and fully evict it.
@@ -430,13 +430,13 @@ manner. Say we have a `RemotePromise` constructor that makes a
 potentially on another machine. Below, assume that the `RemotePromise`
 constructor initializes this remote promise's private instance
 variable `#farEval` to be another remote promise, for the
-`Reflect.SESProtoGlobal.eval` of the location (vat, worker, agent,
+`Reflect.theProtoGlobal.eval` of the location (vat, worker, agent,
 event loop, place, ...) where this promise's fulfillment will be. If
 this promise rejects, then its `#farEval` promise likewise rejects.
 
 ```js
 class QPromise extends Promise {
-  // ... api from https://github.com/kriskowal/q/wiki/API-Reference
+  // ... API from https://github.com/kriskowal/q/wiki/API-Reference
   // All we actually use below is fcall
 }
 
@@ -611,7 +611,7 @@ origins and between threads, since deep immutability at the
 specification level should make thread safety at the implementation
 level straightforward.
 
-Each call to `Reflect.makeSESRealm()` allocates only three objects:
+Each call to `Reflect.makeIsolatedRealm()` allocates only three objects:
 the fresh global and its fresh `eval` function and `Function`
 constructor. In a browser environment, a SES-based confined seamless
 iframe could be lightweight, since it would avoid the need to create
@@ -627,7 +627,7 @@ techniques so that these builtins are properly defensive. This
 technique is difficult to get right, especially if such self hosting
 is
 [opened to ECMAScript embedders](https://docs.google.com/document/d/1AT5-T0aHGp7Lt29vPWFr2-qG8r3l9CByyvKwEuA8Ec0/edit#heading=h.ma18njbt74u3). Instead,
-these builtin could be defined in a SES realm, making defensiveness
+these builtins could be defined in a SES realm, making defensiveness
 easier to achieve with higher confidence.
 
 Because of the so-called "[override mistake](
@@ -635,7 +635,7 @@ http://wiki.ecmascript.org/doku.php?id=strawman:fixing_override_mistake)",
 for many or possibly all properties in this frozen state, primordial
 objects need to be frozen in a pattern we call "tamper proofing",
 which makes them less compliant with the current language
-standard. See the Open Questions below for other possibilities.
+standard. See the **Open Questions** below for other possibilities.
 
 By the rules above, a SES realm's `Function.prototype.constructor`
 will be the proto-SES realm's `Function` constructor, i.e., identical
@@ -692,8 +692,8 @@ we will need to explain how they appear in SES.
 Prior to standard builtin primordial modules,
 
 ```js
-Reflect.SESProtoGlobal  // global of the shared proto-SES realm
-Reflect.makeSESRealm()  // -> fresh global of a new SES realm
+Reflect.theProtoGlobal  // global of the shared proto-SES realm
+Reflect.makeIsolatedRealm()  // -> fresh global of a new, isolated SES realm
 Reflect.confine(src, endowments)  // -> completion value
 ```
 
@@ -705,12 +705,12 @@ patterns of use, we may wish to add other conveniences as well.
 
 ## Open Questions
 
-The three elements of our API are not necessarily found on the
-`Reflect` object. However, until the
-[Built-in Modules issue](https://github.com/tc39/ecma262/issues/395)
-is resolved, for concreteness we leave these on `Reflect`.
+* It is not fundamental to our API design that its three elements are placed on
+the `Reflect` object. This choice was somewhat arbitrary.  However, until the
+[Built-in Modules issue](https://github.com/tc39/ecma262/issues/395) is
+resolved, for concreteness we leave these on `Reflect`.
 
-It remains unclear how we should cope with the override
+* It remains unclear how we should cope with the override
 mistake. Above, we propose the tamper proofing pattern, but this
 requires novel effort to become efficient. Alternatively, we could
 specify that the override mistake is fixed in the SES realm, making
@@ -730,12 +730,12 @@ that fixing a handful of properties on primordial prototypes that are
 overridden in practice (e.g., `constructor`, `toString`, ...) will
 reduce the breakage to a tolerable level. We need measurements.
 
-Although not officially a question within the jurisdiction of TC39, we
+* Although not officially a question within the jurisdiction of TC39, we
 should discuss whether the existing CSP "no script evaluation"
 settings should exempt SES's evaluators, or whether CSP should be
 extended in order to express this differential prohibition.
 
-Currently, if the value of `eval` is anything other than the original
+* Currently, if the value of `eval` is anything other than the original
 value of `eval`, any use of it in the form of a direct-eval expression
 will actually have the semantics of an indirect eval, i.e., a simple
 function call to the current value of `eval`. If SES itself does not
@@ -745,7 +745,7 @@ evaluators with strict-by-default wrappers will break their use for
 direct-eval. We need to do something about this, but it is not yet
 clear what.
 
-The standard `Date` constructor reveals the current time either
+* The standard `Date` constructor reveals the current time either
   * when called as a constructor with no arguments, or
   * when called as a function (regardless of the arguments)
 
@@ -759,13 +759,13 @@ direction, conceivably we could even have `Date.now()` return
 `NaN`. The advantage of removing `Date.now` instead is to support the
 feature-testing style practiced by ECMAScript programmers.
 
-Of course, there is the perpetual bikeshedding of names. We are not
+* Of course, there is the perpetual bikeshedding of names. We are not
 attached to the names we present here.
 
 ## Acknowledgements
 
 Many thanks to E. Dean Tribble, Kevin Reid, Michael Ficarra, Tom Van
 Cutsem, Kris Kowal, Kevin Smith, Terry Hayes, and Daniel
-Ehernberg. Thanks of the entire Caja team (Jasvir Nagra, Ihab Awad,
+Ehrenberg. Thanks to the entire Caja team (Jasvir Nagra, Ihab Awad,
 Mike Samuel, Kevin Reid, Felix Lee) for building a system in which all
 the hardest issues have already been worked out.
