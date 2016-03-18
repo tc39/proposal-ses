@@ -223,9 +223,9 @@ supporting definitions.)
        * Evaluate `src` as if by calling the `eval` method originally
          added to `freshGlobal` prior to copying in the endowments.
 
-       * Return the completion value as the value that the `confine` call
-         evaluates to. When `src` is an expression, this completion value is
-         the value that `src` evaluates to.
+       * Return the completion value from evaluating `src`. When `src`
+         is an expression, this completion value is the value that
+         the `src` expression evaluates to.
 
 
 
