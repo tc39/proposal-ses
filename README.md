@@ -551,10 +551,13 @@ proto-SES primordials between origins and between threads, since deep
 immutability at the specification level should make thread safety at
 the implementation level straightforward.
 
-In a browser environment, a SES-based confined seamless iframe could
-be *very* lightweight, since it would avoid the need to create most
-per-frame primordials. Likewise, we could afford to place each web
-component (need link) into its own confinement box.
+Each call to `Reflect.makeSESRealm()` allocates only three objects:
+the fresh global and its fresh `eval` function and `Function`
+constructor. In a browser environment, a SES-based confined seamless
+iframe could be *very* lightweight, since it would avoid the need to
+create most per-frame primordials. Likewise, we could afford to place
+each [web component](http://webcomponents.org/) into its own
+confinement box.
 
 Today, to self-host builtins by writing them in JavaScript, one must
 practice
@@ -571,11 +574,7 @@ http://wiki.ecmascript.org/doku.php?id=strawman:fixing_override_mistake)",
 for many or possibly all properties in this frozen state, primordial
 objects need to be frozen in a pattern we call "tamper proofing",
 which makes them less compliant with the current language
-standard. Alternatively, we could specify that the override mistake is
-fixed in the SES realm, making the problem go away. This diverges from
-the current standard in a different way, but we have some evidence
-that such divergence will break almost no existing code other than
-test code that specifically probes for standards compliance.
+standard. See the Open Questions below for other possibilities.
 
 By the rules above, a SES realm's `Function.prototype.constructor`
 will be the proto-SES realm's `Function` constructor, i.e., identical
@@ -608,16 +607,6 @@ especially powerful in the context of SES. But because the utility of
 such defensive programming support is not limited to SES, they should
 remain independent proposals. (TODO link to relevant proposals)
 
-Currently, if the value of `eval` is anything other than the original
-value of `eval`, any use of it in the form of a direct-eval expression
-will actually have the semantics of an indirect eval, i.e., a simple
-function call to the current value of `eval`. If SES itself does not
-alter the behavior of the builtin evaluators to be strict by default,
-then any user customization that replaces a SES realm's global
-evaluators with strict-by-default wrappers will break their use for
-direct-eval. We need to do something about this, but it is not yet
-clear what.
-
 For each of the upcoming proposed standard APIs that are not immutable
 and authority-free:
 
@@ -637,6 +626,8 @@ being provided by import from
 [builtin primordial modules](https://github.com/tc39/ecma262/issues/395),
 we will need to explain how they appear in SES.
 
+---
+
 Prior to standard builtin primordial modules,
 
 ```js
@@ -649,9 +640,37 @@ is the *entirety* of the new API proposed here. We believe it is all
 that is needed. However, as we develop a better understanding of
 patterns of use, we may wish to add other conveniences as well.
 
+---
 
 ## Open Questions
 
+It remains unclear how we should cope with the override
+mistake. Above, we propose the tamper proofing pattern, but this
+requires novel effort to become efficient. Alternatively, we could
+specify that the override mistake is fixed in the SES realm, making
+the problem go away. This diverges from the current standard in a
+different way, but we have some evidence that such divergence will
+break almost no existing code other than test code that specifically
+probes for standards compliance. We could also leave it unfixed. This
+would break some good practice legacy patterns of overriding methods by
+assignment to prototypes, but is compatible with overriding by classes
+and object literals, since they do `[[DefineOwnProperty]]` rather than
+assignment.
+
+Although not officially a question within the jurisdiction of TC39, we
+should discuss whether the existing CSP "no script evaluation"
+settings should exempt SES's evaluators, or whether CSP should be
+extended in order to express this differential prohibition.
+
+Currently, if the value of `eval` is anything other than the original
+value of `eval`, any use of it in the form of a direct-eval expression
+will actually have the semantics of an indirect eval, i.e., a simple
+function call to the current value of `eval`. If SES itself does not
+alter the behavior of the builtin evaluators to be strict by default,
+then any user customization that replaces a SES realm's global
+evaluators with strict-by-default wrappers will break their use for
+direct-eval. We need to do something about this, but it is not yet
+clear what.
 
 ## Acknowledgements
 
