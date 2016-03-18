@@ -391,7 +391,7 @@ constructor initializes this remote promise's private instance
 variable `#farEval` to be another remote promise, for the
 `Reflect.SESProtoGlobal.eval` of the location (vat, worker, agent,
 event loop, place, ...) where this promise's fulfillment will be. If
-this promise rejects, then the `#farEval` promise likewise rejects.
+this promise rejects, then its `#farEval` promise likewise rejects.
 
 ```js
 class QPromise extends Promise {
