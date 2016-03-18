@@ -432,7 +432,7 @@ smoothly with our promise framework for handling asynchrony.
 
 As of ES2016, the normative optionals of
 [Annex B](http://www.ecma-international.org/ecma-262/6.0/#sec-additional-ecmascript-features-for-web-browsers)
-seem safe for inclusion as normative optionals of the proto-SES
+are safe for inclusion as normative optionals of the proto-SES
 realm. However, where Annex B states that these are normative
 mandatory in a web browser, there is no such requirement for SES. Even
 when run in a web browser, the SES environment, having no host
