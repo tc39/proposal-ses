@@ -298,9 +298,11 @@ killBill();
 
 ### Virtualized Powers
 
-We can make function like `makeSESRealm` that first provides the
+We can make functions like `makeSESRealm` that first provides the
 missing functionality from our own `Date` and `Math.random`, to
-faithfully emulate full ES2016.
+faithfully emulate full ES2016. Usually, non-determinism is not a
+threat of interest, in which case the following `makeSESRealmPlus` is
+perfectly safe to use instead.
 
 ```js
 function makeSESRealmPlus() {
