@@ -543,9 +543,9 @@ prevent confined computations from perceiving these signals.
 information-flow termination channel.)
 
 This fail-stop implementation-defined determinism is also a great boon
-to testing and debugging. All non-deterministic inputs, like the
-allegedly current time, can be mocked and provided in a reproducible
-manner.
+to testing and debugging. All non-deterministic _dependencies_, like
+the allegedly current time, can be mocked and _injected_ in a
+reproducible manner.
 
 
 ## Discussion
