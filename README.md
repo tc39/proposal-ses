@@ -351,7 +351,7 @@ function makeSESRealmPlus() {
 Alternatively, we could express such a convenience with a function for
 helping to create an endowments record seeded with such a `FreshDate`
 and `FreshMath`, to then be used in a normal `confine` call. Either
-way, this full-standard ses-plus realm costs an additional four
+way, this full-standard ses-realm-plus costs an additional four
 allocations, bringing the total to seven.
 
 In addition to `Date` and `Math`, we can create libraries for seeding
