@@ -276,7 +276,7 @@ function confine(src, endowments) {
   const freshGlobal = Reflect.makeIsolatedRealm();
   // before possible overwrite by endowments
   const freshEval = freshGlobal.eval;
-  Object.define(freshGlobal, endowments);
+  Object.assign(freshGlobal, endowments);
   return freshEval(src);
 }
 ```
