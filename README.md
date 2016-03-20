@@ -5,6 +5,160 @@ SES -- Secure ECMAScript, an ocap secure subset of ECMAScript -- into the
 standard ECMAScript platform.
 
 
+## Summary
+
+Conventional Operating Systems support privilege-separation only at
+the granularity of user account. The browser's _same origin policy_
+added another epicycle, separating privileges one more level, to
+account-at-origin. But neither was compositional. SES (Secure
+ECMAScript), an object-capability subset of ECMAScript, additionally
+separates privileges within an origin -- but not by adding yet another
+level of epicycle. Leveraging the compositionality of object-oriented
+programming, SES enables privileges to be separated and composed
+effectively down to very fine grain.
+
+After many years preparing the ground, from ES5 till today, SES can
+now be introduced into ECMAScript almost trivially. ECMAScript code
+that obeys recognized best practices should run under SES painlessly.
+
+In ECMAScript, a _realm_ consists of a global object and an associated
+set of _primordial objects_ -- mutable objects like `Array.prototype`
+that must exist before any code runs. Objects within a realm
+implicitly share these primordials and can therefore easily attack
+each other by _prototype poisoning_ -- modifying these objects to
+behave badly. Today, there are no implicit communication channels
+between realms. In this sense, realms are already a unit of
+isolation. To achieve this isolation, each realm needs its own
+primordials, making these isolation units expensive.
+
+Realms are brought into intimate contact by host-provided APIs.  In
+the browser, same-origin iframes bring realms into direct contact with
+each other's objects. The mutability of primordials enables an object
+in one realm to poison the prototypes of these other realms.
+
+In a SES realm, aside from the global object, no primordial state is
+mutable, so primordial prototype poisoning is impossible. Because
+primordials are immutable, all SES realms can share them, reducing the
+cost-per-realm to a handful of objects.
+
+A long recognized best practice is "don't monkey-patch primordials" --
+don't mutate any primordial state. Most legacy code obeying this
+practice is already compatible with SES. Some further qualifications
+are explained in the rest of this document.
+
+
+As a delta from the current ECMAScript standards,
+
+```js
+Reflect.theProtoGlobal
+Reflect.makeIsolatedRealm()
+Reflect.confine(src, endowments)
+```
+
+is the *entirety* of the new API proposed here. We believe it is all
+that is needed.
+
+  * The _proto-SES realm_ is the fully immutable realm containing
+    only the immutable primordials shared by all SES
+    realms. `Reflect.theProtoGlobal` returns its immutable global
+    object.
+  * `Reflect.makeIsolatedRealm()` makes a new _SES realm_ with its
+    own global and a handful of objects, but otherwise uses the
+    primordials from the proto-SES realm. It returns the mutable
+    global of that new SES realm.
+  * `Reflect.confine(src, endowments)` makes a new SES realm in the
+    same way, copies the `endowments` onto its global, and then
+    evaluates `src` in that realm, returning the result.
+
+The explanation above is a good first approximation, to be filled in
+and qualified by details in the rest of this document. This
+approximation is adequate for the following examples. After these
+details are explained, further examples follow.
+
+## Initial examples
+
+```js
+Reflect.confine('x + y', {x: 3, y: 4})  // -> 7
+
+Reflect.confine('Object', {})  // -> global Object of the proto-SES realm
+
+Reflect.confine('window', {})  // ReferenceError, no 'window' in scope
+```
+
+### Privilege separation example
+
+
+```js
+function Counter() {
+  let count = 0;
+  return Object.freeze({
+    incr: Object.freeze(() => count++),
+    decr: Object.freeze(() => count--)
+  });
+}
+const counter = new Counter();
+
+// ...obtain billSrc and joanSrc from untrusted clients...
+const bill = Reflect.confine(billSrc, {change: counter.incr});
+const joan = Reflect.confine(joanSrc, {change: counter.decr});
+```
+
+Say the code above is executed by a program we call Alice. Within this
+code, Alice instantiates the mutually suspicious Bill and Joan,
+neither of which is trusted by Alice. _If Alice is written in SES_,
+then Bill and Joan are fully confined except in the way Alice intends:
+they have different rights over the state of a shared counter. Bill
+can only increment the counter and observe the result. Joan can only
+decrement the counter and observe the result. Only Alice can bring
+about any further connectivity among them, by using the `bill` and
+`joan` variables she retains.
+
+Alice restricts Bill and Joan to run in SES confinement to address the
+_offensive code problem_, to insulate herself from their potential
+misbehavior, and to insulate them from each other. But she wishes them
+to interact as well, with herself and each other, _only_ by this
+limited ability to affect and obseve this shared counter. Alice must
+address the _defensive code problem_ of writing a counter that defends
+itself against the potential misbehavior of its callers. If Alice is
+in SES, then the calls to `Object.freeze` above are
+adequate. Otherwise, Bill and Joan can say `change.__proto__` to
+access and poison Alice's prototypes, and to engage in unauthorized
+interaction with each other. To address the defensive code problem,
+Alice places herself into SES as well.
+
+
+### Compartments example
+
+By composing
+[revocable membranes](http://soft.vub.ac.be/~tvcutsem/invokedynamic/js-membranes)
+and `confine`, we can make compartments:
+
+```js
+function makeCompartment(src, endowments) {
+  const {wrapper,
+         revoke} = makeMembrane(Reflect.confine);
+  return {wrapper: wrapper(src, endowments),
+          revoke};
+}
+
+// ...obtain billSrc and joanSrc from untrusted clients...
+const {wrapper: bill,
+       revoke: killBill} = makeCompartment(billSrc, endowments);
+const {wrapper: joan,
+       revoke: killJoan} = makeCompartment(joanSrc, endowments);
+
+// ... introduce mutually suspicious Bill and Joan to each other...
+// ... use both ...
+killBill();
+// ... Bill is inaccessible to us and to Joan. GC can collect Bill ...
+```
+
+After `killBill` is called, there is nothing the Bill code can do to
+cause further effects, or even to continue to occupy memory.
+
+
+---
+
 ## Background
 
 ECMAScript developers produce applications by mingling their code with
@@ -287,41 +441,10 @@ conveniences will first be user-level libraries before appearing in
 later proposals.
 
 
-## Examples
+## More Examples
 
-The **Compartments**, **Virtualized Powers**, and **Mobile Code**
-examples each illustrate very different aspect of SES's power.
 
-### Compartments
-
-By composing
-[revocable membranes](http://soft.vub.ac.be/~tvcutsem/invokedynamic/js-membranes)
-and `confine`, we can make compartments:
-
-```js
-function makeCompartment(src, endowments) {
-  const {wrapper,
-         revoke} = makeMembrane(Reflect.confine);
-  return {wrapper: wrapper(src, endowments),
-          revoke};
-}
-
-// Obtain billSrc and joanSrc from untrusted clients
-const {wrapper: bill,
-       revoke: killBill} = makeCompartment(billSrc, endowments);
-const {wrapper: joan,
-       revoke: killJoan} = makeCompartment(joanSrc, endowments);
-
-// ... introduce mutually suspicious Bill and Joan to each other...
-// ... use both ...
-killBill();
-// ... Bill is inaccessible to us and to Joan. GC can collect Bill ...
-```
-
-After `killBill` is called, there is nothing the Bill code can do to
-cause further effects, or even to continue to occupy memory.
-
-### Virtualized Powers
+### Virtualized Powers example
 
 In the **Punchlines** section below, we explain the non-overt channel
 threats that motivate the removal of `Date.now` and
@@ -414,7 +537,8 @@ By composing the **Compartments** and **Virtualized Powers** patterns, one can
 it with a subtree of one's own DOM as its virtual document, and then
 permanently and fully evict it.
 
-### Mobile code
+
+### Mobile code example
 
 Map-Reduce frameworks vividly demonstrate the power of sending the
 code to the data, rather than the data to the code. Flexible
