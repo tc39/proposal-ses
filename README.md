@@ -61,7 +61,7 @@ language.
   * The only way for an object to cause any effect on the world
     outside itself is by using references it already holds.
   * No object has default or implicit access to any other objects
-    (for example, via language provided global variables) that are not
+    (for example, via language-provided global variables) that are not
     already transitively immutable and powerless.
 
 In an ocap language, object references are the sole representation of
@@ -396,7 +396,7 @@ environment. Prior to real modules, they did not have much
 choice. When setting up a SES environment expecting to run only
 modules, it may well be reasonable to freeze the `freshGlobal` before
 running confined code in that realm. We leave the SES user free to
-make that choice by proposing API that leaves the `freshGlobal`
+make that choice by proposing an API that leaves the `freshGlobal`
 unfrozen.
 
 Because `eval`, `Function`, and the above `Date` and `Math` observably
@@ -423,7 +423,7 @@ distributed computing systems must be able to express both.
 Now that `Function.prototype.toString` will give a
 [reliably evaluable string](http://tc39.github.io/Function-prototype-toString-revision/)
 that can be sent, SES provides a safe way for the receiver to evaluate
-it, in order to reconsitute that function's call behavior in a safe
+it, in order to reconstitute that function's call behavior in a safe
 manner. Say we have a `RemotePromise` constructor that makes a
 [remote promise for an object that is elsewhere](https://github.com/kriskowal/q-connection),
 potentially on another machine. Below, assume that the `RemotePromise`
