@@ -31,16 +31,17 @@ between realms. In this sense, realms are already a unit of
 isolation. However, to achieve this isolation, each realm needs its own
 primordials, making these isolation units expensive.
 
-Realms are brought into intimate contact with each other via host-provided
-APIs.  In the browser, same-origin iframes bring realms into direct contact
-with each other's objects. The mutability of primordials enables an object in
-one realm to poison the prototypes of these other realms.
+Though initially isolated, realms can be brought into intimate contact with
+each other via host-provided APIs.  For example, in current browsers,
+same-origin iframes bring realms into direct contact with each other's
+objects. Once such realms are in contact, the mutability of primordials enables
+an object in one realm to poison the prototypes of the other realms.
 
-In a SES realm, aside from the global object, no primordial state is
-mutable, so primordial prototype poisoning is impossible. Because
-primordials are immutable, all SES realms can simply share a single set of them
-in common, instead of creating an entirely new set for each realm.  This
-reduces the cost-per-new-realm to a handful of objects.
+In contrast to this, in a SES realm, aside from the global object, no
+primordial state is mutable, so primordial prototype poisoning is
+impossible. Because primordials are immutable, all SES realms can simply share
+a single set of them in common, instead of creating an entirely new set for
+each realm.  This reduces the cost-per-new-realm to a handful of objects.
 
 A long recognized best practice is "don't monkey-patch primordials" --
 don't mutate any primordial state. Most legacy code obeying this
