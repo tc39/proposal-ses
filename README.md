@@ -9,15 +9,15 @@ standard ECMAScript platform.
 
 Conventional Operating Systems support privilege-separation only at
 the granularity of user account. The browser's _same origin policy_
-added another epicycle, separating privileges one more level, to
-account-at-origin. But neither was compositional. SES (Secure
+adds another epicycle to this, separating privileges one more level, to
+account-at-origin. But neither separation is compositional. SES (Secure
 ECMAScript), an object-capability subset of ECMAScript, additionally
-separates privileges within an origin -- but not by adding yet another
-level of epicycle. Leveraging the compositionality of object-oriented
-programming, SES enables privileges to be separated and composed
-effectively down to very fine grain.
+separates privileges within an origin -- but not by adding more levels of
+epicycles. Instead, by leveraging the compositionality of object-oriented
+programming, SES enables privileges to be separated and composed effectively
+down to a very fine grain.
 
-After many years preparing the ground, from ES5 till today, SES can
+After many years preparing the ground, from ES5 until today, SES can
 now be introduced into ECMAScript almost trivially. ECMAScript code
 that obeys recognized best practices should run under SES painlessly.
 
@@ -28,18 +28,19 @@ implicitly share these primordials and can therefore easily attack
 each other by _prototype poisoning_ -- modifying these objects to
 behave badly. Today, there are no implicit communication channels
 between realms. In this sense, realms are already a unit of
-isolation. To achieve this isolation, each realm needs its own
+isolation. However, to achieve this isolation, each realm needs its own
 primordials, making these isolation units expensive.
 
-Realms are brought into intimate contact by host-provided APIs.  In
-the browser, same-origin iframes bring realms into direct contact with
-each other's objects. The mutability of primordials enables an object
-in one realm to poison the prototypes of these other realms.
+Realms are brought into intimate contact with each other via host-provided
+APIs.  In the browser, same-origin iframes bring realms into direct contact
+with each other's objects. The mutability of primordials enables an object in
+one realm to poison the prototypes of these other realms.
 
 In a SES realm, aside from the global object, no primordial state is
 mutable, so primordial prototype poisoning is impossible. Because
-primordials are immutable, all SES realms can share them, reducing the
-cost-per-realm to a handful of objects.
+primordials are immutable, all SES realms can simply share a single set of them
+in common, instead of creating an entirely new set for each realm.  This
+reduces the cost-per-new-realm to a handful of objects.
 
 A long recognized best practice is "don't monkey-patch primordials" --
 don't mutate any primordial state. Most legacy code obeying this
@@ -121,7 +122,7 @@ limited ability to affect and obseve this shared counter. Alice must
 address the _defensive code problem_ of writing a counter that defends
 itself against the potential misbehavior of its callers. If Alice is
 in SES, then the calls to `Object.freeze` above are
-adequate. Otherwise, Bill and Joan can say `change.__proto__` to
+adequate. Otherwise, Bill and Joan could say `change.__proto__` to
 access and poison Alice's prototypes, and to engage in unauthorized
 interaction with each other. To address the defensive code problem,
 Alice places herself into SES as well.
