@@ -92,8 +92,8 @@ Reflect.confine('window', {})  // ReferenceError, no 'window' in scope
 function Counter() {
   let count = 0;
   return Object.freeze({
-    incr: Object.freeze(() => count++),
-    decr: Object.freeze(() => count--)
+    incr: Object.freeze(() => ++count),
+    decr: Object.freeze(() => --count)
   });
 }
 const counter = new Counter();
