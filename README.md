@@ -42,7 +42,7 @@ are the `global` accessor and the `eval` method, re-explained below.
 
 We propose that there be a singleton shared frozen realm consisting
 only of transitively immutable primordials, accessible by the static
-accessor `Realm.TheFrozenRealm`. We propose an `spawn` method on
+accessor `Realm.TheFrozenRealm`. We propose a `spawn` method on
 instances of the `Realm` class for making a lightweight child realm
 consisting of four new objects. Aside from these new objects, the new
 child realm inherits all its primordials from its parent realm.
@@ -95,7 +95,7 @@ other as two full realms created by two same origin iframes.
 
 Two realms, whether made as above by the `Realm` API or by same origin
 iframes, can be put in contact. Once in contact, they can mix their
-object graphs freely. When same origin iframes do this, the encounter
+object graphs freely. When same origin iframes do this, they encounter
 an inconvenience and source of bugs we will here call _identity
 discontinuities_. For example if code from iframeA makes an array `arr`
 that it passes to code from iframeB, and iframeB tests `arr instanceof
@@ -134,12 +134,12 @@ dynamic information flow_ though we have not yet explored this in
 detail. (TODO cite Tim Disney's use of membranes for information flow
 security.)
 
-The `confine` function is from SES, which has a
+(The `confine` function is from SES, which has a
 [formal semantics](http://research.google.com/pubs/pub37199.html)
 supporting automated verification of some security properties of SES
 code.  It was developed as part of the Google
 [Caja](https://github.com/google/caja) project; you can read more
-about SES and Caja on the Caja website.
+about SES and Caja on the Caja website.)
 
 
 ```js
@@ -228,7 +228,7 @@ In order for `TheFrozenGlobal` to be universally implicitly shared
 safely, it must be transitively immutable. Fortunately, of the
 standard primordials in ES2016, the only mutable primordial state is
   * Mutable properties of primordial objects
-  * Mutable internal [[Prototype]] slot of primordial objects
+  * The mutable internal [[Prototype]] slot of primordial objects
   * `Math.random`
   * `Date.now`
   * The `Date` constructor called as a constructor with no arguments
@@ -289,9 +289,9 @@ appropriate.
 
      1. `spawn` returns that new child realm instance.
 
-     The total cost of a new SES realm is three objects: the
-     `freshGlobal` and the `eval` function and `Function` constructor
-     specific to it.
+     The total cost of a new spawned realm is four objects: the realm
+     instance itself, the `freshGlobal` and the `eval` function and
+     `Function` constructor specific to it.
 
   1. The evaluators of a spawned realm evaluate code in the global
      scope of that realm's global, using that
@@ -357,14 +357,14 @@ function makeColdRealm(GoodDate, goodRandom) {
     Date: Object.freeze(FreshDate),
     Math: Object.freeze(FreshMath)
   });
-  const freshGlobal = Object.freeze(freshRealm.global);
-  Object.freeze(freshGlobal.eval);
-  Object.freeze(freshGlobal.Function);
+  Object.freeze(freshRealm.global);
+  Object.freeze(freshRealm.global.eval);
+  Object.freeze(freshRealm.global.Function);
   return freshRealm;
 }
 ```
 
-In addition to `Date` and `Math`, we can create abstractions to seed
+In addition to `Date` and `Math`, we can create abstractions to endow
 a fresh global with virtualized emulations of expected host-provided
 globals like `window`, `document`, and `XMLHttpRequest`. These
 emulations may map into the caller's own or
@@ -377,11 +377,11 @@ an operating system, whose virtual memory accesses are mapped to
 physical memory by a mapping it does not see or control. Domado remaps
 URI space in a similar manner. By emulating the browser API, much
 existing browser code runs compatibly in a virtualized browser
-environment as configured by the caller using SES and Domado.
+environment as configured by the caller using Domado.
 
 Because `eval`, `Function`, and the above `Date` and `Math` observably
 shadow the corresponding objects from their parent realm, the spawned
-environment is not a fully faithful emulation of standard non-SES
+environment is not a fully faithful emulation of standard
 ECMAScript. However, these breaks in the illusion are a necessary
 price of avoiding identity discontinuities between realms spawned from
 a common parent. We have chosen these breaks carefully to be
@@ -543,7 +543,7 @@ As of ES2016, the normative optionals of
 are safe for inclusion as normative optionals of
 `TheFrozenRealm`. However, where Annex B states that these are
 normative mandatory in a web browser, there is no such requirement for
-`TheFrozenrealm`. Even when run in a web browser, `TheFrozenRealm`,
+`TheFrozenRealm`. Even when run in a web browser, `TheFrozenRealm`,
 having no host specific globals, must be considered a non-browser
 environment. Some post-ES2015 APIs proposed for Annex B, such as the
 [`RegExp` statics](https://github.com/claudepache/es-regexp-legacy-static-properties)
@@ -566,7 +566,7 @@ and
 [B.3.4](http://www.ecma-international.org/ecma-262/6.0/#sec-functiondeclarations-in-ifstatement-statement-clauses)
 non issues. It is unclear what `TheFrozenRealm`'s evaluators should
 specify regarding the remaining normative optional syntax in section
-B.1, but the syntax accepted by these evaluators, at least in strict
+B.1. But the syntax accepted by these evaluators, at least in strict
 mode, should probably be pinned down precisely by the spec.
 
 Some of the elements of Annex B are safe and likely mandatory in
@@ -618,8 +618,8 @@ which makes them less compliant with the current language
 standard. See the **Open Questions** below for other possibilities.
 
 By the rules above, a spawned realm's `Function.prototype.constructor`
-will be the realm's `Function` constructor, i.e., identical to the
-spawned realm's `Function.__proto__`. In exchange for this odd
+will be the parent realm's `Function` constructor, i.e., identical to
+the spawned realm's `Function.__proto__`. In exchange for this odd
 topology, we obtain the pleasant property that `instanceof` works
 transparently between spawned realms by default -- unless overridden
 by a user's polyfill to the contrary.
