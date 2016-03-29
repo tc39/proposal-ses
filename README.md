@@ -261,7 +261,9 @@ appropriate.
      no other objects or properties beyond those specified here. In
      `TheFrozenRealm` the global object itself is also transitively
      immutable. Specifically, it contains no host-specific
-     objects. This frozen global object is a plain object.
+     objects. This frozen global object is a plain object whose
+     `[[Prototype]]` is `Object.prototype`, i.e., the
+     `%ObjectPrototype%` intrinsic of `TheFrozenRealm`.
 
   1. In order to attain the necessary deep immutability of
      `TheFrozenRealm`, two of its primordials must be modified from
