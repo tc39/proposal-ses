@@ -1,93 +1,156 @@
-# Draft Proposed Standard SES
+# Draft Proposed Frozen Realm API
 
-This document specifies an API and accompanying language changes to incorporate
-SES -- Secure ECMAScript, an ocap secure subset of ECMAScript -- into the
-standard ECMAScript platform.
+This document specifies complimentary enhancements to the
+[old Realms API proposal](https://gist.github.com/dherman/7568885)
+focused on making lightweight realms that derive from a shared frozen
+realm. The proposal here is intended to compose well with the
+remainder of the old `Realm` proposal but is not dependent on any of
+its elements not re-presented here. These proposals each have utility
+without the other, and so can be proposed separately. However,
+together they have more power than each separately.
+
+We motivate the frozen Realm API presented here with a variety of
+examples.
 
 
 ## Summary
 
-Conventional Operating Systems support privilege-separation only at
-the granularity of user account. The browser's _same origin policy_
-adds another epicycle to this, separating privileges one more level, to
-account-at-origin. But neither separation is compositional. SES (Secure
-ECMAScript), an object-capability subset of ECMAScript, additionally
-separates privileges within an origin -- but not by adding more levels of
-epicycles. Instead, by leveraging the compositionality of object-oriented
-programming, SES enables privileges to be separated and composed effectively
-down to a very fine grain.
-
-After many years preparing the ground, from ES5 until today, SES can
-now be introduced into ECMAScript almost trivially. ECMAScript code
-that obeys recognized best practices should run under SES painlessly.
-
 In ECMAScript, a _realm_ consists of a global object and an associated
 set of _primordial objects_ -- mutable objects like `Array.prototype`
 that must exist before any code runs. Objects within a realm
-implicitly share these primordials and can therefore easily attack
-each other by _prototype poisoning_ -- modifying these objects to
-behave badly. Today, there are no implicit communication channels
-between realms. In this sense, realms are already a unit of
-isolation. However, to achieve this isolation, each realm needs its own
-primordials, making these isolation units expensive.
+implicitly share these primordials and can therefore easily disrupt
+each other by _primordial poisoning_ -- modifying these objects to
+behave badly. This disruption may happen accidentally or
+maliciously. Today, in the browser, realms can be created via _same
+origin iframes_. On creation, these realms are separate from each
+other. However, to achieve this separation, each realm needs its own
+primordials, making this separation too expensive to be used at fine
+grain.
 
-Though initially isolated, realms can be brought into intimate contact with
-each other via host-provided APIs.  For example, in current browsers,
-same-origin iframes bring realms into direct contact with each other's
-objects. Once such realms are in contact, the mutability of primordials enables
-an object in one realm to poison the prototypes of the other realms.
+Though initially separate, realms can be brought into intimate contact
+with each other via host-provided APIs.  For example, in current
+browsers, same-origin iframes bring realms into direct contact with
+each other's objects. Once such realms are in contact, the mutability
+of primordials enables an object in one realm to poison the prototypes
+of the other realms.
 
-In contrast to this, in a SES realm, aside from the global object, no
-primordial state is mutable, so primordial prototype poisoning is
-impossible. Because primordials are immutable, all SES realms can simply share
-a single set of them in common, instead of creating an entirely new set for
-each realm.  This reduces the cost-per-new-realm to a handful of objects.
+Borrowing from the
+[old Realms API proposal](https://gist.github.com/dherman/7568885), we
+propose a `Realm` class, each of whose instances are a reification of
+the "Realm" concept. The only elements of the old API required here
+are the `global` accessor and the `eval` method, re-explained below.
+
+We propose that there be a singleton shared frozen realm consisting
+only of transitively immutable primordials, accessible by the static
+accessor `Realm.TheFrozenRealm`. We propose an `spawn` method on
+instances of the `Realm` class for making a lightweight child realm
+consisting of four new objects. Aside from these new objects, the new
+child realm inherits all its primordials from its parent realm.
+
+```js
+class Realm {
+  // From the old Realm API proposal
+  get global() -> object                // access this realm's global object
+  eval(stringable) -> any               // do an indirect eval in this realm
+
+  // We expect the rest of old proposal to be proposed eventually but
+  // do not rely here on any of the remainder.
+
+  // New with this proposal
+  static get TheFrozenRealm() -> Realm  // transitively immutable singleton
+  spawn(endowments) -> Realm            // lightweight child realm
+}
+```
+
+`TheFrozenRealm` consists of all the primordial state defined by
+ES2016 (with the exception of the `Date.now` and `Math.random`
+methods, as explained below). It contains no host provided objects, so
+`window`, `document`, `XMLHttpRequest`, etc... are all absent. Thus,
+`TheFrozenRealm` contains none of the objects needed for interacting
+with the outside world, like the user or the network.
+
+The `spawn` method makes (1) a new realm with (2) a new `global`
+inheriting from its parent's `global`, (3) a new `eval` function
+inheriting from its parent's `eval` function, and (4) a new `Function`
+constructor inheriting from its parent's `Function` constructor. The
+new `eval` and `Function` evaluate code in the global scope of the new
+`global` with that `global` as their global object. It then copies the
+own enumerable properties from the `endowments` record onto the new
+`global` and returns the new realm instance. With these endowments,
+users can add back in those host objects that they wish to be
+available in the spawned realm.
+
+Although `TheFrozenGlobal` and `spawn` are orthogonal, they are
+especially interesting when directly composed:
+
+```js
+const realmA = Realm.TheFrozenRealm.spawn({});
+const realmB = Realm.TheFrozenRealm.spawn({});
+```
+
+Because all the primordials that `realmA` and `realmB` share are
+immutable, neither can poison the prototypes of the other. Because
+they share no mutable state, they are as fully separate from each
+other as two full realms created by two same origin iframes.
+
+Two realms, whether made as above by the `Realm` API or by same origin
+iframes, can be put in contact. Once in contact, they can mix their
+object graphs freely. When same origin iframes do this, the encounter
+an inconvenience and source of bugs we will here call _identity
+discontinuities_. For example if code from iframeA makes an array `arr`
+that it passes to code from iframeB, and iframeB tests `arr instanceof
+Array`, the answer will be `false` since `arr` inherits from the
+`Array.prototype` of iframeA which is a different object than the
+`Array.prototype` of iframeB.
+
+By contrast, since `realmA` and `realmB` share the `Array.prototype`
+they inherit from `TheFrozenRealm`, an array `arr` created by one still
+passes the `arr instanceof Array` as tested by the other.
 
 A long recognized best practice is "don't monkey-patch primordials" --
 don't mutate any primordial state. Most legacy code obeying this
-practice is already compatible with SES. Some further qualifications
-are explained in the rest of this document.
+practice is already compatible with realms descending from
+`TheFrozenRealm`. Some further qualifications are explained in the
+rest of this document.
 
 
-As a delta from the current ECMAScript standards,
-
-```js
-Reflect.theProtoGlobal
-Reflect.makeIsolatedRealm()
-Reflect.confine(src, endowments)
-```
-
-is the *entirety* of the new API proposed here. We believe it is all
-that is needed.
-
-  * The _proto-SES realm_ is the fully immutable realm containing
-    only the immutable primordials shared by all SES
-    realms. `Reflect.theProtoGlobal` returns its immutable global
-    object.
-  * `Reflect.makeIsolatedRealm()` makes a new _SES realm_ with its
-    own global and a handful of objects, but otherwise uses the
-    primordials from the proto-SES realm. It returns the mutable
-    global of that new SES realm.
-  * `Reflect.confine(src, endowments)` makes a new SES realm in the
-    same way, copies the `endowments` onto its global, and then
-    evaluates `src` in that realm, returning the result.
-
-The explanation above is a good first approximation, to be filled in
-and qualified by details in the rest of this document. This
-approximation is adequate for the following examples. After these
-details are explained, further examples follow.
-
-## Initial examples
+## Confinement examples
 
 ```js
-Reflect.confine('x + y', {x: 3, y: 4})  // -> 7
-
-Reflect.confine('Object', {})  // -> global Object of the proto-SES realm
-
-Reflect.confine('window', {})  // ReferenceError, no 'window' in scope
+function confine(src, endowments) {
+  return Realm.TheFrozenRealm.spawn(endowments).eval(src);
+}
 ```
 
-### Privilege separation example
+This `confine` function is an example of a security abstraction we can
+easily build by composing the primitives above. It uses `spawn` to
+make a realm descendant from `TheFrozenRealm`, copy the own enumerable
+properties of `endowments` onto the global of that new realm, and then
+evaluate `src` in the scope of that global and return the result. This
+`confine` function is especially useful for _object-capability_
+programming. These primitives (together with membranes) can also be
+composed to support other security models such as _decentralized
+dynamic information flow_ though we have not yet explored this in
+detail. (TODO cite Tim Disney's use of membranes for information flow
+security.)
+
+The `confine` function is from SES, which has a
+[formal semantics](http://research.google.com/pubs/pub37199.html)
+supporting automated verification of some security properties of SES
+code.  It was developed as part of the Google
+[Caja](https://github.com/google/caja) project; you can read more
+about SES and Caja on the Caja website.
+
+
+```js
+confine('x + y', {x: 3, y: 4})  // -> 7
+
+confine('Object', {})           // -> Object constructor of TheFrozenRealm
+
+confine('window', {})           // ReferenceError, no 'window' in scope
+```
+
+## Plugin separation example
 
 
 ```js
@@ -101,35 +164,34 @@ function Counter() {
 const counter = new Counter();
 
 // ...obtain billSrc and joanSrc from untrusted clients...
-const bill = Reflect.confine(billSrc, {change: counter.incr});
-const joan = Reflect.confine(joanSrc, {change: counter.decr});
+const bill = confine(billSrc, {change: counter.incr});
+const joan = confine(joanSrc, {change: counter.decr});
 ```
 
 Say the code above is executed by a program we call Alice. Within this
-code, Alice instantiates the mutually suspicious Bill and Joan,
-neither of which is trusted by Alice. _If Alice is written in SES_,
-then Bill and Joan are fully confined except in the way Alice intends:
-they have different rights over the state of a shared counter. Bill
-can only increment the counter and observe the result. Joan can only
-decrement the counter and observe the result. Only Alice can bring
-about any further connectivity among them, by using the `bill` and
-`joan` variables she retains.
+code, Alice obtains source code for plugins Bill and Joan. Alice does
+not know how well these plugins are written, and so wishes to protect
+herself from their misbehavior, as well as protect each of them from
+the misbehavior of the other. It does not matter whether Alice is
+worried about accidental or malicious misbehavior.
 
-Alice restricts Bill and Joan to run in SES confinement to address the
-_offensive code problem_, to insulate herself from their potential
-misbehavior, and to insulate them from each other. But she wishes them
-to interact as well, with herself and each other, _only_ by this
-limited ability to affect and obseve this shared counter. Alice must
-address the _defensive code problem_ of writing a counter that defends
-itself against the potential misbehavior of its callers. If Alice is
-in SES, then the calls to `Object.freeze` above are
-adequate. Otherwise, Bill and Joan could say `change.__proto__` to
-access and poison Alice's prototypes, and to engage in unauthorized
-interaction with each other. To address the defensive code problem,
-Alice places herself into SES as well.
+With the code above, Alice presents to each of these plugins an API
+surface of her design, characteristic of the plugin framework she
+defines. In this trivial example, she provides to each a function they
+will know as `change` for manipulating the state of a shared
+counter. By calling his `change` variable, Bill can only increment the
+counter and see the result. By calling her `change` variable, Joan can
+only decrement the counter and see the result. By using her `counter`
+variable Alice can do both.
+
+Alice's code above achieves this if it is evaluated in such a realm --
+one descendant from `TheFrozenRealm` in which primordials are
+transitively immutable. Otherwise, Bill or Joan could say
+`change.__proto__` to access and poison Alice's prototypes, and to
+interact with each other in ways Alice did not intend to enable.
 
 
-### Compartments example
+## Compartments example
 
 By composing
 [revocable membranes](http://soft.vub.ac.be/~tvcutsem/invokedynamic/js-membranes)
@@ -138,7 +200,7 @@ and `confine`, we can make compartments:
 ```js
 function makeCompartment(src, endowments) {
   const {wrapper,
-         revoke} = makeMembrane(Reflect.confine);
+         revoke} = makeMembrane(confine);
   return {wrapper: wrapper(src, endowments),
           revoke};
 }
@@ -156,351 +218,154 @@ killBill();
 ```
 
 After `killBill` is called, there is nothing the Bill code can do to
-cause further effects, or even to continue to occupy memory.
+cause further effects.
 
 
----
+## Date and Math
 
-## Background
 
-ECMAScript developers produce applications by mingling their code with
-code written by others, such as frameworks and libraries. These pieces
-may cooperate as the developer intends, or they may destructively
-interfere with each other.  Even under the best of intentions, the
-likelihood of interference grows as the size and complexity of the
-application grows, and as the application's code ecosystem grows. This
-coordination problem limits the scale and functionality of
-the software we can successfully compose.
+In order for `TheFrozenGlobal` to be universally implicitly shared
+safely, it must be transitively immutable. Fortunately, of the
+standard primordials in ES2016, the only mutable primordial state is
+  * Mutable properties of primordial objects
+  * Mutable internal [[Prototype]] slot of primordial objects
+  * `Math.random`
+  * `Date.now`
+  * The `Date` constructor called as a constructor with no arguments
+  * The `Date` constructor called as a function, no matter what arguments
 
-This coordination problem becomes harder once we account for
-deliberate misbehavior.  The large user-base of a successful web
-application makes a tempting target for bad actors. Yet the size and
-complexity of such applications, and the diversity of their
-components, makes them vulnerable to the introduction of malicious
-components. With scale, the target is both more valuable and more
-vulnerable.
+To make `TheFrozenRealm` transitively immutable, we, respectively
+  * Make all these properties non-configurable, non-writable. If an
+    accessor property, we specify that its getter must always return
+    the same value and its setter either be absent or throw an error
+    without mutating any state.
+  * Make all primordial objects non-extensible.
+  * Remove `Math.random`
+  * Remove `Date.now`
+  * Have `new Date()` throw a `TypeError`
+  * Have `Date(any...)` throw a `TypeError`
 
-In software engineering, a successful strategy for reducing these
-coordination problems has been to isolate potentially interfering
-components from each other, limiting their interactions to selected,
-well-defined channels.  This has been the motivation behind many of
-the advances in the field, including lexical scoping, object-oriented
-programming, module systems, and memory safety, to name just a few
-examples.  In the world of object-oriented programming, the gold
-standard for such isolation is the object capability (ocap) model.
-The ocap model is perhaps best understood in contrast to more
-conventional object systems.
-
-In an object language, an object reference allows its holder to
-invoke methods on the public interface of the object it designates. Such an
-invocation in turn grants to the called object the means to similarly make
-method invocations on any object references that are passed as arguments.
-
-In a memory-safe object language, object references are _unforgeable_,
-that is, there is no way within the language for code to "manufacture"
-a reference to a pre-existing object. In a memory-safe object language
-in which _encapsulation_ is unbreakable, objects may hold state --
-including references to other objects -- that is totally inaccessible
-to code outside themselves.
-
-With these familiar restrictions we can guarantee that the only way
-for one object to come to possess a reference to a second object is
-for them to have been given that reference by somebody else, or for
-one of them to have been the creator of the other. We can make strong,
-provable assertions about the ability of object references to
-propagate from one holder to another, and thus can reason reliably
-about the evolution of the object reference graph over time.
-ECMAScript is a language with these properties.
-
-With two additional restrictions, we have an object-capability (ocap)
-language.
-  * The only way for an object to cause any effect on the world
-    outside itself is by using references it already holds.
-  * No object has default or implicit access to any other objects
-    (for example, via language-provided global variables) that are not
-    already transitively immutable and powerless.
-
-In an ocap language, object references are the sole representation of
-permission.
-
-(An object is _transitively immutable_ if no mutable state is
-reachable in the object graph starting at that object. An object is
-_powerless_ if it is unable to cause I/O. For example, in Java, even
-the seemingly immutable square root function in a math library is not
-powerless because it is able to import java.io.File and delete all
-your files. If we include the external world in our notion of mutable
-state, then "transitively immutable" necessarily implies
-"powerless". In the remainder of this document, we use _transitively
-immutable_ for this joint restriction.)
-
-Ocap languages enable us to program objects that are defensively
-consistent -- that is, they can defend their own invariants and
-provide correct service to their well behaved clients, despite
-arbitrary or malicious misbehavior by their other clients.  Ocap
-languages help us address the coordination problem by enabling
-disparate pieces of code from mutually suspicious parties to
-interoperate in a way that is both safe and useful at the same time.
-
-Although stock ECMAScript satisfies our first set of requirements for
-a strongly memory safe object language with unbreakable encapsulation,
-it is *not* an ocap language.  The runtime environment specified by
-the ECMA-262 standard mandates globally accessible objects with
-mutable state.  Moreover, typical hosting environments, browsers and
-servers, provide default access to additional powerful objects that
-can affect parts of the outside world, such as the browser DOM or the
-Internet.  However, ECMAScript *can* be transformed into an ocap
-language by careful language subsetting combined with some fairly
-simple changes to the default execution environment.
-
-SES -- Secure ECMAScript -- is such a subset.
-
-(The **Virtualized Powers** example below shows how a SES user can provide a
-compatible virtual host environment to the code it confines.)
-
-SES derives an ocap environment from a conventional ECMAScript
-environment through a small number of carefully chosen modifications:
-  * SES requires that all the _primordial objects_ -- objects like
-    `Array.prototype`, mandated by the ECMAScript language
-    specification to exist before any code starts running -- be made
-    transitively immutable.
-  * SES forbids any references to any other objects that are not
-    already transitively immutable (including `window`, `document`,
-    `XMLHttpRequest`, ...) from being reachable from the initial
-    execution state of the environment.
-
-These restrictions must be in place before any (user) code runs.  We
-can achieve this by running special preamble code beforehand that
-enforces these restrictions by modifying a stock environment in place,
-or by providing the restricted environment directly as part of the
-underlying execution engine.
-
-Although programs in SES are limited to a subset of the full
-ECMAScript language, SES will compatibly run nearly all ES5 or later
-code that follows recognized ECMAScript best practices. In fact, many
-features introduced in ES5 and ES2015 were put there specifically to
-enable this subsetting and restriction, so that we could realize a
-secure computing environment for ECMAScript without additional special
-support from the engine.
-
-SES has a
-[formal semantics](http://research.google.com/pubs/pub37199.html)
-supporting automated verification of some security properties of SES
-code.  It was developed as part of the Google
-[Caja](https://github.com/google/caja) project; you can read more
-about SES and Caja on the Caja website.
-
-SES is
-[currently implemented in ECMAScript as a bundle of preamble code](https://github.com/google/caja/tree/master/src/com/google/caja/ses)
-that is run first on any SES-enabled web page.  Here, we will refer to
-this implementation as the **SES-shim**, since it polyfills an
-approximation of SES on any platform conforming to ES5 or later.  To
-do its job, this preamble code must freeze all the primordials. The
-time it takes to individually walk and freeze each of these objects
-makes initial page load expensive, which has inhibited SES adoption.
-
-With the advent of ES2015, the number of primordials has ballooned,
-making the SES-shim implementation strategy even more
-expensive. However, we can avoid this large per-page expense by making
-SES a standard part of the platform, so that an appropriately confined
-execution environment is provided natively. Any necessary
-preamble computation need only be done once per browser startup as
-part of the browser implementation.  The mission of this document is
-to specify an API and a strategy for incorporating SES into the
-standard ECMAScript platform.
-
-We want the standard SES mechanism to be sufficiently lightweight that it can
-be used promiscuously.  Rather than simply isolating individual pieces of code
-so they can do no damage, we also want to make it possible to use these
-confined pieces as composable building blocks.  Consequently, code doing such
-composition needs a way to selectively make controlled connections between the
-otherwise isolated parts.  It may also need to carefully provide some of those
-pieces with constrained access to sensitive operations that confined code would
-not ordinarily have the power to do.  The design we propose below achieves
-these aims.
-
-(See the [Glossary](https://github.com/FUDCo/ses-realm/wiki/Glossary) for
-supporting definitions.)
+See the **Polyfill example** below to see how a user can effectively
+add the missing functionality of `Date` and `Math` back in when
+appropriate.
 
 
 ## Proposal
 
-  1. Create a single shared **proto-SES realm** (global scope and set
-     of primordial objects) in which all primordials are already
-     transitively immutable. These primordials include *all* the
-     primordials defined as mandatory in ES2016. (And those in
+  1. Create a single shared frozen realm, `Realm.TheFrozenRealm`, in
+     which all primordials are already transitively immutable. These
+     primordials include *all* the primordials defined as mandatory in
+     ES2016. (And those in
      [draft ES2017](https://tc39.github.io/ecma262/) as of March 17,
      2016, the time of this writing.)  These primordials must include
-     no other objects or properties beyond those specified
-     here. Unlike the *SES realms* we define below, in this one shared
-     proto-SES realm the global object itself (which we here call the
-     **proto-global object**) is also transitively
+     no other objects or properties beyond those specified here. In
+     `TheFrozenRealm` the global object itself is also transitively
      immutable. Specifically, it contains no host-specific
-     objects. The proto-global object is a plain object.
+     objects. This frozen global object is a plain object.
 
-  1. In order to attain the necessary deep immutability of the
-     proto-SES realm, two of its primordials must be modified from the
-     existing standard: The proto-SES realm's `Date` object has its `now()`
-     method removed and its default constructor changed to throw a
-     `TypeError` rather than reveal the current time.  The proto-SES
-     realm's `Math` object has its `random()` method removed.
+  1. In order to attain the necessary deep immutability of
+     `TheFrozenRealm`, two of its primordials must be modified from
+     the existing standard: `TheFrozenRealm`'s `Date` object has its
+     `now()` method removed and its default constructor changed to
+     throw a `TypeError` rather than reveal the current time.
+     `TheFrozenRealm`'s `Math` object has its `random()` method
+     removed.
 
-     See the **Virtualized Powers** section below to see how a SES user can
-     effectively add these back in when appropriate.
+  1. Add to the `Realm` class a new instance method, `spawn(endowments)`.
+     1. `spawn` creates a new child realm with its own fresh global object
+        (denoted below by the symbol `freshGlobal`) whose
+        `[[Prototype]]` is the parent realm's global object. This
+        fresh global is also a plain object. Unlike the global of
+        `TheFrozenRealm`, the `freshGlobal` is not frozen by default.
 
-  1. Add to all realms, including the shared proto-SES realm, a new
-     fundamental builtin function `Reflect.makeIsolatedRealm()`, which
-     creates a new **SES realm** with its own fresh global object
-     (denoted below by the symbol `freshGlobal`) whose `[[Prototype]]`
-     is the proto-global object. This fresh global is also a plain
-     object. Unlike the proto-global, the `freshGlobal` is not frozen
-     by default.
+     1. `spawn` populates this `freshGlobal` with overriding
+        bindings for the evaluators that have global names (currently
+        only `eval` and `Function`). It binds each of these names to
+        fresh objects whose `[[Prototype]]`s are the corresponding
+        objects from the parent realm.
 
-     * `Reflect.makeIsolatedRealm()` then populates this `freshGlobal` with
-       overriding bindings for the evaluators that have global names
-       (currently only `eval` and `Function`). It binds each of these
-       names to fresh objects whose `[[Prototype]]`s are the
-       corresponding objects from the proto-SES realm. It returns that
-       fresh global object.
+     1. `spawn` copies the own enumerable properties from the
+        `endowments` record onto the `freshGlobal`.
+
+     1. `spawn` returns that new child realm instance.
 
      The total cost of a new SES realm is three objects: the
      `freshGlobal` and the `eval` function and `Function` constructor
      specific to it.
 
-  1. The evaluators of the proto-SES realm evaluate code in the global
-     scope of the proto-SES realm, using the proto-SES realm's frozen
-     global as their global object. The evaluators of a specific SES
-     realm evaluate code in the global scope of that SES realm, using
-     that realm's global object as their global object.
+  1. The evaluators of a spawned realm evaluate code in the global
+     scope of that realm's global, using that
+     global as their global object.
 
-     A SES realm's initial `eval` inherits from proto-SES's
+     A spawned realm's initial `eval` inherits from their parent's
      `eval`. For each of the overriding constructors (currently only
      `Function`), their `"prototype"` property initially has the same
      value as the constructor they inherit from. Thus, a function
-     `foo` from one SES realm passes the `foo instanceof Function`
-     test using the `Function` constructor of another SES realm. Among
-     SES realms, `instanceof` on primordial types simply works.
-
-  1. Add to all realms, including the shared proto-SES realm, a new
-     property, `Reflect.theProtoGlobal`, whose value is the shared
-     global of the proto-SES realm.
-
-  1. Add to all realms, including the shared proto-SES realm, a new
-     derived builtin function `Reflect.confine(src, endowments)`. This
-     is only a convenience that can be defined in terms of the
-     fundamental `Reflect.makeIsolatedRealm()` as shown by code below.
-
-       * `Reflect.confine` first calls (the original)
-         `Reflect.makeIsolatedRealm()` to obtain the `freshGlobal` of a new
-         SES realm.
-
-       * The own enumerable properties from `endowments` are then
-         copied onto this global.  This copying happens *after*
-         `makeIsolatedRealm` binds the evaluators, so that the caller of
-         `confine` has the option to endow a SES realm with different
-         evaluators of its own choosing.
-
-       * Evaluate `src` as if by calling the `eval` method originally
-         added to `freshGlobal` by `Reflect.makeIsolatedRealm`.
-
-       * Return the completion value from evaluating `src`. When `src`
-         is an expression, this completion value is the value that
-         the `src` expression evaluates to.
+     `foo` from one descendant realm passes the `foo instanceof
+     Function` test using the `Function` constructor of another
+     descendant of the same parent realm. Among sibling spawned
+     realms, `instanceof` on primordial types simply works.
 
 
 
-### The Entire API
-
-```js
-Reflect.theProtoGlobal  // global of the shared proto-SES realm
-Reflect.makeIsolatedRealm()  // -> fresh global of a new, isolated SES realm
-Reflect.confine(src, endowments)  // -> completion value
-```
-
-`Reflect.theProtoGlobal` can trivially be derived from
-`Reflect.makeIsolatedRealm` by `Reflect.makeIsolatedRealm().__proto__`. We
-provide it directly only because it seems wasteful to create a fresh
-realm and throw it away, only to access something shared.
-
-`Reflect.confine` can be defined in terms of `Reflect.makeIsolatedRealm` as
-follows. For expository purposes, we ignore the difference between
-original binding and current binding. Where the code below says, e.g.,
-`Reflect.makeIsolatedRealm` we actually mean the original binding of that
-expression.
-
-```js
-function confine(src, endowments) {
-  const freshGlobal = Reflect.makeIsolatedRealm();
-  // before possible overwrite by endowments
-  const freshEval = freshGlobal.eval;
-  Object.assign(freshGlobal, endowments);
-  return freshEval(src);
-}
-```
-
-Beyond `theProtoGlobal` and `confine`, further derived API may be
-called for, to aid some patterns of use. For now, we assume that such
-conveniences will first be user-level libraries before appearing in
-later proposals.
-
-
-## More Examples
-
-
-### Virtualized Powers example
+### Polyfill example
 
 In the **Punchlines** section below, we explain the non-overt channel
 threats that motivate the removal of `Date.now` and
 `Math.random`. However, usually this threat is not of interest, in
 which case we'd rather include the full API of ES2016, since it is
-otherwise safe. Indeed, Caja has always provided the
-full functionality of `Date` and `Math` because its threat model did
-not demand that they be denied.
+otherwise safe. Indeed, Caja has always provided the full
+functionality of `Date` and `Math` because Caja's threat model did not
+demand that they be denied.
 
-The following `makeIsolatedRealmPlus` is a function similar to
-`makeIsolatedRealm` that also provides the missing functionality from our
-own `Date` and `Math.random`, i.e., the `Date` and `Math.random` of
-the realm this function definition is evaluated in.
+The following `makeColdRealm(GoodDate, goodRandom)` function, given a
+good `Date` constructor and `Math.random` function, makes a new
+frozen-enough realm, that can be used like `TheFrozenRealm` as a
+spawning root for making children realms that are separated-enough
+from each other, if one is not worried about non-overt
+channels. Unlike the realms directly descendant from `TheFrozenRealm`,
+children spawned from a common cold realm share a fully functional
+`Date` and `Math`.
+
 
 ```js
-function makeIsolatedRealmPlus() {
-  const now = Date.now;  // our own
-  const random = Math.random;  // our own
-  const freshGlobal = Reflect.makeIsolatedRealm();
-  const {Date: SharedDate, Math: SharedMath} = freshGlobal;
+function makeColdRealm(GoodDate, goodRandom) {
+  const goodNow = GoodDate.now;
+  const {Date: SharedDate, Math: SharedMath} = Realm.TheFrozenRealm;
   function FreshDate(...args) {
     if (new.target) {
       if (args.length === 0) {
-        args = [+now()];  // our own
+        args = [+goodNow()];
       }
       return Reflect.construct(SharedDate, args, new.target);
     } else {
-      return String(Date());  // our own
+      return String(GoodDate());
     }
   }
   FreshDate.__proto__ = SharedDate;
-  FreshDate.now = Object.freeze(() => +now());  // our own
+  FreshDate.now = Object.freeze(() => +goodNow());
   FreshDate.prototype = SharedDate.prototype;  // so instanceof works
   FreshDate.name = SharedDate.name;
-  freshGlobal.Date = Object.freeze(FreshDate);
 
-  const FreshMath = Object.freeze({
+  const FreshMath = {
     __proto__: SharedMath,
-    random() { return +random(); }  // our own
-  });
+    random() { return +goodRandom(); }
+  };
   Object.freeze(FreshMath.random);
-  freshGlobal.Math = FreshMath;
-  return freshGlobal;
+
+  const freshRealm = Realm.TheFrozenGlobal.spawn({
+    Date: Object.freeze(FreshDate),
+    Math: Object.freeze(FreshMath)
+  });
+  const freshGlobal = Object.freeze(freshRealm.global);
+  Object.freeze(freshGlobal.eval);
+  Object.freeze(freshGlobal.Function);
+  return freshRealm;
 }
 ```
 
-Alternatively, we could express a similar convenience with a function for
-helping to create an endowments record seeded with standard capabilities such
-as `FreshDate` and `FreshMath`, which then may be used in a normal `confine`
-call. Either way, this full-standard ses-realm-plus costs an additional four
-allocations, bringing the total to seven.
-
-In addition to `Date` and `Math`, we could create libraries to seed
-the fresh global with virtualized emulations of expected host-provided
+In addition to `Date` and `Math`, we can create abstractions to seed
+a fresh global with virtualized emulations of expected host-provided
 globals like `window`, `document`, and `XMLHttpRequest`. These
 emulations may map into the caller's own or
 not. [Caja's Domado library](https://github.com/google/caja/blob/master/src/com/google/caja/plugin/domado.js)
@@ -514,30 +379,24 @@ URI space in a similar manner. By emulating the browser API, much
 existing browser code runs compatibly in a virtualized browser
 environment as configured by the caller using SES and Domado.
 
-To run legacy code successfully, the `freshGlobal` should remain
-unfrozen, since even good-practice legacy scripts approximate
-"inter-module linkage" by modifying their shared global
-environment. Prior to real modules, they did not have much
-choice. When setting up a SES environment expecting to run only
-modules, it may well be reasonable to freeze the `freshGlobal` before
-running confined code in that realm. We leave the SES user free to
-make that choice by proposing an API that leaves the `freshGlobal`
-unfrozen.
-
 Because `eval`, `Function`, and the above `Date` and `Math` observably
-shadow the corresponding objects from the proto-SES realm, the SES
+shadow the corresponding objects from their parent realm, the spawned
 environment is not a fully faithful emulation of standard non-SES
 ECMAScript. However, these breaks in the illusion are a necessary
-consequence of this design. We have chosen these carefully to be
+price of avoiding identity discontinuities between realms spawned from
+a common parent. We have chosen these breaks carefully to be
 compatible with virtually all code not written specifically to test
-standards conformance. The virtualization of host-provided objects
-suffers no such cost. There is no similar constraint preventing the
-SES user from faithfully emulating a host API.
+standards conformance.
 
-By composing the **Compartments** and **Virtualized Powers** patterns, one can
-*temporarily* invite potentially malicious code onto one's page, endow
-it with a subtree of one's own DOM as its virtual document, and then
-permanently and fully evict it.
+This proposal by itself is not adequate to polyfill intrinsics like
+`%ArrayPrototype%` that can be reached by syntax. Spawning a
+descendant realm using only the API proposed here, a polyfill can
+replace what object is looked up by the expression `Array.prototype`,
+but the expression `[]` will still evaluate to an array that inherits
+from the `%ArrayPrototype%` instrinsic of the parent realm. This is
+obviously inadequate, but is best addressed by moving the rest of the
+[old Realm API proposal](https://gist.github.com/dherman/7568885)
+towards standardization in a separate proposal.
 
 
 ### Mobile code example
@@ -548,16 +407,17 @@ distributed computing systems must be able to express both.
 
 Now that `Function.prototype.toString` will give a
 [reliably evaluable string](http://tc39.github.io/Function-prototype-toString-revision/)
-that can be sent, SES provides a safe way for the receiver to evaluate
-it, in order to reconstitute that function's call behavior in a safe
-manner. Say we have a `RemotePromise` constructor that makes a
+that can be sent, `TheFrozenRealm` provides a safe way for the
+receiver to evaluate it, in order to reconstitute that function's call
+behavior in a safe manner. Say we have a `RemotePromise` constructor
+that makes a
 [remote promise for an object that is elsewhere](https://github.com/kriskowal/q-connection),
 potentially on another machine. Below, assume that the `RemotePromise`
 constructor initializes this remote promise's private instance
 variable `#farEval` to be another remote promise, for the
-`Reflect.theProtoGlobal.eval` of the location (vat, worker, agent,
-event loop, place, ...) where this promise's fulfillment will be. If
-this promise rejects, then its `#farEval` promise likewise rejects.
+`Realm.TheFrozenRealm.eval` of the location (vat, worker, agent, event
+loop, place, ...) where this promise's fulfillment will be. If this
+promise rejects, then its `#farEval` promise likewise rejects.
 
 ```js
 class QPromise extends Promise {
@@ -596,17 +456,18 @@ smoothly with our promise framework for handling asynchrony.
 
 ## How Deterministic?
 
-_We do not include any form of replay within the goals of SES, so
-this "How Deterministic" section is only important because of the
-punchlines at the end of this section._
+_We do not include any form of replay within the goals of this
+proposal, so this "How Deterministic" section is only important
+because of the punchlines at the end of this section._
 
 Given a deterministic spec, one could be sure that two computations,
 run on two conforming implementations, starting from the same state
 and fed the same inputs, will compute the same new states and
 outputs. The ES5 and ES2015 specs come tantalizingly close to being
-deterministic. We have avoided some common but unnecessary sources of
-non-determinism like Java's `System.identityHashCode`. But the
-ECMAScript specs fail for three reasons:
+deterministic. ECMAScript has avoided some common but unnecessary
+sources of non-determinism like Java's `System.identityHashCode` or
+the enumeration order of identity hash tables. But the ECMAScript
+specs fail for three reasons:
 
   * Genuine non-determinism, such as by `Math.random()`.
   * Unspecified but unavoidable failure, such as out-of-memory.
@@ -615,10 +476,10 @@ ECMAScript specs fail for three reasons:
 
 The explicitly non-deterministic abilities to sense the current time
 (via `new Date()` and `Date.now()`) or generate random numbers (via
-`Math.random()`) are disabled in the proto-SES realm, and therefore by
-default in each SES realm. New sources of non-determinism, like
-`makeWeakRef` and `getStack` will not be added to the proto-SES realm
-or will be similarly disabled.
+`Math.random()`) are disabled in `TheFrozenRealm`, and therefore by
+default in each realm spawned from it. New sources of non-determinism,
+like `makeWeakRef` and `getStack` will not be added to the
+`TheFrozenRealm` realm or will be similarly disabled.
 
 The ECMAScript specs to date have never admitted the possibility of
 failures such as out-of-memory. In theory this means that a conforming
@@ -629,10 +490,11 @@ condition could cause computation to fail at any time. If these
 failures are reported by
 [unpredictably throwing a catchable exception](https://docs.oracle.com/javase/8/docs/api/java/lang/VirtualMachineError.html),
 then defensive programming becomes impossible. This would be contrary
-to the goals of SES and indeed
+to the goals
 [of much ECMAScript code](https://github.com/tc39/ecmascript_sharedmem/issues/55). Thus,
-at least SES computation, and any synchronous computation it is
-entangled with, on encountering an unpredictable error, must
+any ECMAScript computation that wishes to defend its invariants, and
+any synchronous computation it is entangled with, on encountering an
+unpredictable error, must
 [preemptively abort without running further user code](https://github.com/tc39/ecmascript_sharedmem/issues/55).
 
 Even if ECMAScript were otherwise deterministically replayable, these
@@ -678,33 +540,34 @@ reproducible manner.
 
 As of ES2016, the normative optionals of
 [Annex B](http://www.ecma-international.org/ecma-262/6.0/#sec-additional-ecmascript-features-for-web-browsers)
-are safe for inclusion as normative optionals of the proto-SES
-realm. However, where Annex B states that these are normative
-mandatory in a web browser, there is no such requirement for SES. Even
-when run in a web browser, the SES environment, having no host
-specific globals, must be considered a non-browser environment. Some
-post-ES2015 APIs proposed for Annex B, such as the
+are safe for inclusion as normative optionals of
+`TheFrozenRealm`. However, where Annex B states that these are
+normative mandatory in a web browser, there is no such requirement for
+`TheFrozenrealm`. Even when run in a web browser, `TheFrozenRealm`,
+having no host specific globals, must be considered a non-browser
+environment. Some post-ES2015 APIs proposed for Annex B, such as the
 [`RegExp` statics](https://github.com/claudepache/es-regexp-legacy-static-properties)
 and the
 [`Error.prototype.stack` accessor property](https://mail.mozilla.org/pipermail/es-discuss/2016-February/045579.html),
-are not safe for inclusion in SES and must be absent.
+are not safe for inclusion in `TheFrozenRealm` and must be absent.
 
 At this time, to maximize compatability with normal ECMAScript, we do
-not alter the evaluators to evaluate code in strict mode by
-default. However, we should consider doing so. Most of the code,
-including legacy code, that one would wish to run under SES is
-probably already compatible with strict mode. Omitting sloppy mode
-from SES would also make sections
+not alter `TheFrozenRealm`'s evaluators to evaluate code in strict
+mode by default. However, we should consider doing so. Most of the
+code, including legacy code, that one would wish to run under
+`TheFrozenRealm` is probably already compatible with strict
+mode. Omitting sloppy mode from `TheFrozenRealm` and its spawned
+descendants would also make sections
 [B.1.1](http://www.ecma-international.org/ecma-262/6.0/#sec-additional-syntax-numeric-literals),
 [B.1.2](http://www.ecma-international.org/ecma-262/6.0/#sec-additional-syntax-string-literals),
 [B.3.2](http://www.ecma-international.org/ecma-262/6.0/#sec-labelled-function-declarations),
 [B.3.3](http://www.ecma-international.org/ecma-262/6.0/#sec-block-level-function-declarations-web-legacy-compatibility-semantics),
 and
 [B.3.4](http://www.ecma-international.org/ecma-262/6.0/#sec-functiondeclarations-in-ifstatement-statement-clauses)
-non issues. It is unclear what SES should specify regarding the
-remaining normative optional syntax in section B.1, but the syntax
-accepted by SES, at least in strict mode, should probably be pinned
-down precisely by the spec.
+non issues. It is unclear what `TheFrozenRealm`'s evaluators should
+specify regarding the remaining normative optional syntax in section
+B.1, but the syntax accepted by these evaluators, at least in strict
+mode, should probably be pinned down precisely by the spec.
 
 Some of the elements of Annex B are safe and likely mandatory in
 practice, independent of host environment:
@@ -720,30 +583,21 @@ practice, independent of host environment:
      Initializers](http://www.ecma-international.org/ecma-262/6.0/#sec-__proto__-property-names-in-object-initializers)
 
 All but the last of these have been
-[whitelisted in the SES-shim](https://github.com/google/caja/blob/master/src/com/google/caja/ses/whitelist.js#L85)
+[whitelisted in Caja's SES-shim](https://github.com/google/caja/blob/master/src/com/google/caja/ses/whitelist.js#L85)
 for a long time without problem. (The last bullet above is syntax and
 so not subject to the SES-shim whitelisting mechanism.)
 
 
 ## Discussion
 
-Because the proto-SES realm is transitively immutable, we can safely
-share it between ECMAScript programs that are otherwise fully isolated. This
-sharing gives them access to shared objects and shared identities, but
-no ability to communicate with each other or to affect any state
-outside themselves. We can even share proto-SES primordials between
-origins and between threads, since deep immutability at the
+Because `TheFrozenRealm` is transitively immutable, we can safely
+share it between ECMAScript programs that are otherwise fully
+isolated. This sharing gives them access to shared objects and shared
+identities, but no ability to communicate with each other or to affect
+any state outside themselves. We can even share `TheFrozenRealm`
+between origins and between threads, since deep immutability at the
 specification level should make thread safety at the implementation
 level straightforward.
-
-Each call to `Reflect.makeIsolatedRealm()` allocates only three objects:
-the fresh global and its fresh `eval` function and `Function`
-constructor. In a browser environment, a SES-based confined seamless
-iframe could be lightweight, since it would avoid the need to create
-most per-frame primordials. Likewise, we could afford to place each
-[web component](http://webcomponents.org/) into its own confinement
-box. By using Domado-like techniques, the actual DOM can be safely
-encapsulated behind the component's shadow DOM.
 
 Today, to self-host builtins by writing them in ECMAScript, one must
 practice
@@ -752,8 +606,9 @@ techniques so that these builtins are properly defensive. This
 technique is difficult to get right, especially if such self hosting
 is
 [opened to ECMAScript embedders](https://docs.google.com/document/d/1AT5-T0aHGp7Lt29vPWFr2-qG8r3l9CByyvKwEuA8Ec0/edit#heading=h.ma18njbt74u3). Instead,
-these builtins could be defined in a SES realm, making defensiveness
-easier to achieve with higher confidence.
+these builtins could be defined in a realm spawned from
+`TheFrozenRealm`, making defensiveness easier to achieve with higher
+confidence.
 
 Because of the so-called "[override mistake](
 http://wiki.ecmascript.org/doku.php?id=strawman:fixing_override_mistake)",
@@ -762,36 +617,35 @@ objects need to be frozen in a pattern we call "tamper proofing",
 which makes them less compliant with the current language
 standard. See the **Open Questions** below for other possibilities.
 
-By the rules above, a SES realm's `Function.prototype.constructor`
-will be the proto-SES realm's `Function` constructor, i.e., identical
-to the SES realm's `Function.__proto__`. Alternatively, we could
-create a per-SES-realm `Function.prototype` that inherits from the
-proto-SES realm's `Function.prototype` and overrides the `constructor`
-property to point back at its own `Function`. The price of this
-technique is that we lose the pleasant property that `instanceof`
-works transparently between SES realms.
+By the rules above, a spawned realm's `Function.prototype.constructor`
+will be the realm's `Function` constructor, i.e., identical to the
+spawned realm's `Function.__proto__`. In exchange for this odd
+topology, we obtain the pleasant property that `instanceof` works
+transparently between spawned realms by default -- unless overridden
+by a user's polyfill to the contrary.
 
-In ES2016, the `GeneratorFunction` evaluator is not a named global, but
-rather an unnamed intrinsic. Upcoming evaluators are likely to include
-`AsyncFunction` and `AsyncGeneratorFunction`. These are likely to be
-specified as unnamed instrinsics as well. For all of these, the above
-name-based overriding of SES vs proto-SES is irrelevant and probably
-not needed anyway.
+In ES2016, the `GeneratorFunction` evaluator is not a named global,
+but rather an unnamed intrinsic. Upcoming evaluators are likely to
+include `AsyncFunction` and `AsyncGeneratorFunction`. These are likely
+to be specified as unnamed instrinsics as well. For all of these, the
+above name-based overriding of `spawn` is irrelevant and probably not
+needed anyway.
 
-Because code within a SES realm is unable to cause any affects outside
-itself it is not given explicit access to, i.e., it is fully confined,
-`Reflect.confine` and the evaluators of SES realms should continue to
-operate even in environments in which
+Because code evaluated within `TheFrozenRealm` is unable to cause any
+affects outside itself it is not given explicit access to, the
+evaluators of `TheFrozenRealm` should continue to operate even in
+environments in which
 [CSP has forbidden normal evaluators](https://github.com/tc39/ecma262/issues/450). By
 analogy, CSP evaluator suppression does not suppress
-`JSON.parse`. There are few ways in which SES-confined code is more
-dangerous than JSON data.
+`JSON.parse`. There are few ways in which evaluating code in
+`TheFrozenRealm` is more dangerous than JSON data.
 
 Other possible proposals, like private state and defensible `const`
 classes, are likely to aid the defensive programming that is
-especially powerful in the context of SES. But because the utility of
-such defensive programming support is not limited to SES, they should
-remain independent proposals. (TODO link to relevant proposals)
+especially powerful in the context of this proposal. But because the
+utility of such defensive programming support is not limited to frozen
+realms, they should remain independent proposals. (TODO link to
+relevant proposals)
 
 For each of the upcoming proposed standard APIs that are inherently
 not immutable and powerless:
@@ -802,74 +656,55 @@ not immutable and powerless:
   * [`getStack`](https://mail.mozilla.org/pipermail/es-discuss/2016-February/045579.html)
   * [`getStackString`](https://mail.mozilla.org/pipermail/es-discuss/2016-February/045579.html)
 
-they must be absent from the proto-SES realm, or have their behavior
+they must be absent from `TheFrozenRealm`, or have their behavior
 grossly truncated into something safe. This spec will additionally
 need to say how they initially appear, if at all, in each individual
-SES realm.  In particular, we expect a pattern to emerge for creating
-a fresh loader instance to be the default loader of a fresh SES
-realm. Once some proposed APIs are specced as being provided by import
-from
+spawned realm.  In particular, we expect a pattern to emerge for
+creating a fresh loader instance to be the default loader of a fresh
+spawned realm. Once some proposed APIs are specced as being provided
+by import from
 [builtin primordial modules](https://github.com/tc39/ecma262/issues/395),
-we will need to explain how they appear in SES.
+we will need to explain how they appear in `TheFrozenRealm` and/or the
+realms it spawns.
 
----
-
-Prior to standard builtin primordial modules,
-
-```js
-Reflect.theProtoGlobal  // global of the shared proto-SES realm
-Reflect.makeIsolatedRealm()  // -> fresh global of a new, isolated SES realm
-Reflect.confine(src, endowments)  // -> completion value
-```
-
-is the *entirety* of the new API proposed here. We believe it is all
-that is needed. However, as we develop a better understanding of
-patterns of use, we may wish to add other conveniences as well.
-
----
 
 ## Open Questions
 
-* It is not fundamental to our API design that its three elements are placed on
-the `Reflect` object. This choice was somewhat arbitrary.  However, until the
-[Built-in Modules issue](https://github.com/tc39/ecma262/issues/395) is
-resolved, for concreteness we leave these on `Reflect`.
-
 * It remains unclear how we should cope with the override
-mistake. Above, we propose the tamper proofing pattern, but this
-requires novel effort to become efficient. Alternatively, we could
-specify that the override mistake is fixed in the SES realm, making
-the problem go away. This diverges from the current standard in a
-different way, but we have some evidence that such divergence will
-break almost no existing code other than test code that specifically
-probes for standards compliance. We could also leave it unfixed. This
-would break some good-practice legacy patterns of overriding methods
-by assignment. But it is compatible with overriding by classes and
-object literals, since they do `[[DefineOwnProperty]]` rather than
-assignment.
+  mistake. Above, we propose the tamper proofing pattern, but this
+  requires novel effort to become efficient. Alternatively, we could
+  specify that the override mistake is fixed in `TheFrozenRealm` and
+  its descendants, making the problem go away. This diverges from the
+  current standard in a different way, but we have some evidence that
+  such divergence will break almost no existing code other than code
+  that specifically tests for standards compliance. We could also
+  leave it unfixed. This would break some good-practice legacy
+  patterns of overriding methods by assignment. But it is compatible
+  with overriding by classes and object literals, since they do
+  `[[DefineOwnProperty]]` rather than assignment.
 
-  Our sense is that not fixing the override mistake at all will [break too much
-  legacy
-  code](https://esdiscuss.org/topic/object-freeze-object-prototype-vs-reality). But
-  if fully fixing the override mistake is too expensive, it might be that
-  fixing a handful of properties on primordial prototypes that are overridden
-  in practice (e.g., `constructor`, `toString`, ...)  will reduce the breakage
-  to a tolerable level. We need measurements.
+  Our sense is that not fixing the override mistake at all will
+  [break too much legacy code](https://esdiscuss.org/topic/object-freeze-object-prototype-vs-reality). But
+  if fully fixing the override mistake is too expensive, it might be
+  that fixing a handful of properties on primordial prototypes that
+  are overridden in practice (e.g., `constructor`, `toString`, ...)
+  will reduce the breakage to a tolerable level. We need measurements.
 
-* Although not officially a question within the jurisdiction of TC39, we
-should discuss whether the existing CSP "no script evaluation"
-settings should exempt SES's evaluators, or whether CSP should be
-extended in order to express this differential prohibition.
+* Although not officially a question within the jurisdiction of TC39,
+  we should discuss whether the existing CSP "no script evaluation"
+  settings should exempt `TheFrozenRealm`'s evaluators, or whether CSP
+  should be extended in order to express this differential
+  prohibition.
 
-* Currently, if the value of `eval` is anything other than the original
-value of `eval`, any use of it in the form of a direct-eval expression
-will actually have the semantics of an indirect eval, i.e., a simple
-function call to the current value of `eval`. If SES itself does not
-alter the behavior of the builtin evaluators to be strict by default,
-then any user customization that replaces a SES realm's global
-evaluators with strict-by-default wrappers will break their use for
-direct-eval. We need to do something about this, but it is not yet
-clear what.
+* Currently, if the value of `eval` is anything other than the
+  original value of `eval`, any use of it in the form of a direct-eval
+  expression will actually have the semantics of an indirect eval,
+  i.e., a simple function call to the current value of `eval`. If
+  `TheFrozenRealm`'s builtin evaluators are not strict by default,
+  then any user customization that replaces a spanwed realm's global
+  evaluators with strict-by-default wrappers will break their use for
+  direct-eval. Fortunately, this seems to be addressed by the rest of
+  the [old Realms API](https://gist.github.com/dherman/7568885).
 
 * The standard `Date` constructor reveals the current time either
   * when called as a constructor with no arguments, or
@@ -886,12 +721,13 @@ clear what.
   programmers.
 
 * Of course, there is the perpetual bikeshedding of names. We are not
-attached to the names we present here.
+  attached to the names we present here.
 
 ## Acknowledgements
 
-Many thanks to E. Dean Tribble, Kevin Reid, Michael Ficarra, Tom Van
-Cutsem, Kris Kowal, Kevin Smith, Terry Hayes, and Daniel
-Ehrenberg. Thanks to the entire Caja team (Jasvir Nagra, Ihab Awad,
-Mike Stay, Mike Samuel, Felix Lee, and Kevin Reid) for building a
-system in which all the hardest issues have already been worked out.
+Many thanks to E. Dean Tribble, Kevin Reid, Dave Herman, Michael
+Ficarra, Tom Van Cutsem, Kris Kowal, Kevin Smith, Terry Hayes, Daniel
+Ehrenberg, Ojan Vafai, Elliott Sprehn, and Alex Russell. Thanks to the
+entire Caja team (Jasvir Nagra, Ihab Awad, Mike Stay, Mike Samuel,
+Felix Lee, and Kevin Reid) for building a system in which all the
+hardest issues have already been worked out.
