@@ -128,11 +128,11 @@ make a realm descendant from `TheFrozenRealm`, copy the own enumerable
 properties of `endowments` onto the global of that new realm, and then
 evaluate `src` in the scope of that global and return the result. This
 `confine` function is especially useful for _object-capability_
-programming. These primitives (together with membranes) can also be
-composed to support other security models such as _decentralized
-dynamic information flow_ though we have not yet explored this in
-detail. (TODO cite Tim Disney's use of membranes for information flow
-security.)
+programming. These primitives (together with membranes) can also help
+to support other security models such as _[decentralized
+dynamic information flow](https://slang.soe.ucsc.edu/cormac/proxy.pdf)_
+though more mechanism may additionally be needed. We have not yet
+explored this in any detail.
 
 (The `confine` function is from SES, which has a
 [formal semantics](http://research.google.com/pubs/pub37199.html)
