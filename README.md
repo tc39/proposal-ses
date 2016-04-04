@@ -387,7 +387,7 @@ children realms. These children are separated-enough from each other,
 if one is not worried about non-overt channels. Unlike the lightweight
 realms directly descendant from an immutable root realm, children
 spawned from a common cold realm share a fully functional `Date` and
-`Math`. A Date instance make in one child is `instanceof Date` in its
+`Math`. A Date instance made in one child is `instanceof Date` in its
 sibling.
 
 
