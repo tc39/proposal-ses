@@ -51,7 +51,7 @@ realm an _immutable root realm_.
 ```js
 class Realm {
   // From the old Realm API proposal
-  get global() -> object                // access this realm's global object
+  const global -> object                // access this realm's global object
   eval(stringable) -> any               // do an indirect eval in this realm
 
   // We expect the rest of old proposal to be proposed eventually but
@@ -62,6 +62,12 @@ class Realm {
   spawn(endowments) -> Realm            // lightweight child realm
 }
 ```
+
+(There is a minor change from the original Realm API proposal -- we
+use `const global` rather than `get global()` to declare that `global`
+is a non-writable non-configurable data property of realm
+instances. The syntax used here is just a placeholder, not a
+proposal.)
 
 An immutable root realm consists of all the primordial state defined by
 ES2016 (with the exception of the `Date.now` and `Math.random`
@@ -204,6 +210,34 @@ its _defensibility_, which Alice can use to define defensive
 abstractions that are safe to expose to Bill and Joan. If Alice, Bill,
 and Joan all descend from `sharedRoot`, then their further
 interactions are defensible and free of identity discontinuities.
+
+
+## A convenience: `def(obj)`
+
+All those calls to `Object.freeze` above are ugly. The
+[Caja `def(obj)`](https://github.com/google/caja/blob/master/src/com/google/caja/ses/startSES.js#L1180)
+is an example of a convenience that should be provided by a
+library. It applies `Object.freeze` recursively to all objects it
+finds starting at `obj` by following property and `[[Prototype]]`
+links. This only gives all these objects a tamper proof API
+surface. It *does not* make them immutable except in special cases.
+
+Using `def`, we can rewrite our Counter example code as
+
+```js
+function Counter() {
+  let count = 0;
+  return def({
+    incr() { return ++count; }
+    decr() { return --count; }
+  });
+}
+```
+
+To be efficient, `def` will need to somehow be in bed with this
+proposal, so it can know to stop traversing when it hits any of these
+transitively immutable primordials. We leave it to a later proposal to
+work out this integration issue.
 
 
 ## Compartments example
@@ -370,25 +404,17 @@ function makeColdRealm(GoodDate, goodRandom) {
       return String(GoodDate());
     }
   }
-  FreshDate.__proto__ = SharedDate;
-  FreshDate.now = Object.freeze(() => +goodNow());
+  FreshDate.now = () => +goodNow();
   FreshDate.prototype = SharedDate.prototype;  // so instanceof works
   FreshDate.name = SharedDate.name;
+  FreshDate.__proto__ = SharedDate;
 
   const FreshMath = {
     __proto__: SharedMath,
     random() { return +goodRandom(); }
   };
-  Object.freeze(FreshMath.random);
 
-  const freshRealm = sharedRoot.spawn({
-    Date: Object.freeze(FreshDate),
-    Math: Object.freeze(FreshMath)
-  });
-  Object.freeze(freshRealm.global);
-  Object.freeze(freshRealm.global.eval);
-  Object.freeze(freshRealm.global.Function);
-  return freshRealm;
+  return def(sharedRoot.spawn({Date: FreshDate, Math: FreshMath}));
 }
 ```
 
