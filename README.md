@@ -2,14 +2,14 @@
 
 This document specifies complimentary enhancements to the
 [old Realms API proposal](https://gist.github.com/dherman/7568885)
-focused on making lightweight realms that derive from a shared frozen
-realm. The proposal here is intended to compose well with the
-remainder of the old `Realm` proposal but is not dependent on any of
-its elements not re-presented here. These proposals each have utility
-without the other, and so can be proposed separately. However,
+focused on making _lightweight realms_ that derive from a shared
+_immutable root realm_. The proposal here is intended to compose well
+with the remainder of the old `Realm` proposal but is not dependent on
+any of its elements not re-presented here. These proposals each have
+utility without the other, and so can be proposed separately. However,
 together they have more power than each separately.
 
-We motivate the frozen Realm API presented here with a variety of
+We motivate the Frozen Realm API presented here with a variety of
 examples.
 
 
@@ -40,12 +40,13 @@ propose a `Realm` class, each of whose instances are a reification of
 the "Realm" concept. The only elements of the old API required here
 are the `global` accessor and the `eval` method, re-explained below.
 
-We propose that there be a singleton shared frozen realm consisting
-only of transitively immutable primordials, accessible by the static
-accessor `Realm.TheFrozenRealm`. We propose a `spawn` method on
-instances of the `Realm` class for making a lightweight child realm
-consisting of four new objects. Aside from these new objects, the new
-child realm inherits all its primordials from its parent realm.
+We propose a `spawn(endowments)` method on instances of the `Realm`
+class for making a _lightweight child realm_ consisting of four new
+objects explained below. Aside from these new objects, the new child
+realm inherits all its primordials from its parent realm. We propose a
+static method, `Realm.immutableRoot()`, for obtaining a realm
+consisting only of transitively immutable primordials. We call such a
+realm an _immutable root realm_.
 
 ```js
 class Realm {
@@ -57,41 +58,42 @@ class Realm {
   // do not rely here on any of the remainder.
 
   // New with this proposal
-  static get TheFrozenRealm() -> Realm  // transitively immutable singleton
+  static immutableRoot() -> Realm       // transitively immutable realm
   spawn(endowments) -> Realm            // lightweight child realm
 }
 ```
 
-`TheFrozenRealm` consists of all the primordial state defined by
+An immutable root realm consists of all the primordial state defined by
 ES2016 (with the exception of the `Date.now` and `Math.random`
 methods, as explained below). It contains no host provided objects, so
 `window`, `document`, `XMLHttpRequest`, etc... are all absent. Thus,
-`TheFrozenRealm` contains none of the objects needed for interacting
+an immutable root realm contains none of the objects needed for interacting
 with the outside world, like the user or the network.
 
-The `spawn` method makes (1) a new realm with (2) a new `global`
-inheriting from its parent's `global`, (3) a new `eval` function
-inheriting from its parent's `eval` function, and (4) a new `Function`
-constructor inheriting from its parent's `Function` constructor. The
-new `eval` and `Function` evaluate code in the global scope of the new
-`global` with that `global` as their global object. It then copies the
-own enumerable properties from the `endowments` record onto the new
-`global` and returns the new realm instance. With these endowments,
-users can add back in those host objects that they wish to be
-available in the spawned realm.
+The `spawn` method makes (1) a new lightweight child realm with (2) a
+new `global` inheriting from its parent's `global`, (3) a new `eval`
+function inheriting from its parent's `eval` function, and (4) a new
+`Function` constructor inheriting from its parent's `Function`
+constructor. The new `eval` and `Function` evaluate code in the global
+scope of the new `global` with that `global` as their global
+object. It then copies the own enumerable properties from the
+`endowments` record onto the new `global` and returns the new realm
+instance. With these endowments, users can add back in those host
+objects that they wish to be available in the spawned realm.
 
-Although `TheFrozenGlobal` and `spawn` are orthogonal, they are
+Although `immutableRoot()` and `spawn` are orthogonal, they are
 especially interesting when directly composed:
 
 ```js
-const realmA = Realm.TheFrozenRealm.spawn({});
-const realmB = Realm.TheFrozenRealm.spawn({});
+const sharedRoot = Realm.immutableRoot();
+const realmA = sharedRoot.spawn({});
+const realmB = sharedRoot.spawn({});
 ```
 
-Because all the primordials that `realmA` and `realmB` share are
-immutable, neither can poison the prototypes of the other. Because
-they share no mutable state, they are as fully separate from each
-other as two full realms created by two same origin iframes.
+All the primordials that `realmA` and `realmB` share are immutable, so
+neither can poison the prototypes of the other. Because they share no
+mutable state, they are as fully separate from each other as two full
+realms created by two same origin iframes.
 
 Two realms, whether made as above by the `Realm` API or by same origin
 iframes, can be put in contact. Once in contact, they can mix their
@@ -104,33 +106,37 @@ Array`, the answer will be `false` since `arr` inherits from the
 `Array.prototype` of iframeB.
 
 By contrast, since `realmA` and `realmB` share the `Array.prototype`
-they inherit from `TheFrozenRealm`, an array `arr` created by one still
-passes the `arr instanceof Array` as tested by the other.
+they inherit from their common immutable `sharedRoot`, an array `arr`
+created by one still passes the `arr instanceof Array` as tested by
+the other. We reuse this immutable `sharedRoot` realm in the examples
+below.
 
 A long recognized best practice is "don't monkey-patch primordials" --
 don't mutate any primordial state. Most legacy code obeying this
-practice is already compatible with realms descending from
-`TheFrozenRealm`. Some further qualifications are explained in the
-rest of this document.
+practice is already compatible with lightweight realms descending from
+an immutable root realm. Some further qualifications are explained in
+the rest of this document.
 
 
 ## Confinement examples
 
 ```js
 function confine(src, endowments) {
-  return Realm.TheFrozenRealm.spawn(endowments).eval(src);
+  return sharedRoot.spawn(endowments).eval(src);
 }
 ```
 
 This `confine` function is an example of a security abstraction we can
 easily build by composing the primitives above. It uses `spawn` to
-make a realm descendant from `TheFrozenRealm`, copy the own enumerable
-properties of `endowments` onto the global of that new realm, and then
-evaluate `src` in the scope of that global and return the result. This
-`confine` function is especially useful for _object-capability_
-programming. These primitives (together with membranes) can also help
-to support other security models such as _[decentralized
-dynamic information flow](https://slang.soe.ucsc.edu/cormac/proxy.pdf)_
+make a lightweight realm descendant from our immutable `sharedRoot`
+realm above, copies the own enumerable properties of `endowments` onto
+the global of that lightweight realm, and then evaluates `src` in the
+scope of that global and returns the result. This `confine` function is
+especially useful for
+[_object-capability_ programming](https://en.wikipedia.org/wiki/Object-capability_model). These
+primitives (together with membranes) can also help to support other
+security models such as
+_[decentralized dynamic information flow](https://slang.soe.ucsc.edu/cormac/proxy.pdf)_
 though more mechanism may additionally be needed. We have not yet
 explored this in any detail.
 
@@ -145,7 +151,7 @@ about SES and Caja on the Caja website.)
 ```js
 confine('x + y', {x: 3, y: 4})  // -> 7
 
-confine('Object', {})           // -> Object constructor of TheFrozenRealm
+confine('Object', {})           // -> Object constructor of an immutable root
 
 confine('window', {})           // ReferenceError, no 'window' in scope
 ```
@@ -184,11 +190,20 @@ counter and see the result. By calling her `change` variable, Joan can
 only decrement the counter and see the result. By using her `counter`
 variable Alice can do both.
 
-Alice's code above achieves this if it is evaluated in such a realm --
-one descendant from `TheFrozenRealm` in which primordials are
-transitively immutable. Otherwise, Bill or Joan could say
-`change.__proto__` to access and poison Alice's prototypes, and to
-interact with each other in ways Alice did not intend to enable.
+If Alice's code above is normal JavaScript code, then she does not
+achieve this goal. Bill or Joan could say `change.__proto__` to access
+and poison Alice's prototypes, and to interact with each other in ways
+Alice did not intend to enable. The API surface that Alice exposed to
+Bill and Joan was not _defensive_, it did not protect itself and Alice
+from Bill and Joan's misbehavior.
+
+Alice's code above is properly defensive if it is evaluated in a realm
+descendant from an immutable root realm. Alice places Bill and Joan in
+such a realm to confine them. She places herself in such a realm for
+its _defensibility_, which Alice can use to define defensive
+abstractions that are safe to expose to Bill and Joan. If Alice, Bill,
+and Joan all descend from `sharedRoot`, then their further
+interactions are defensible and free of identity discontinuities.
 
 
 ## Compartments example
@@ -224,17 +239,19 @@ cause further effects.
 ## Date and Math
 
 
-In order for `TheFrozenGlobal` to be universally implicitly shared
-safely, it must be transitively immutable. Fortunately, of the
-standard primordials in ES2016, the only mutable primordial state is
-  * Mutable properties of primordial objects
-  * The mutable internal [[Prototype]] slot of primordial objects
+In order for `sharedRoot` to be shared safely, it must be transitively
+immutable. Fortunately, of the standard primordials in ES2016, the
+only mutable primordial state is
+  * Mutable own properties of primordial objects
+  * The mutable internal [[Prototype]] slot of primordial objects, and
+    the ability to add new own properties
+  * The ability to add properties
   * `Math.random`
   * `Date.now`
   * The `Date` constructor called as a constructor with no arguments
   * The `Date` constructor called as a function, no matter what arguments
 
-To make `TheFrozenRealm` transitively immutable, we, respectively
+To make a transitively immutable root realm, we, respectively
   * Make all these properties non-configurable, non-writable. If an
     accessor property, we specify that its getter must always return
     the same value and its setter either be absent or throw an error
@@ -245,40 +262,47 @@ To make `TheFrozenRealm` transitively immutable, we, respectively
   * Have `new Date()` throw a `TypeError`
   * Have `Date(any...)` throw a `TypeError`
 
-See the **Polyfill example** below to see how a user can effectively
-add the missing functionality of `Date` and `Math` back in when
+The **Polyfill example** below shows how a user can effectively add
+the missing functionality of `Date` and `Math` back in when
 appropriate.
 
 
 ## Proposal
 
-  1. Create a single shared frozen realm, `Realm.TheFrozenRealm`, in
-     which all primordials are already transitively immutable. These
-     primordials include *all* the primordials defined as mandatory in
-     ES2016. (And those in
-     [draft ES2017](https://tc39.github.io/ecma262/) as of March 17,
-     2016, the time of this writing.)  These primordials must include
-     no other objects or properties beyond those specified here. In
-     `TheFrozenRealm` the global object itself is also transitively
-     immutable. Specifically, it contains no host-specific
-     objects. This frozen global object is a plain object whose
-     `[[Prototype]]` is `Object.prototype`, i.e., the
-     `%ObjectPrototype%` intrinsic of `TheFrozenRealm`.
+  1. Add to the Realm class a static method, `Realm.immutableRoot()`,
+     which obtains an _immutable root realm_ in which all primordials
+     are already transitively immutable. These primordials include
+     *all* the primordials defined as mandatory in ES2016. (And those
+     in [draft ES2017](https://tc39.github.io/ecma262/) as of March
+     17, 2016, the time of this writing.)  These primordials must
+     include no other objects or properties beyond those specified
+     here. In an immutable root realm the global object itself is also
+     transitively immutable. Specifically, it contains no
+     host-specific objects. This frozen global object is a plain
+     object whose `[[Prototype]]` is `Object.prototype`, i.e., the
+     `%ObjectPrototype%` intrinsic of that immutable root realm.
 
-  1. In order to attain the necessary deep immutability of
-     `TheFrozenRealm`, two of its primordials must be modified from
-     the existing standard: `TheFrozenRealm`'s `Date` object has its
-     `now()` method removed and its default constructor changed to
-     throw a `TypeError` rather than reveal the current time.
-     `TheFrozenRealm`'s `Math` object has its `random()` method
-     removed.
+     * Since two immutable root realms are forever the same in all
+       ways except object identity, we leave it implementation-defined
+       whether `Realm.immutableRoot()` always makes a fresh one, or
+       always returns the same one. On any given implementation, it
+       must either be always fresh or always the same.
+
+  1. In order to attain the necessary deep immutability of an
+     immutable root realm, two of its primordials must be modified
+     from the existing standard: An immutable root realm's `Date`
+     object has its `now()` method removed and its default constructor
+     changed to throw a `TypeError` rather than reveal the current
+     time.  An immutable root realm's `Math` object has its `random()`
+     method removed.
 
   1. Add to the `Realm` class a new instance method, `spawn(endowments)`.
-     1. `spawn` creates a new child realm with its own fresh global object
-        (denoted below by the symbol `freshGlobal`) whose
-        `[[Prototype]]` is the parent realm's global object. This
-        fresh global is also a plain object. Unlike the global of
-        `TheFrozenRealm`, the `freshGlobal` is not frozen by default.
+     1. `spawn` creates a new lightweight child realm with its own
+        fresh global object (denoted below by the symbol
+        `freshGlobal`) whose `[[Prototype]]` is the parent realm's
+        global object. This fresh global is also a plain
+        object. Unlike the global of an immutable root realm, the
+        `freshGlobal` is not frozen by default.
 
      1. `spawn` populates this `freshGlobal` with overriding
         bindings for the evaluators that have global names (currently
@@ -291,21 +315,21 @@ appropriate.
 
      1. `spawn` returns that new child realm instance.
 
-     The total cost of a new spawned realm is four objects: the realm
-     instance itself, the `freshGlobal` and the `eval` function and
+     The total cost of a lightweight realm is four objects: the realm
+     instance itself, the `freshGlobal`, and the `eval` function and
      `Function` constructor specific to it.
 
   1. The evaluators of a spawned realm evaluate code in the global
      scope of that realm's global, using that
      global as their global object.
 
-     A spawned realm's initial `eval` inherits from their parent's
+     A lightweight realm's initial `eval` inherits from its parent's
      `eval`. For each of the overriding constructors (currently only
-     `Function`), their `"prototype"` property initially has the same
+     `Function`), its `"prototype"` property initially has the same
      value as the constructor they inherit from. Thus, a function
      `foo` from one descendant realm passes the `foo instanceof
      Function` test using the `Function` constructor of another
-     descendant of the same parent realm. Among sibling spawned
+     descendant of the same parent realm. Among sibling lightweight
      realms, `instanceof` on primordial types simply works.
 
 
@@ -322,18 +346,20 @@ demand that they be denied.
 
 The following `makeColdRealm(GoodDate, goodRandom)` function, given a
 good `Date` constructor and `Math.random` function, makes a new
-frozen-enough realm, that can be used like `TheFrozenRealm` as a
-spawning root for making children realms that are separated-enough
-from each other, if one is not worried about non-overt
-channels. Unlike the realms directly descendant from `TheFrozenRealm`,
-children spawned from a common cold realm share a fully functional
-`Date` and `Math`.
+frozen-enough lightweight realm, that can be used as if it is an
+immutable root realm -- as a spawning root for making lightweight
+children realms. These children are separated-enough from each other,
+if one is not worried about non-overt channels. Unlike the lightweight
+realms directly descendant from an immutable root realm, children
+spawned from a common cold realm share a fully functional `Date` and
+`Math`. A Date instance make in one child is `instanceof Date` in its
+sibling.
 
 
 ```js
 function makeColdRealm(GoodDate, goodRandom) {
   const goodNow = GoodDate.now;
-  const {Date: SharedDate, Math: SharedMath} = Realm.TheFrozenRealm;
+  const {Date: SharedDate, Math: SharedMath} = sharedRoot;
   function FreshDate(...args) {
     if (new.target) {
       if (args.length === 0) {
@@ -355,7 +381,7 @@ function makeColdRealm(GoodDate, goodRandom) {
   };
   Object.freeze(FreshMath.random);
 
-  const freshRealm = Realm.TheFrozenGlobal.spawn({
+  const freshRealm = sharedRoot.spawn({
     Date: Object.freeze(FreshDate),
     Math: Object.freeze(FreshMath)
   });
@@ -385,20 +411,22 @@ Because `eval`, `Function`, and the above `Date` and `Math` observably
 shadow the corresponding objects from their parent realm, the spawned
 environment is not a fully faithful emulation of standard
 ECMAScript. However, these breaks in the illusion are a necessary
-price of avoiding identity discontinuities between realms spawned from
-a common parent. We have chosen these breaks carefully to be
-compatible with virtually all code not written specifically to test
+price of avoiding identity discontinuities between lightweight realms
+spawned from a common parent. We have chosen these breaks carefully to
+be compatible with virtually all code not written specifically to test
 standards conformance.
 
 This proposal by itself is not adequate to polyfill intrinsics like
 `%ArrayPrototype%` that can be reached by syntax. Spawning a
 descendant realm using only the API proposed here, a polyfill can
-replace what object is looked up by the expression `Array.prototype`,
-but the expression `[]` will still evaluate to an array that inherits
-from the `%ArrayPrototype%` instrinsic of the parent realm. This is
-obviously inadequate, but is best addressed by moving the rest of the
+replace what object is looked up by the expression `Array.prototype`.
+However, the expression `[]` will still evaluate to an array that
+inherits from the `%ArrayPrototype%` instrinsic of the root
+realm. This is obviously inadequate, but is best addressed by moving
+the rest of the
 [old Realm API proposal](https://gist.github.com/dherman/7568885)
-towards standardization in a separate proposal.
+towards standardization in a separate proposal. It will add the needed
+methods for manipulating the binding of intrinsics.
 
 
 ### Mobile code example
@@ -409,17 +437,18 @@ distributed computing systems must be able to express both.
 
 Now that `Function.prototype.toString` will give a
 [reliably evaluable string](http://tc39.github.io/Function-prototype-toString-revision/)
-that can be sent, `TheFrozenRealm` provides a safe way for the
+that can be sent, an immutable root realm provides a safe way for the
 receiver to evaluate it, in order to reconstitute that function's call
 behavior in a safe manner. Say we have a `RemotePromise` constructor
 that makes a
 [remote promise for an object that is elsewhere](https://github.com/kriskowal/q-connection),
 potentially on another machine. Below, assume that the `RemotePromise`
-constructor initializes this remote promise's private instance
-variable `#farEval` to be another remote promise, for the
-`Realm.TheFrozenRealm.eval` of the location (vat, worker, agent, event
-loop, place, ...) where this promise's fulfillment will be. If this
-promise rejects, then its `#farEval` promise likewise rejects.
+constructor initializes this remote promise's
+[private instance variable](https://zenparsing.github.io/es-private-fields/)
+`#farEval` to be another remote promise, for the `eval` method of an
+immutable root realm at the location (vat, worker, agent, event loop,
+place, ...) where this promise's fulfillment will be. If this promise
+rejects, then its `#farEval` promise likewise rejects.
 
 ```js
 class QPromise extends Promise {
@@ -478,10 +507,10 @@ specs fail for three reasons:
 
 The explicitly non-deterministic abilities to sense the current time
 (via `new Date()` and `Date.now()`) or generate random numbers (via
-`Math.random()`) are disabled in `TheFrozenRealm`, and therefore by
-default in each realm spawned from it. New sources of non-determinism,
-like `makeWeakRef` and `getStack` will not be added to the
-`TheFrozenRealm` realm or will be similarly disabled.
+`Math.random()`) are disabled in an immutable root realm, and
+therefore by default in each realm spawned from it. New sources of
+non-determinism, like `makeWeakRef` and `getStack` will not be added
+to immutable root realms or will be similarly disabled.
 
 The ECMAScript specs to date have never admitted the possibility of
 failures such as out-of-memory. In theory this means that a conforming
@@ -521,8 +550,8 @@ slippery and difficult.
 
 ### The punchlines
 
-Even without pinning down the precise meaning of "implementation
-defined", a computation that is limited to fail-stop
+Even without pinning down the precise meaning of
+"implementation-defined", a computation that is limited to fail-stop
 implementation-defined determinism _**cannot read covert channels and
 side channels**_ that it was not explicitly enabled to read. Nothing
 can practically prevent signalling on covert channels and side
@@ -542,34 +571,34 @@ reproducible manner.
 
 As of ES2016, the normative optionals of
 [Annex B](http://www.ecma-international.org/ecma-262/6.0/#sec-additional-ecmascript-features-for-web-browsers)
-are safe for inclusion as normative optionals of
-`TheFrozenRealm`. However, where Annex B states that these are
-normative mandatory in a web browser, there is no such requirement for
-`TheFrozenRealm`. Even when run in a web browser, `TheFrozenRealm`,
+are safe for inclusion as normative optionals of immutable root
+realms. However, where Annex B states that these are normative
+mandatory in a web browser, there is no such requirement for immutable
+root realms. Even when run in a web browser, an immutable root realm,
 having no host specific globals, must be considered a non-browser
 environment. Some post-ES2015 APIs proposed for Annex B, such as the
 [`RegExp` statics](https://github.com/claudepache/es-regexp-legacy-static-properties)
 and the
 [`Error.prototype.stack` accessor property](https://mail.mozilla.org/pipermail/es-discuss/2016-February/045579.html),
-are not safe for inclusion in `TheFrozenRealm` and must be absent.
+are not safe for inclusion in immutable root realms and must be absent.
 
 At this time, to maximize compatability with normal ECMAScript, we do
-not alter `TheFrozenRealm`'s evaluators to evaluate code in strict
-mode by default. However, we should consider doing so. Most of the
-code, including legacy code, that one would wish to run under
-`TheFrozenRealm` is probably already compatible with strict
-mode. Omitting sloppy mode from `TheFrozenRealm` and its spawned
-descendants would also make sections
+not alter an immutable root realm's evaluators to evaluate code in
+strict mode by default. However, we should consider doing so. Most of
+the code, including legacy code, that one would wish to run under an
+immutable root realm is probably already compatible with strict
+mode. Omitting sloppy mode from immutable root realms and their
+spawned descendants would also make sections
 [B.1.1](http://www.ecma-international.org/ecma-262/6.0/#sec-additional-syntax-numeric-literals),
 [B.1.2](http://www.ecma-international.org/ecma-262/6.0/#sec-additional-syntax-string-literals),
 [B.3.2](http://www.ecma-international.org/ecma-262/6.0/#sec-labelled-function-declarations),
 [B.3.3](http://www.ecma-international.org/ecma-262/6.0/#sec-block-level-function-declarations-web-legacy-compatibility-semantics),
 and
 [B.3.4](http://www.ecma-international.org/ecma-262/6.0/#sec-functiondeclarations-in-ifstatement-statement-clauses)
-non issues. It is unclear what `TheFrozenRealm`'s evaluators should
-specify regarding the remaining normative optional syntax in section
-B.1. But the syntax accepted by these evaluators, at least in strict
-mode, should probably be pinned down precisely by the spec.
+non issues. It is unclear what an immutable root realm's evaluators
+should specify regarding the remaining normative optional syntax in
+section B.1. But the syntax accepted by these evaluators, at least in
+strict mode, should probably be pinned down precisely by the spec.
 
 Some of the elements of Annex B are safe and likely mandatory in
 practice, independent of host environment:
@@ -592,11 +621,11 @@ so not subject to the SES-shim whitelisting mechanism.)
 
 ## Discussion
 
-Because `TheFrozenRealm` is transitively immutable, we can safely
-share it between ECMAScript programs that are otherwise fully
+Because an immutable root realm is transitively immutable, we can
+safely share it between ECMAScript programs that are otherwise fully
 isolated. This sharing gives them access to shared objects and shared
 identities, but no ability to communicate with each other or to affect
-any state outside themselves. We can even share `TheFrozenRealm`
+any state outside themselves. We can even share immutable root realms
 between origins and between threads, since deep immutability at the
 specification level should make thread safety at the implementation
 level straightforward.
@@ -608,9 +637,9 @@ techniques so that these builtins are properly defensive. This
 technique is difficult to get right, especially if such self hosting
 is
 [opened to ECMAScript embedders](https://docs.google.com/document/d/1AT5-T0aHGp7Lt29vPWFr2-qG8r3l9CByyvKwEuA8Ec0/edit#heading=h.ma18njbt74u3). Instead,
-these builtins could be defined in a realm spawned from
-`TheFrozenRealm`, making defensiveness easier to achieve with higher
-confidence.
+these builtins could be defined in a lightweight realm spawned from an
+immutable root realm, making defensiveness easier to achieve with
+higher confidence.
 
 Because of the so-called "[override mistake](
 http://wiki.ecmascript.org/doku.php?id=strawman:fixing_override_mistake)",
@@ -633,21 +662,22 @@ to be specified as unnamed instrinsics as well. For all of these, the
 above name-based overriding of `spawn` is irrelevant and probably not
 needed anyway.
 
-Because code evaluated within `TheFrozenRealm` is unable to cause any
+Because code evaluated within an immutable root realm is unable to cause any
 affects outside itself it is not given explicit access to, the
-evaluators of `TheFrozenRealm` should continue to operate even in
+evaluators of an immutable root realm should continue to operate even in
 environments in which
 [CSP has forbidden normal evaluators](https://github.com/tc39/ecma262/issues/450). By
 analogy, CSP evaluator suppression does not suppress
 `JSON.parse`. There are few ways in which evaluating code in
-`TheFrozenRealm` is more dangerous than JSON data.
+an immutable root realm is more dangerous than JSON data.
 
-Other possible proposals, like private state and defensible `const`
-classes, are likely to aid the defensive programming that is
-especially powerful in the context of this proposal. But because the
-utility of such defensive programming support is not limited to frozen
-realms, they should remain independent proposals. (TODO link to
-relevant proposals)
+Other possible proposals, like
+[private state](https://zenparsing.github.io/es-private-fields/) and
+[defensible `const` classes](http://wiki.ecmascript.org/doku.php?id=harmony:classes#const),
+are likely to aid the defensive programming that is especially
+powerful in the context of this proposal. But because the utility of
+such defensive programming support is not limited to frozen realms,
+they should remain independent proposals.
 
 For each of the upcoming proposed standard APIs that are inherently
 not immutable and powerless:
@@ -658,24 +688,31 @@ not immutable and powerless:
   * [`getStack`](https://mail.mozilla.org/pipermail/es-discuss/2016-February/045579.html)
   * [`getStackString`](https://mail.mozilla.org/pipermail/es-discuss/2016-February/045579.html)
 
-they must be absent from `TheFrozenRealm`, or have their behavior
-grossly truncated into something safe. This spec will additionally
-need to say how they initially appear, if at all, in each individual
-spawned realm.  In particular, we expect a pattern to emerge for
-creating a fresh loader instance to be the default loader of a fresh
-spawned realm. Once some proposed APIs are specced as being provided
-by import from
+they must be absent from an immutable root realm, or have their
+behavior grossly truncated into something safe. This spec will
+additionally need to say how they initially appear, if at all, in each
+individual spawned lightweight realm.  In particular, we expect a
+pattern to emerge for creating a fresh loader instance to be the
+default loader of a fresh spawned realm. Once some proposed APIs are
+specced as being provided by import from
 [builtin primordial modules](https://github.com/tc39/ecma262/issues/395),
-we will need to explain how they appear in `TheFrozenRealm` and/or the
-realms it spawns.
+we will need to explain how they appear in an immutable root realm
+and/or the realms it spawns.
 
 
 ## Open Questions
 
+* Should `Realm.immutableRoot()` return a new fresh frozen realm each
+  time or should it always return the same one? Above we leave this
+  implementation-defined for now to encourage implementations to
+  experiment and see how efficient each can be made. If all can agree
+  on one of these options, we should codify that rather than continue
+  to leave this implementation-defined.
+
 * It remains unclear how we should cope with the override
   mistake. Above, we propose the tamper proofing pattern, but this
   requires novel effort to become efficient. Alternatively, we could
-  specify that the override mistake is fixed in `TheFrozenRealm` and
+  specify that the override mistake is fixed in an immutable root realm and
   its descendants, making the problem go away. This diverges from the
   current standard in a different way, but we have some evidence that
   such divergence will break almost no existing code other than code
@@ -694,7 +731,7 @@ realms it spawns.
 
 * Although not officially a question within the jurisdiction of TC39,
   we should discuss whether the existing CSP "no script evaluation"
-  settings should exempt `TheFrozenRealm`'s evaluators, or whether CSP
+  settings should exempt an immutable root realm's evaluators, or whether CSP
   should be extended in order to express this differential
   prohibition.
 
@@ -702,7 +739,7 @@ realms it spawns.
   original value of `eval`, any use of it in the form of a direct-eval
   expression will actually have the semantics of an indirect eval,
   i.e., a simple function call to the current value of `eval`. If
-  `TheFrozenRealm`'s builtin evaluators are not strict by default,
+  an immutable root realm's builtin evaluators are not strict by default,
   then any user customization that replaces a spanwed realm's global
   evaluators with strict-by-default wrappers will break their use for
   direct-eval. Fortunately, this seems to be addressed by the rest of
