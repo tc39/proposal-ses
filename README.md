@@ -220,7 +220,8 @@ is an example of a convenience that should be provided by a
 library. It applies `Object.freeze` recursively to all objects it
 finds starting at `obj` by following property and `[[Prototype]]`
 links. This only gives all these objects a tamper proof API
-surface. It *does not* make them immutable except in special cases.
+surface. It *does not* make them immutable except in special
+cases. The name means "_define_ a _defensible_ object".
 
 Using `def`, we can rewrite our Counter example code as
 
