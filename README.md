@@ -36,8 +36,8 @@ of the other realms.
 
 Borrowing from the
 [old Realms API proposal](https://gist.github.com/dherman/7568885), we
-propose a `Realm` class, each of whose instances are a reification of
-the "Realm" concept. The only elements of the old API required here
+propose a `Realm` class, each of whose instances is a reification of
+the "Realm" concept. The only elements of the earlier API required here
 are the `global` accessor and the `eval` method, re-explained below.
 
 We propose a `spawn(endowments)` method on instances of the `Realm`
@@ -50,12 +50,12 @@ realm an _immutable root realm_.
 
 ```js
 class Realm {
-  // From the old Realm API proposal
+  // From the prior Realm API proposal
   const global -> object                // access this realm's global object
   eval(stringable) -> any               // do an indirect eval in this realm
 
-  // We expect the rest of old proposal to be proposed eventually but
-  // do not rely here on any of the remainder.
+  // We expect the rest of earlier proposal to be re-proposed eventually in
+  // some form, but do not rely here on any of the remainder.
 
   // New with this proposal
   static immutableRoot() -> Realm       // transitively immutable realm
@@ -63,29 +63,22 @@ class Realm {
 }
 ```
 
-(There is a minor change from the original Realm API proposal -- we
-use `const global` rather than `get global()` to declare that `global`
-is a non-writable non-configurable data property of realm
-instances. The syntax used here is just a placeholder, not a
-proposal.)
-
 An immutable root realm consists of all the primordial state defined by
 ES2016 (with the exception of the `Date.now` and `Math.random`
 methods, as explained below). It contains no host provided objects, so
-`window`, `document`, `XMLHttpRequest`, etc... are all absent. Thus,
+`window`, `document`, `XMLHttpRequest`, etc. are all absent. Thus,
 an immutable root realm contains none of the objects needed for interacting
 with the outside world, like the user or the network.
 
-The `spawn` method makes (1) a new lightweight child realm with (2) a
-new `global` inheriting from its parent's `global`, (3) a new `eval`
-function inheriting from its parent's `eval` function, and (4) a new
-`Function` constructor inheriting from its parent's `Function`
-constructor. The new `eval` and `Function` evaluate code in the global
-scope of the new `global` with that `global` as their global
-object. It then copies the own enumerable properties from the
-`endowments` record onto the new `global` and returns the new realm
-instance. With these endowments, users can add back in those host
-objects that they wish to be available in the spawned realm.
+The `spawn` method makes (1) a new lightweight child realm with (2) a new
+`global` inheriting from its parent's `global`, (3) a new `eval` function
+inheriting from its parent's `eval` function, and (4) a new `Function`
+constructor inheriting from its parent's `Function` constructor. The new `eval`
+and `Function` will evaluate code in the global scope of the new child realm:
+the new child realm's `global` becomes their global object. the `spawn` method
+then copies the own enumerable properties from the `endowments` record onto the
+new `global` and returns the new realm instance. With these endowments, users
+provide any host objects that they wish to be available in the spawned realm.
 
 Although `immutableRoot()` and `spawn` are orthogonal, they are
 especially interesting when directly composed:
@@ -105,7 +98,7 @@ Two realms, whether made as above by the `Realm` API or by same origin
 iframes, can be put in contact. Once in contact, they can mix their
 object graphs freely. When same origin iframes do this, they encounter
 an inconvenience and source of bugs we will here call _identity
-discontinuities_. For example if code from iframeA makes an array `arr`
+discontinuity_. For example if code from iframeA makes an array `arr`
 that it passes to code from iframeB, and iframeB tests `arr instanceof
 Array`, the answer will be `false` since `arr` inherits from the
 `Array.prototype` of iframeA which is a different object than the
@@ -196,12 +189,12 @@ counter and see the result. By calling her `change` variable, Joan can
 only decrement the counter and see the result. By using her `counter`
 variable Alice can do both.
 
-If Alice's code above is normal JavaScript code, then she does not
-achieve this goal. Bill or Joan could say `change.__proto__` to access
-and poison Alice's prototypes, and to interact with each other in ways
-Alice did not intend to enable. The API surface that Alice exposed to
-Bill and Joan was not _defensive_, it did not protect itself and Alice
-from Bill and Joan's misbehavior.
+If Alice's code above is normal JavaScript code, then she does not achieve this
+goal. For example, Bill or Joan could use the expression `change.__proto__` to
+access and poison Alice's prototypes, and to interact with each other in ways
+Alice did not intend to enable. The API surface that Alice exposed to Bill and
+Joan was not _defensive_; it did not protect itself and Alice from Bill and
+Joan's misbehavior.
 
 Alice's code above is properly defensive if it is evaluated in a realm
 descendant from an immutable root realm. Alice places Bill and Joan in
@@ -214,14 +207,14 @@ interactions are defensible and free of identity discontinuities.
 
 ## A convenience: `def(obj)`
 
-All those calls to `Object.freeze` above are ugly. The
-[Caja `def(obj)`](https://github.com/google/caja/blob/master/src/com/google/caja/ses/startSES.js#L1180)
-is an example of a convenience that should be provided by a
-library. It applies `Object.freeze` recursively to all objects it
-finds starting at `obj` by following property and `[[Prototype]]`
-links. This only gives all these objects a tamper proof API
-surface. It *does not* make them immutable except in special
-cases. The name means "_define_ a _defensible_ object".
+All those calls to `Object.freeze` above are ugly. The [Caja
+`def(obj)`](https://github.com/google/caja/blob/master/src/com/google/caja/ses/startSES.js#L1180)
+function is an example of a convenience that should be provided by a
+library. It applies `Object.freeze` recursively to all objects it finds
+starting at `obj` by following property and `[[Prototype]]` links. This gives
+all these objects a tamper proof API surface (Note, though, that it *does not*
+make them immutable except in special cases.) The name `def` means "_define_ a
+_defensible_ object".
 
 Using `def`, we can rewrite our Counter example code as
 
@@ -235,7 +228,7 @@ function Counter() {
 }
 ```
 
-To be efficient, `def` will need to somehow be in bed with this
+To be efficient, `def` needs to somehow be in bed with this
 proposal, so it can know to stop traversing when it hits any of these
 transitively immutable primordials. We leave it to a later proposal to
 work out this integration issue.
@@ -302,9 +295,12 @@ the missing functionality of `Date` and `Math` back in when
 appropriate.
 
 
-## Proposal
+## Detailed Proposal
 
-  1. Add to the Realm class a static method, `Realm.immutableRoot()`,
+  1. Introduce the `Realm` class as an officially recognized part of the
+     ECMAScript standard API.
+
+  1. Add to the `Realm` class a static method, `Realm.immutableRoot()`,
      which obtains an _immutable root realm_ in which all primordials
      are already transitively immutable. These primordials include
      *all* the primordials defined as mandatory in ES2016. (And those
@@ -319,7 +315,7 @@ appropriate.
 
      * Since two immutable root realms are forever the same in all
        ways except object identity, we leave it implementation-defined
-       whether `Realm.immutableRoot()` always makes a fresh one, or
+       whether `Realm.immutableRoot()` always creates a fresh one, or
        always returns the same one. On any given implementation, it
        must either be always fresh or always the same.
 
@@ -331,13 +327,13 @@ appropriate.
      time.  An immutable root realm's `Math` object has its `random()`
      method removed.
 
-  1. Add to the `Realm` class a new instance method, `spawn(endowments)`.
+  1. Add to the `Realm` class an instance method, `spawn(endowments)`.
      1. `spawn` creates a new lightweight child realm with its own
         fresh global object (denoted below by the symbol
         `freshGlobal`) whose `[[Prototype]]` is the parent realm's
         global object. This fresh global is also a plain
-        object. Unlike the global of an immutable root realm, the
-        `freshGlobal` is not frozen by default.
+        object. Unlike the global of an immutable root realm, this new
+        `freshGlobal` is _not_ frozen by default.
 
      1. `spawn` populates this `freshGlobal` with overriding
         bindings for the evaluators that have global names (currently
@@ -360,7 +356,7 @@ appropriate.
 
      A lightweight realm's initial `eval` inherits from its parent's
      `eval`. For each of the overriding constructors (currently only
-     `Function`), its `"prototype"` property initially has the same
+     `Function`), its `prototype` property initially has the same
      value as the constructor they inherit from. Thus, a function
      `foo` from one descendant realm passes the `foo instanceof
      Function` test using the `Function` constructor of another
@@ -383,7 +379,7 @@ The following `makeColdRealm(GoodDate, goodRandom)` function, given a
 good `Date` constructor and `Math.random` function, makes a new
 frozen-enough lightweight realm, that can be used as if it is an
 immutable root realm -- as a spawning root for making lightweight
-children realms. These children are separated-enough from each other,
+child realms. These children are separated-enough from each other,
 if one is not worried about non-overt channels. Unlike the lightweight
 realms directly descendant from an immutable root realm, children
 spawned from a common cold realm share a fully functional `Date` and
@@ -420,7 +416,7 @@ function makeColdRealm(GoodDate, goodRandom) {
 
 In addition to `Date` and `Math`, we can create abstractions to endow
 a fresh global with virtualized emulations of expected host-provided
-globals like `window`, `document`, and `XMLHttpRequest`. These
+globals like `window`, `document`, or `XMLHttpRequest`. These
 emulations may map into the caller's own or
 not. [Caja's Domado library](https://github.com/google/caja/blob/master/src/com/google/caja/plugin/domado.js)
 uses exactly this technique to emulate most of the conventional
@@ -443,16 +439,15 @@ be compatible with virtually all code not written specifically to test
 standards conformance.
 
 This proposal by itself is not adequate to polyfill intrinsics like
-`%ArrayPrototype%` that can be reached by syntax. Spawning a
-descendant realm using only the API proposed here, a polyfill can
-replace what object is looked up by the expression `Array.prototype`.
-However, the expression `[]` will still evaluate to an array that
-inherits from the `%ArrayPrototype%` instrinsic of the root
-realm. This is obviously inadequate, but is best addressed by moving
-the rest of the
-[old Realm API proposal](https://gist.github.com/dherman/7568885)
-towards standardization in a separate proposal. It will add the needed
-methods for manipulating the binding of intrinsics.
+`%ArrayPrototype%` that can be reached by syntax. Spawning a descendant realm
+using only the API proposed here, a polyfill can replace what object is looked
+up by the expression `Array.prototype`.  However, the expression `[]` will
+still evaluate to an array that inherits from the `%ArrayPrototype%` instrinsic
+of the root realm. This is obviously inadequate, but is best addressed by
+moving the remainder of the [old Realm API
+proposal](https://gist.github.com/dherman/7568885) towards standardization in a
+separate proposal. Among other things, the full Realm API will provide the
+necessary methods for manipulating the binding of intrinsics.
 
 
 ### Mobile code example
@@ -541,7 +536,7 @@ to immutable root realms or will be similarly disabled.
 The ECMAScript specs to date have never admitted the possibility of
 failures such as out-of-memory. In theory this means that a conforming
 ECMAScript implementation requires an infinite memory
-machine. Unfortunately, these are currently in short supply. Since
+machine. Unfortunately, such machines are currently difficult to obtain. Since
 ECMAScript is an implicitly-allocating language, the out-of-memory
 condition could cause computation to fail at any time. If these
 failures are reported by
@@ -550,8 +545,8 @@ then defensive programming becomes impossible. This would be contrary
 to the goals
 [of much ECMAScript code](https://github.com/tc39/ecmascript_sharedmem/issues/55). Thus,
 any ECMAScript computation that wishes to defend its invariants, and
-any synchronous computation it is entangled with, on encountering an
-unpredictable error, must
+any synchronous computation it is entangled with must, on encountering an
+unpredictable error,
 [preemptively abort without running further user code](https://github.com/tc39/ecmascript_sharedmem/issues/55).
 
 Even if ECMAScript were otherwise deterministically replayable, these
@@ -560,9 +555,9 @@ the weaker property of *fail-stop determinism*, where each replica
 either fails, or succeeds in a manner identical to every other
 non-failing replica.
 
-Although they are few in number, there are a number of specification
-issues that are observably left to implementations, on which
-implementations differ. Some of these may eventually be closed by
+Although few in number, there _are_ specification
+issues that are observably left to implementations, upon which
+implementations may differ. Some of these may eventually be closed by
 future TC39 agreement, such as enumeration order if objects are
 modified during enumeration (TODO link). Others, like the sort
 algorithm used by `Array.prototype.sort` are less likely to be
