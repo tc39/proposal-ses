@@ -1,0 +1,146 @@
+<!doctype html>
+<meta charset="utf8">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/styles/github.min.css">
+<script src="https://bterlson.github.io/ecmarkup/ecmarkup.js"></script>
+<link rel="stylesheet" href="https://bterlson.github.io/ecmarkup/elements.css">
+<pre class=metadata>
+  title: ECMAScript Frozen Realms Spec Proposal
+  stage: 1
+  contributors: Mark S. Miller, Chip Morningstar, Caridy Patiño
+  status: draft
+  copyright: false
+  location: https://rawgit.com/FUDCo/frozen-realms/master/index.html
+</pre>
+
+<emu-clause id="sec-realms-objects">
+    <h1>Realms Objects</h1>
+
+    <emu-clause id="sec-realms-abstracts">
+        <h1>Abstract Operations</h1>
+
+        <emu-clause id="sec-createspawnrealm" aoid="CreateSpawnRealm">
+            <h1>CreateSpawnRealm(parentRealm)</h1>
+
+            The abstract operation *CreateSpawnRealm* with argument _parentRealm_ performs the following steps:
+
+            <emu-alg>
+            1. Assert: _parentReam_ is an instance of a concrete subclass of Realm.
+            1. Let _childRealm_ be ? OrdinaryCreateFromConstructor(NewTarget, "%RealmPrototype%", « [[Realm]] »).
+            1. Let _freshGlobal_ be ? ObjectCreate(_parentRealm_.[[Realm]].[[GlobalEnv]]).
+            1. Let _childRealmRec_ be CreateRealm().
+            1. Let _newContext_ be a new execution context.
+            1. Set the Function of _newContext_ to *null*.
+            1. Set the Realm of _newContext_ to _childRealmRec_.
+            1. Set the ScriptOrModule of _newContext_ to *null*.
+            1. Perform SetRealmGlobalObject(_childRealmRec_, _freshGlobal_, *undefined*).
+            1. Set _childRealm_'s [[Realm]] internal slot to _childRealmRec_.
+            1. Return _childRealm_.
+            </emu-alg>
+
+            <emu-note>
+            TODO: Figure a way to make this a lightweight realm.
+            </emu-note>
+
+        </emu-clause>
+
+        <emu-clause id="sec-realm-evaluator-eval-functions">
+            <h1>Realm Evaluator Eval Functions</h1>
+
+            When a realm evaluator eval function is called with optional argument _src_, the following steps are taken:
+
+            <emu-alg>
+            1. Let _theRealm_ be the *this* value.
+            1. Assert: _theRealm_ is an instance of a concrete subclass of Realm.
+            1. If _src_ is not provided, return *undefined*.
+            1. Return ? PerformEval(_src_, _theRealm_.[[Realm]], *false*, *false*).
+            </emu-alg>
+
+            The *length* property of a Number format function is 1.
+        </emu-clause>
+
+        <emu-clause id="sec-createspawnevaluators" aoid="CreateSpawnEvaluators">
+            <h1>CreateSpawnEvaluators(theRealm)</h1>
+
+            The abstract operation *CreateEvaluators* with argument _theRealm_ performs the following steps:
+
+            <emu-alg>
+            1. Assert: _theRealm_ is an instance of a concrete subclass of Realm.
+            1. Let _freshGlobal_ be _theRealm_.[[Realm]].[[GlobalEnv]].
+            1. Let _E_ be a new built-in function object as defined in Realm Evaluator Eval Functions (1.1.2).
+            1. Let _evalFn_ be BoundFunctionCreate(_F_, _theRealm_, « »).
+            1. Perform ! DefinePropertyOrThrow(_evalFn_, "length", PropertyDescriptor {[[Value]]: 1, [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: true}).
+            1. Perform ? CreateDataPropertyOrThrow(_freshGlobal_, *"eval"*, _evalFn_).
+            1. TODO: Function evaluator
+            </emu-alg>
+
+            <emu-note>
+                The _eval_ property of the _freshGlobal_ has no relationship with the parent realm's _eval_, or the realm's _eval_. Is this a problem?
+            </emu-note>
+        </emu-clause>
+
+    </emu-clause>
+
+    <emu-clause id="sec-properties-of-the-realm-constructor">
+        <h1>Properties of the Realm Constructor</h1>
+
+        The value of the [[Prototype]] internal slot of the *Realm* constructor is the intrinsic object %FunctionPrototype%.
+
+        <emu-clause id="sec-realm.immutableroot">
+            <h1>Realm.immutableRoot()</h1>
+
+            When the *Realm.immutableRoot* function is called with no arguments, the following steps are taken:
+
+            <emu-alg>
+            1. TODO: In order to attain the necessary deep immutability of an immutable root realm, two of its primordials must be modified from the existing standard: An immutable root realm's `Date` object has its `now()` method removed and its default constructor changed to throw a `TypeError` rather than reveal the current time. An immutable root realm's `Math` object has its `random()` method removed.
+            </emu-alg>
+
+            <emu-note>
+              `Realm.immutableRoot()` obtains an <def>immutable root realm</def> in which all primordials are already transitively immutable. These primordials include *all* the primordials defined as mandatory in ES2017. These primordials must include no other objects or properties beyond those specified here. In an immutable root realm the global object itself is also transitively immutable. Specifically, it contains no host-specific objects. This frozen global object is a plain object whose `[[Prototype]]` is `Object.prototype`, i.e., the `%ObjectPrototype%` intrinsic of that immutable root realm.
+            </emu-note>
+
+            <emu-note>
+              Since two immutable root realms are forever the same in all ways except object identity, we leave it implementation-defined whether `Realm.immutableRoot()` always creates a fresh one, or always returns the same one. On any given implementation, it must either be always fresh or always the same.
+            </emu-note>
+        </emu-clause>
+
+    </emu-clause>
+
+    <emu-clause id="sec-properties-of-the-realm-prototype-object">
+        <h1>Properties of the Realm Prototype Object</h1>
+
+        <emu-clause id="sec-realm-prototype-spawn">
+              <h1>Realm.prototype.spawn([ endowments ])</h1>
+
+              When the *Realm.prototype.spawn* function is called with optional argument _endowments, the following steps are taken:
+
+              <emu-alg>
+              1. Let _parentRealm_ be *this* value.
+              1. If Type(_parentRealm_) is not Object, throw a *TypeError* exception.
+              1. If _parentRealm_ does not have an [[Realm]] internal slot, throw a *TypeError* exception.
+              1. Let _childRealm_ be ? CreateSpawnRealm(parentRealm).
+              1. Let _freshGlobal_ be _childRealm_.[[Realm]].[[GlobalEnv]].
+              1. TODO: spawn populates this freshGlobal with overriding bindings for the evaluators that have global names (currently only eval and Function). It binds each of these names to fresh objects whose [[Prototype]]s are the corresponding objects from the parent realm.
+              1. Perform ? CreateSpawnEvaluators(_childRealm_).
+              1. If _endowments_ is provided, then
+                1. If Type(_endowments_) is not an Object, throw a *TypeError* exception.
+                1. Let _props_ be ? ToObject(_endowments_).
+                1. Let _keys_ be ? _props_.[[OwnPropertyKeys]]().
+                1. Repeat for each element _propName_ of keys in List order,
+                  1. Let _propDesc_ be ? _props_.[[GetOwnProperty]](_propName_).
+                  1. If _propDesc_ is not *undefined* and _propDesc_.[[Enumerable]] is *true*, then
+                    1. Let _propValue_ be ? Get(_props_, _propName_).
+                    1. Perform ? CreateDataPropertyOrThrow(_freshGlobal_, _propName_, _propValue_).
+              1. Return _childRealm_.
+              </emu-alg>
+        </emu-clause>
+
+    </emu-clause>
+
+</emu-clause>
+
+<emu-clause id="sec-frozen-realms-objects">
+  <h1>Frozen Realms Objects</h1>
+
+  TBD
+
+</emu-clause>

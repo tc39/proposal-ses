@@ -1,0 +1,36 @@
+{
+    "name": "ecma-proposal-frozen-realms",
+    "private": true,
+    "version": "0.0.0",
+    "description": "ECMAScript spec proposal for Frozen Realms",
+    "scripts": {
+        "build": "ecmarkup spec/index.emu index.html",
+        "watch": "ecmarkup --watch spec/index.emu index.html"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/FUDCo/frozen-realms.git"
+    },
+    "keywords": [
+        "realms",
+        "frozen",
+        "ES8",
+        "ES2017",
+        "ECMAScript",
+        "ESNext",
+        "spec",
+        "proposal"
+    ],
+    "author": {
+        "name": "Mark S. Miller"
+    },
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/FUDCo/frozen-realms/issues"
+    },
+    "homepage": "https://github.com/FUDCo/frozen-realms#readme",
+    "dependencies": {},
+    "devDependencies": {
+        "ecmarkup": "latest"
+    }
+}
