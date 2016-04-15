@@ -12,6 +12,11 @@ together they have more power than each separately.
 We motivate the Frozen Realm API presented here with a variety of
 examples.
 
+### Status
+
+Current Stage:
+
+ * __Stage 1__
 
 ## Summary
 
@@ -296,6 +301,8 @@ appropriate.
 
 
 ## Detailed Proposal
+
+You can view the spec text draft in [ecmarkup](spec/index.emu) format or rendered as [HTML](https://rawgit.com/FUDCo/frozen-realms/master/index.html).
 
   1. Introduce the `Realm` class as an officially recognized part of the
      ECMAScript standard API.
@@ -782,6 +789,24 @@ and/or the realms it spawns.
 
 * Of course, there is the perpetual bikeshedding of names. We are not
   attached to the names we present here.
+
+## Spec Text
+
+### Updating the spec text for this proposal
+
+The source for the spec text is located in [spec/index.emu](spec/index.emu) and it is written in
+[ecmarkup](https://github.com/bterlson/ecmarkup) language.
+
+When modifying the spec text, you should be able to build the HTML version in
+`index.html` by using the following command:
+
+```bash
+npm install
+npm run build
+open index.html
+```
+
+Alternative, you can use `npm run watch`.
 
 ## Acknowledgements
 

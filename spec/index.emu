@@ -15,6 +15,10 @@
 <emu-clause id="sec-realms-objects">
     <h1>Realms Objects</h1>
 
+    <emu-note>
+      *IMPORTANT* this section references the Realm API <a href="https://github.com/caridy/proposal-realms">spec proposal</a>.
+    </emu-note>
+
     <emu-clause id="sec-realms-abstracts">
         <h1>Abstract Operations</h1>
 
