@@ -610,7 +610,7 @@ and the
 [`Error.prototype.stack` accessor property](https://mail.mozilla.org/pipermail/es-discuss/2016-February/045579.html),
 are not safe for inclusion in immutable root realms and must be absent.
 
-At this time, to maximize compatability with normal ECMAScript, we do
+At this time, to maximize compatibility with normal ECMAScript, we do
 not alter an immutable root realm's evaluators to evaluate code in
 strict mode by default. However, we should consider doing so. Most of
 the code, including legacy code, that one would wish to run under an
