@@ -3,43 +3,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/styles/github.min.css">
 <script src="https://bterlson.github.io/ecmarkup/ecmarkup.js"></script>
 <link rel="stylesheet" href="https://bterlson.github.io/ecmarkup/elements.css">
-<title>ECMAScript Frozen Realms Spec Proposal</title><script type="application/json" id="menu-search-biblio">[{"type":"clause","id":"sec-realms-objects","aoid":null,"title":"Realms Objects","number":"1","namespace":"https://rawgit.com/FUDCo/frozen-realms/master/index.html","location":"","key":"Realms Objects"},{"type":"clause","id":"sec-properties-of-the-realm-constructor","aoid":null,"title":"Properties of the Realm Constructor","number":"1.1","namespace":"https://rawgit.com/FUDCo/frozen-realms/master/index.html","location":"","key":"Properties of the Realm Constructor"},{"type":"clause","id":"sec-realm.immutableroot","aoid":null,"title":"Realm.immutableRoot()","number":"1.1.1","namespace":"https://rawgit.com/FUDCo/frozen-realms/master/index.html","location":"","key":"Realm.immutableRoot()"},{"type":"clause","id":"sec-properties-of-the-realm-prototype-object","aoid":null,"title":"Properties of the Realm Prototype Object","number":"1.2","namespace":"https://rawgit.com/FUDCo/frozen-realms/master/index.html","location":"","key":"Properties of the Realm Prototype Object"},{"type":"clause","id":"sec-realm-prototype-spawn","aoid":null,"title":"Realm.prototype.spawn([ _endowments_ ])","number":"1.2.1","namespace":"https://rawgit.com/FUDCo/frozen-realms/master/index.html","location":"","key":"Realm.prototype.spawn([ _endowments_ ])"},{"type":"clause","id":"sec-spawnedrealm-objects","aoid":null,"title":"SpawnedRealm Objects","number":"2","namespace":"https://rawgit.com/FUDCo/frozen-realms/master/index.html","location":"","key":"SpawnedRealm Objects"},{"type":"clause","id":"sec-realms-abstracts","aoid":null,"title":"Abstract Operations","number":"2.1","namespace":"https://rawgit.com/FUDCo/frozen-realms/master/index.html","location":"","key":"Abstract Operations"},{"type":"op","aoid":"CreateSpawnEvaluators","refId":"sec-createspawnevaluators","location":"","key":"CreateSpawnEvaluators"},{"type":"clause","id":"sec-createspawnevaluators","aoid":"CreateSpawnEvaluators","title":"CreateSpawnEvaluators(_spawnedRealm_)","number":"2.1.1","namespace":"https://rawgit.com/FUDCo/frozen-realms/master/index.html","location":"","key":"CreateSpawnEvaluators(_spawnedRealm_)"},{"type":"op","aoid":"CreateSpawnRealm","refId":"sec-createspawnrealm","location":"","key":"CreateSpawnRealm"},{"type":"clause","id":"sec-createspawnrealm","aoid":"CreateSpawnRealm","title":"CreateSpawnRealm(_parentRealm_)","number":"2.1.2","namespace":"https://rawgit.com/FUDCo/frozen-realms/master/index.html","location":"","key":"CreateSpawnRealm(_parentRealm_)"},{"type":"clause","id":"sec-spawnedrealm-evaluator-eval-functions","aoid":null,"title":"SpawnedRealm Evaluator Eval Functions","number":"2.1.3","namespace":"https://rawgit.com/FUDCo/frozen-realms/master/index.html","location":"","key":"SpawnedRealm Evaluator Eval Functions"},{"type":"clause","id":"sec-spawnedrealm-evaluator-function-functions","aoid":null,"title":"SpawnedRealm Evaluator Function Functions","number":"2.1.4","namespace":"https://rawgit.com/FUDCo/frozen-realms/master/index.html","location":"","key":"SpawnedRealm Evaluator Function Functions"},{"type":"op","aoid":"PerformSpawnedEval","refId":"sec-performspawenedeval","location":"","key":"PerformSpawnedEval"},{"type":"clause","id":"sec-performspawenedeval","aoid":"PerformSpawnedEval","title":"Runtime Semantics: PerformSpawnedEval(_x_, _spawnedRealm_, _strictCaller_, _direct_)","number":"2.1.5","namespace":"https://rawgit.com/FUDCo/frozen-realms/master/index.html","location":"","key":"Runtime Semantics: PerformSpawnedEval(_x_, _spawnedRealm_, _strictCaller_, _direct_)"},{"type":"clause","id":"sec-the-spawnedrealm-constructor","aoid":null,"title":"The SpawnedRealm Constructor","number":"2.2","namespace":"https://rawgit.com/FUDCo/frozen-realms/master/index.html","location":"","key":"The SpawnedRealm Constructor"},{"type":"clause","id":"sec-properties-of-the-spawnedrealm-constructor","aoid":null,"title":"Properties of the SpawnedRealm Constructor","number":"2.3","namespace":"https://rawgit.com/FUDCo/frozen-realms/master/index.html","location":"","key":"Properties of the SpawnedRealm Constructor"},{"type":"clause","id":"sec-spawnedrealm.prototype","aoid":null,"title":"SpawnedRealm.prototype","number":"2.3.1","namespace":"https://rawgit.com/FUDCo/frozen-realms/master/index.html","location":"","key":"SpawnedRealm.prototype"},{"type":"clause","id":"sec-properties-of-the-realm-prototype-object","aoid":null,"title":"Properties of the SpawnedRealm Prototype Object","number":"2.4","namespace":"https://rawgit.com/FUDCo/frozen-realms/master/index.html","location":"","key":"Properties of the SpawnedRealm Prototype Object"},{"type":"clause","id":"sec-spawnedrealm.prototype.eval","aoid":null,"title":"SpawnedRealm.prototype.eval(_src_)","number":"2.4.1","namespace":"https://rawgit.com/FUDCo/frozen-realms/master/index.html","location":"","key":"SpawnedRealm.prototype.eval(_src_)"},{"type":"clause","id":"sec-spawnedrealm.prototype.global","aoid":null,"title":"get SpawnedRealm.prototype.global","number":"2.4.2","namespace":"https://rawgit.com/FUDCo/frozen-realms/master/index.html","location":"","key":"get SpawnedRealm.prototype.global"},{"type":"clause","id":"sec-spawnedrealm.prototype.realm","aoid":null,"title":"get SpawnedRealm.prototype.realm","number":"2.4.3","namespace":"https://rawgit.com/FUDCo/frozen-realms/master/index.html","location":"","key":"get SpawnedRealm.prototype.realm"},{"type":"clause","id":"sec-spawnedrealm.prototype-@@tostringtag","aoid":null,"title":"SpawnedRealm.prototype [ @@toStringTag ]","number":"2.4.4","namespace":"https://rawgit.com/FUDCo/frozen-realms/master/index.html","location":"","key":"SpawnedRealm.prototype [ @@toStringTag ]"},{"type":"clause","id":"sec-properties-of-spawnedrealm-instances","aoid":null,"title":"Properties of SpawnedRealm Instances","number":"2.5","namespace":"https://rawgit.com/FUDCo/frozen-realms/master/index.html","location":"","key":"Properties of SpawnedRealm Instances"},{"type":"clause","id":"sec-frozen-realms-objects","aoid":null,"title":"Frozen Realms Objects","number":"3","namespace":"https://rawgit.com/FUDCo/frozen-realms/master/index.html","location":"","key":"Frozen Realms Objects"},{"type":"table","id":"table-1","number":1,"caption":"Table 1: Well-known Intrinsic Objects","namespace":"https://rawgit.com/FUDCo/frozen-realms/master/index.html","location":"","key":"Table 1: Well-known Intrinsic Objects"},{"type":"table","id":"table-2","number":2,"caption":"Table 2: Internal Slots of SpawnedRealm Instances","namespace":"https://rawgit.com/FUDCo/frozen-realms/master/index.html","location":"","key":"Table 2: Internal Slots of SpawnedRealm Instances"}]</script></head><body><div id="menu-toggle">☰</div><div id="menu"><div id="menu-search"><input type="text" id="menu-search-box" placeholder="Search..."><div id="menu-search-results" class="inactive"></div></div><div id="menu-toc"><ol class="toc"><li><span class="item-toggle">◢</span><a href="#sec-realms-objects" title="Realms Objects"><span class="secnum">1</span> Realms Objects</a><ol class="toc"><li><span class="item-toggle">◢</span><a href="#sec-properties-of-the-realm-constructor" title="Properties of the Realm Constructor"><span class="secnum">1.1</span> Properties of the Realm Constructor</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-realm.immutableroot" title="Realm.immutableRoot()"><span class="secnum">1.1.1</span> Realm.immutableRoot()</a></li></ol></li><li><span class="item-toggle">◢</span><a href="#sec-properties-of-the-realm-prototype-object" title="Properties of the Realm Prototype Object"><span class="secnum">1.2</span> Properties of the Realm Prototype Object</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-realm-prototype-spawn" title="Realm.prototype.spawn([ _endowments_ ])"><span class="secnum">1.2.1</span> Realm.prototype.spawn([ <var>endowments</var> ])</a></li></ol></li></ol></li><li><span class="item-toggle">◢</span><a href="#sec-spawnedrealm-objects" title="SpawnedRealm Objects"><span class="secnum">2</span> SpawnedRealm Objects</a><ol class="toc"><li><span class="item-toggle">◢</span><a href="#sec-realms-abstracts" title="Abstract Operations"><span class="secnum">2.1</span> Abstract Operations</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-createspawnevaluators" title="CreateSpawnEvaluators(_spawnedRealm_)"><span class="secnum">2.1.1</span> CreateSpawnEvaluators(<var>spawnedRealm</var>)</a></li><li><span class="item-toggle-none"></span><a href="#sec-createspawnrealm" title="CreateSpawnRealm(_parentRealm_)"><span class="secnum">2.1.2</span> CreateSpawnRealm(<var>parentRealm</var>)</a></li><li><span class="item-toggle-none"></span><a href="#sec-spawnedrealm-evaluator-eval-functions" title="SpawnedRealm Evaluator Eval Functions"><span class="secnum">2.1.3</span> SpawnedRealm Evaluator Eval Functions</a></li><li><span class="item-toggle-none"></span><a href="#sec-spawnedrealm-evaluator-function-functions" title="SpawnedRealm Evaluator Function Functions"><span class="secnum">2.1.4</span> SpawnedRealm Evaluator Function Functions</a></li><li><span class="item-toggle-none"></span><a href="#sec-performspawenedeval" title="Runtime Semantics: PerformSpawnedEval(_x_, _spawnedRealm_, _strictCaller_, _direct_)"><span class="secnum">2.1.5</span> RS: PerformSpawnedEval(<var>x</var>, <var>spawnedRealm</var>, <var>strictCaller</var>, <var>direct</var>)</a></li></ol></li><li><span class="item-toggle-none"></span><a href="#sec-the-spawnedrealm-constructor" title="The SpawnedRealm Constructor"><span class="secnum">2.2</span> The SpawnedRealm Constructor</a></li><li><span class="item-toggle">◢</span><a href="#sec-properties-of-the-spawnedrealm-constructor" title="Properties of the SpawnedRealm Constructor"><span class="secnum">2.3</span> Properties of the SpawnedRealm Constructor</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-spawnedrealm.prototype" title="SpawnedRealm.prototype"><span class="secnum">2.3.1</span> SpawnedRealm.prototype</a></li></ol></li><li><span class="item-toggle">◢</span><a href="#sec-properties-of-the-realm-prototype-object" title="Properties of the SpawnedRealm Prototype Object"><span class="secnum">2.4</span> Properties of the SpawnedRealm Prototype Object</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-spawnedrealm.prototype.eval" title="SpawnedRealm.prototype.eval(_src_)"><span class="secnum">2.4.1</span> SpawnedRealm.prototype.eval(<var>src</var>)</a></li><li><span class="item-toggle-none"></span><a href="#sec-spawnedrealm.prototype.global" title="get SpawnedRealm.prototype.global"><span class="secnum">2.4.2</span> get SpawnedRealm.prototype.global</a></li><li><span class="item-toggle-none"></span><a href="#sec-spawnedrealm.prototype.realm" title="get SpawnedRealm.prototype.realm"><span class="secnum">2.4.3</span> get SpawnedRealm.prototype.realm</a></li><li><span class="item-toggle-none"></span><a href="#sec-spawnedrealm.prototype-@@tostringtag" title="SpawnedRealm.prototype [ @@toStringTag ]"><span class="secnum">2.4.4</span> SpawnedRealm.prototype [ @@toStringTag ]</a></li></ol></li><li><span class="item-toggle-none"></span><a href="#sec-properties-of-spawnedrealm-instances" title="Properties of SpawnedRealm Instances"><span class="secnum">2.5</span> Properties of SpawnedRealm Instances</a></li></ol></li><li><span class="item-toggle-none"></span><a href="#sec-frozen-realms-objects" title="Frozen Realms Objects"><span class="secnum">3</span> Frozen Realms Objects</a></li></ol></div></div><h1 class="version">May 1, 2016</h1><h1 class="title">ECMAScript Frozen Realms Spec Proposal</h1>
-
-<emu-table id="table-1" caption="Well-known Intrinsic Objects"><figure><figcaption>Table 1: Well-known Intrinsic Objects</figcaption>
-    <table>
-        <tbody>
-            <tr>
-                <th>Intrinsic Name</th>
-                <th>Global Name</th>
-                <th>ECMAScript Language Association</th>
-            </tr>
-            <tr>
-                <td>%SetPrototype%</td>
-                <td><code>Set.prototype</code></td>
-                <td>…</td>
-            </tr>
-            <tr>
-                <td>%SpawnedRealm%</td>
-                <td></td>
-                <td>
-                    The SpawnedRealm constructor (<emu-xref href="#sec-the-spawnedrealm-constructor"><a href="#sec-the-spawnedrealm-constructor">2.2</a></emu-xref>)
-                </td>
-            </tr>
-            <tr>
-                <td>%SpawnedRealmPrototype%</td>
-                <td></td>
-                <td>
-                    The prototype of SpawnedRealm objects (<emu-xref href="#sec-spawnedrealm-objects"><a href="#sec-spawnedrealm-objects">2</a></emu-xref>)
-                </td>
-            </tr>
-            <tr>
-                <td>%String%</td>
-                <td></td>
-                <td>…</td>
-            </tr>
-        </tbody>
-    </table>
-</figure></emu-table>
+<title>ECMAScript Frozen Realms Spec Proposal</title><script type="application/json" id="menu-search-biblio">[{"type":"clause","id":"sec-realms-objects","aoid":null,"title":"Realms Objects","number":"1","namespace":"https://rawgit.com/FUDCo/frozen-realms/master/index.html","location":"","key":"Realms Objects"},{"type":"clause","id":"sec-realms-abstracts","aoid":null,"title":"Abstract Operations","number":"1.1","namespace":"https://rawgit.com/FUDCo/frozen-realms/master/index.html","location":"","key":"Abstract Operations"},{"type":"op","aoid":"CreateSpawnRealm","refId":"sec-createspawnrealm","location":"","key":"CreateSpawnRealm"},{"type":"clause","id":"sec-createspawnrealm","aoid":"CreateSpawnRealm","title":"CreateSpawnRealm ( _parentRealmRec_ )","number":"1.1.1","namespace":"https://rawgit.com/FUDCo/frozen-realms/master/index.html","location":"","key":"CreateSpawnRealm ( _parentRealmRec_ )"},{"type":"op","aoid":"SetFrozenGlobalBindings","refId":"sec-setfrozenglobalbindings","location":"","key":"SetFrozenGlobalBindings"},{"type":"clause","id":"sec-setfrozenglobalbindings","aoid":"SetFrozenGlobalBindings","title":"SetFrozenGlobalBindings ( _realmRec_ )","number":"1.1.2","namespace":"https://rawgit.com/FUDCo/frozen-realms/master/index.html","location":"","key":"SetFrozenGlobalBindings ( _realmRec_ )"},{"type":"op","aoid":"FreezeRealmIntrinsics","refId":"sec-freezerealmintrinsics","location":"","key":"FreezeRealmIntrinsics"},{"type":"clause","id":"sec-freezerealmintrinsics","aoid":"FreezeRealmIntrinsics","title":"FreezeRealmIntrinsics ( _realmRec_ )","number":"1.1.3","namespace":"https://rawgit.com/FUDCo/frozen-realms/master/index.html","location":"","key":"FreezeRealmIntrinsics ( _realmRec_ )"},{"type":"clause","id":"sec-properties-of-the-realm-constructor","aoid":null,"title":"Properties of the Realm Constructor","number":"1.2","namespace":"https://rawgit.com/FUDCo/frozen-realms/master/index.html","location":"","key":"Properties of the Realm Constructor"},{"type":"clause","id":"sec-realm.immutableroot","aoid":null,"title":"Realm.immutableRoot ()","number":"1.2.1","namespace":"https://rawgit.com/FUDCo/frozen-realms/master/index.html","location":"","key":"Realm.immutableRoot ()"},{"type":"clause","id":"sec-properties-of-the-realm-prototype-object","aoid":null,"title":"Properties of the Realm Prototype Object","number":"1.3","namespace":"https://rawgit.com/FUDCo/frozen-realms/master/index.html","location":"","key":"Properties of the Realm Prototype Object"},{"type":"clause","id":"sec-realm-prototype-spawn","aoid":null,"title":"Realm.prototype.spawn ([ _endowments_ ])","number":"1.3.1","namespace":"https://rawgit.com/FUDCo/frozen-realms/master/index.html","location":"","key":"Realm.prototype.spawn ([ _endowments_ ])"}]</script></head><body><div id="menu-toggle">☰</div><div id="menu"><div id="menu-search"><input type="text" id="menu-search-box" placeholder="Search..."><div id="menu-search-results" class="inactive"></div></div><div id="menu-toc"><ol class="toc"><li><span class="item-toggle">◢</span><a href="#sec-realms-objects" title="Realms Objects"><span class="secnum">1</span> Realms Objects</a><ol class="toc"><li><span class="item-toggle">◢</span><a href="#sec-realms-abstracts" title="Abstract Operations"><span class="secnum">1.1</span> Abstract Operations</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-createspawnrealm" title="CreateSpawnRealm ( _parentRealmRec_ )"><span class="secnum">1.1.1</span> CreateSpawnRealm ( <var>parentRealmRec</var> )</a></li><li><span class="item-toggle-none"></span><a href="#sec-setfrozenglobalbindings" title="SetFrozenGlobalBindings ( _realmRec_ )"><span class="secnum">1.1.2</span> SetFrozenGlobalBindings ( <var>realmRec</var> )</a></li><li><span class="item-toggle-none"></span><a href="#sec-freezerealmintrinsics" title="FreezeRealmIntrinsics ( _realmRec_ )"><span class="secnum">1.1.3</span> FreezeRealmIntrinsics ( <var>realmRec</var> )</a></li></ol></li><li><span class="item-toggle">◢</span><a href="#sec-properties-of-the-realm-constructor" title="Properties of the Realm Constructor"><span class="secnum">1.2</span> Properties of the Realm Constructor</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-realm.immutableroot" title="Realm.immutableRoot ()"><span class="secnum">1.2.1</span> Realm.immutableRoot ()</a></li></ol></li><li><span class="item-toggle">◢</span><a href="#sec-properties-of-the-realm-prototype-object" title="Properties of the Realm Prototype Object"><span class="secnum">1.3</span> Properties of the Realm Prototype Object</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-realm-prototype-spawn" title="Realm.prototype.spawn ([ _endowments_ ])"><span class="secnum">1.3.1</span> Realm.prototype.spawn ([ <var>endowments</var> ])</a></li></ol></li></ol></li></ol></div></div><h1 class="version">May 10, 2016</h1><h1 class="title">ECMAScript Frozen Realms Spec Proposal</h1>
 
 <emu-clause id="sec-realms-objects">
     <h1><span class="secnum">1</span>Realms Objects<span class="utils"><span class="anchor"><a href="#sec-realms-objects">#</a></span></span></h1>
@@ -49,21 +13,65 @@
     
     </emu-note>
 
+    <emu-clause id="sec-realms-abstracts">
+        <h1><span class="secnum">1.1</span>Abstract Operations<span class="utils"><span class="anchor"><a href="#sec-realms-abstracts">#</a></span></span></h1>
+
+        <emu-clause id="sec-createspawnrealm" aoid="CreateSpawnRealm">
+            <h1><span class="secnum">1.1.1</span>CreateSpawnRealm ( <var>parentRealmRec</var> )<span class="utils"><span class="anchor"><a href="#sec-createspawnrealm">#</a></span></span></h1>
+
+            The abstract operation <emu-val>CreateSpawnRealm</emu-val> with argument <var>parentRealmRec</var> performs the following steps: 
+
+            <emu-alg><ol><li>Assert: <var>parentRealmRec</var> is a <emu-xref href="#realm-record"><a href="https://tc39.github.io/ecma262/#realm-record">Realm Record</a></emu-xref>.</li><li>Let intrinsics be <var>parentRealm</var>.[[Intrinsics]].</li><li>Let <var>realmRec</var> be a new <emu-xref href="#realm-record"><a href="https://tc39.github.io/ecma262/#realm-record">Realm Record</a></emu-xref>.</li><li>Set <var>realmRec</var>.[[Intrinsics]] to <var>intrinsics</var>.</li><li>Let <var>freshObject</var> to <emu-xref aoid="ObjectCreate"><a href="https://tc39.github.io/ecma262/#sec-objectcreate">ObjectCreate</a></emu-xref>(<var>parentRealm</var>.[[GlobalObject]]).</li><li>Perform ? <emu-xref aoid="SetRealmGlobalObject"><a href="https://tc39.github.io/ecma262/#sec-setrealmglobalobject">SetRealmGlobalObject</a></emu-xref>(<var>realmRec</var>, <var>freshObject</var>, <emu-val>undefined</emu-val>).</li><li>Set realmRec.[[TemplateMap]] to a new empty <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.github.io/ecma262/#sec-list-and-record-specification-type">List</a></emu-xref>.</li><li>Return <var>realmRec</var>.
+            </li></ol></emu-alg>
+
+        </emu-clause>
+
+        <emu-clause id="sec-setfrozenglobalbindings" aoid="SetFrozenGlobalBindings">
+            <h1><span class="secnum">1.1.2</span>SetFrozenGlobalBindings ( <var>realmRec</var> )<span class="utils"><span class="anchor"><a href="#sec-setfrozenglobalbindings">#</a></span></span></h1>
+
+            The abstract operation <emu-val>SetFrozenGlobalBindings</emu-val> with argument <var>realmRec</var> performs the following steps: 
+
+            <emu-alg><ol><li>Assert: <var>realmRec</var> is a <emu-xref href="#realm-record"><a href="https://tc39.github.io/ecma262/#realm-record">Realm Record</a></emu-xref>.</li><li>Let <var>global</var> be <var>realmRec</var>.[[GlobalObject]].</li><li>For each property of the Global Object specified in clause <emu-xref href="#sec-global-object"><a href="https://tc39.github.io/ecma262/#sec-global-object">18</a></emu-xref>, do<ol><li>Let <var>name</var> be the String value of the property name.</li><li>Let <var>desc</var> be the fully populated data property descriptor for the immutable property containing the specified attributes for the property. For properties listed in <emu-xref href="#sec-function-properties-of-the-global-object"><a href="https://tc39.github.io/ecma262/#sec-function-properties-of-the-global-object">18.2</a></emu-xref>, <emu-xref href="#sec-constructor-properties-of-the-global-object"><a href="https://tc39.github.io/ecma262/#sec-constructor-properties-of-the-global-object">18.3</a></emu-xref>, or <emu-xref href="#sec-other-properties-of-the-global-object"><a href="https://tc39.github.io/ecma262/#sec-other-properties-of-the-global-object">18.4</a></emu-xref> the value of the [[Value]] attribute is the corresponding intrinsic object from <var>realmRec</var>.</li><li>Perform ? <emu-xref aoid="DefinePropertyOrThrow"><a href="https://tc39.github.io/ecma262/#sec-definepropertyorthrow">DefinePropertyOrThrow</a></emu-xref>(<var>global</var>, <var>name</var>, <var>desc</var>).</li></ol></li><li>Return <var>global</var>.
+            </li></ol></emu-alg>
+
+            <emu-note><span class="note">Note</span>
+              These primordials include <emu-val>all</emu-val> the primordials defined as mandatory in ES2017. These primordials must include no other objects or properties beyond those specified here.
+            
+            </emu-note>
+
+        </emu-clause>
+
+        <emu-clause id="sec-freezerealmintrinsics" aoid="FreezeRealmIntrinsics">
+            <h1><span class="secnum">1.1.3</span>FreezeRealmIntrinsics ( <var>realmRec</var> )<span class="utils"><span class="anchor"><a href="#sec-freezerealmintrinsics">#</a></span></span></h1>
+
+            The abstract operation <emu-val>FreezeRealmIntrinsics</emu-val> with argument <var>realmRec</var> performs the following steps: 
+
+            <emu-alg><ol><li>Assert: <var>realmRec</var> is a <emu-xref href="#realm-record"><a href="https://tc39.github.io/ecma262/#realm-record">Realm Record</a></emu-xref>.</li><li>Let <var>intrinsics</var> be <var><emu-xref href="#realm"><a href="https://tc39.github.io/ecma262/#realm">realm</a></emu-xref></var>.[[Intrinsics]].</li><li>Let <var>DatePrototype</var> be <var>intrinsics</var>.[[<emu-xref href="#sec-properties-of-the-date-prototype-object"><a href="https://tc39.github.io/ecma262/#sec-properties-of-the-date-prototype-object">%DatePrototype%</a></emu-xref>]].</li><li>Perform ? <emu-xref aoid="CreateMethodProperty"><a href="https://tc39.github.io/ecma262/#sec-createmethodproperty">CreateMethodProperty</a></emu-xref> (<var>DatePrototype</var>, <emu-val>"now"</emu-val>, <emu-val>undefined</emu-val>).</li><li>Let <var>Math</var> be <var>intrinsics</var>.[[<emu-xref href="#sec-math-object"><a href="https://tc39.github.io/ecma262/#sec-math-object">%Math%</a></emu-xref>]].</li><li>Perform ? <emu-xref aoid="CreateMethodProperty"><a href="https://tc39.github.io/ecma262/#sec-createmethodproperty">CreateMethodProperty</a></emu-xref> (<var>Math</var>, <emu-val>"random"</emu-val>, <emu-val>undefined</emu-val>).</li><li>For each <var>value</var> corresponding to a field name in <var>intrinsics</var>, do:<ol><li>Perform ? <emu-xref aoid="SetIntegrityLevel"><a href="https://tc39.github.io/ecma262/#sec-setintegritylevel">SetIntegrityLevel</a></emu-xref>(<var>value</var>, "frozen") and make the <var>value</var> object transitively immutable.</li></ol></li><li>Return <var>intrinsics</var>.
+            </li></ol></emu-alg>
+
+            <emu-note><span class="note">Note</span>
+              In order to attain the necessary deep immutability of an immutable root <emu-xref href="#realm"><a href="https://tc39.github.io/ecma262/#realm">realm</a></emu-xref>, two of its primordials must be modified from the existing standard: An immutable root <emu-xref href="#realm"><a href="https://tc39.github.io/ecma262/#realm">realm</a></emu-xref>'s <code>Date</code> object has its <code>now()</code> method removed and the Date Constructor should throw a <code>TypeError</code> when called as a constructor or a function, rather than reveal the current time. An immutable root <emu-xref href="#realm"><a href="https://tc39.github.io/ecma262/#realm">realm</a></emu-xref>'s <code>Math</code> object has its <code>random()</code> method removed.
+            
+            </emu-note>
+
+        </emu-clause>
+    </emu-clause>
+
     <emu-clause id="sec-properties-of-the-realm-constructor">
-        <h1><span class="secnum">1.1</span>Properties of the Realm Constructor<span class="utils"><span class="anchor"><a href="#sec-properties-of-the-realm-constructor">#</a></span></span></h1>
+        <h1><span class="secnum">1.2</span>Properties of the Realm Constructor<span class="utils"><span class="anchor"><a href="#sec-properties-of-the-realm-constructor">#</a></span></span></h1>
 
         The value of the [[Prototype]] internal slot of the <emu-val><emu-xref href="#realm"><a href="https://tc39.github.io/ecma262/#realm">Realm</a></emu-xref></emu-val> constructor is the intrinsic object <emu-xref href="#sec-properties-of-the-function-constructor"><a href="https://tc39.github.io/ecma262/#sec-properties-of-the-function-constructor">%FunctionPrototype%</a></emu-xref>. 
 
         <emu-clause id="sec-realm.immutableroot">
-            <h1><span class="secnum">1.1.1</span>Realm.immutableRoot()<span class="utils"><span class="anchor"><a href="#sec-realm.immutableroot">#</a></span></span></h1>
+            <h1><span class="secnum">1.2.1</span>Realm.immutableRoot ()<span class="utils"><span class="anchor"><a href="#sec-realm.immutableroot">#</a></span></span></h1>
 
             When the <emu-val>Realm.immutableRoot</emu-val> function is called with no arguments, the following steps are taken: 
 
-            <emu-alg><ol><li>TODO: In order to attain the necessary deep immutability of an immutable root <emu-xref href="#realm"><a href="https://tc39.github.io/ecma262/#realm">realm</a></emu-xref>, two of its primordials must be modified from the existing standard: An immutable root <emu-xref href="#realm"><a href="https://tc39.github.io/ecma262/#realm">realm</a></emu-xref>'s <code>Date</code> object has its <code>now()</code> method removed and its default constructor changed to throw a <code>TypeError</code> rather than reveal the current time. An immutable root <emu-xref href="#realm"><a href="https://tc39.github.io/ecma262/#realm">realm</a></emu-xref>'s <code>Math</code> object has its <code>random()</code> method removed.
+            <emu-alg><ol><li>If NewTarget is <emu-val>undefined</emu-val>, throw a <emu-val>TypeError</emu-val> exception.</li><li>Let <var>O</var> be ? <emu-xref aoid="OrdinaryCreateFromConstructor"><a href="https://tc39.github.io/ecma262/#sec-ordinarycreatefromconstructor">OrdinaryCreateFromConstructor</a></emu-xref>(NewTarget, "%RealmPrototype%", « [[Realm]] »).</li><li>Let <var>realmRec</var> be <emu-xref aoid="CreateRealm"><a href="https://tc39.github.io/ecma262/#sec-createrealm">CreateRealm</a></emu-xref>().</li><li>Set <var>O</var>'s [[Realm]] internal slot to <var>realmRec</var>.</li><li>Perform ? ExtractRealmMethods(<var>O</var>).</li><li>Perform ? <emu-xref aoid="SetRealmGlobalObject"><a href="https://tc39.github.io/ecma262/#sec-setrealmglobalobject">SetRealmGlobalObject</a></emu-xref>(<var>realmRec</var>, <emu-val>undefined</emu-val>, <emu-val>undefined</emu-val>).</li><li>Perform ? <emu-xref aoid="FreezeRealmIntrinsics"><a href="#sec-freezerealmintrinsics">FreezeRealmIntrinsics</a></emu-xref>(<var>realmRec</var>).</li><li>Let <var>globalObject</var> be ? <emu-xref aoid="SetFrozenGlobalBindings"><a href="#sec-setfrozenglobalbindings">SetFrozenGlobalBindings</a></emu-xref>(<var>realmRec</var>).</li><li>Perform ? <emu-xref aoid="SetIntegrityLevel"><a href="https://tc39.github.io/ecma262/#sec-setintegritylevel">SetIntegrityLevel</a></emu-xref>(<var>globalObject</var>, "frozen").</li><li>Return <var>O</var>.
             </li></ol></emu-alg>
 
             <emu-note><span class="note">Note 1</span>
-              <code>Realm.immutableRoot()</code> obtains an  <def>immutable root <emu-xref href="#realm"><a href="https://tc39.github.io/ecma262/#realm">realm</a></emu-xref></def> in which all primordials are already transitively immutable. These primordials include <emu-val>all</emu-val> the primordials defined as mandatory in ES2017. These primordials must include no other objects or properties beyond those specified here. In an immutable root <emu-xref href="#realm"><a href="https://tc39.github.io/ecma262/#realm">realm</a></emu-xref> the <emu-xref href="#global-object"><a href="https://tc39.github.io/ecma262/#global-object">global object</a></emu-xref> itself is also transitively immutable. Specifically, it contains no host-specific objects. This frozen <emu-xref href="#global-object"><a href="https://tc39.github.io/ecma262/#global-object">global object</a></emu-xref> is a plain object whose <code>[[Prototype]]</code> is <code>Object.prototype</code>, i.e., the <code>%ObjectPrototype%</code> intrinsic of that immutable root <emu-xref href="#realm"><a href="https://tc39.github.io/ecma262/#realm">realm</a></emu-xref>.
+              <code>Realm.immutableRoot()</code> obtains an  <def>immutable root <emu-xref href="#realm"><a href="https://tc39.github.io/ecma262/#realm">realm</a></emu-xref></def> in which all primordials are already transitively immutable. These primordials must include no other objects or properties beyond those specified here. In an immutable root <emu-xref href="#realm"><a href="https://tc39.github.io/ecma262/#realm">realm</a></emu-xref> the <emu-xref href="#global-object"><a href="https://tc39.github.io/ecma262/#global-object">global object</a></emu-xref> itself is also transitively immutable. Specifically, it contains no host-specific objects. This frozen <emu-xref href="#global-object"><a href="https://tc39.github.io/ecma262/#global-object">global object</a></emu-xref> is a plain object whose <code>[[Prototype]]</code> is <code>Object.prototype</code>, i.e., the <code>%ObjectPrototype%</code> intrinsic of that immutable root <emu-xref href="#realm"><a href="https://tc39.github.io/ecma262/#realm">realm</a></emu-xref>.
             
             </emu-note>
 
@@ -76,194 +84,18 @@
     </emu-clause>
 
     <emu-clause id="sec-properties-of-the-realm-prototype-object">
-        <h1><span class="secnum">1.2</span>Properties of the Realm Prototype Object<span class="utils"><span class="anchor"><a href="#sec-properties-of-the-realm-prototype-object">#</a></span></span></h1>
+        <h1><span class="secnum">1.3</span>Properties of the Realm Prototype Object<span class="utils"><span class="anchor"><a href="#sec-properties-of-the-realm-prototype-object">#</a></span></span></h1>
 
         <emu-clause id="sec-realm-prototype-spawn">
-              <h1><span class="secnum">1.2.1</span>Realm.prototype.spawn([ <var>endowments</var> ])<span class="utils"><span class="anchor"><a href="#sec-realm-prototype-spawn">#</a></span></span></h1>
+              <h1><span class="secnum">1.3.1</span>Realm.prototype.spawn ([ <var>endowments</var> ])<span class="utils"><span class="anchor"><a href="#sec-realm-prototype-spawn">#</a></span></span></h1>
 
               When the <emu-val>Realm.prototype.spawn</emu-val> function is called with optional argument <var>endowments</var>, the following steps are taken: 
 
-              <emu-alg><ol><li>Let <var>parentRealm</var> be <emu-val>this</emu-val> value.</li><li>If <emu-xref aoid="Type"><a href="https://tc39.github.io/ecma262/#sec-ecmascript-data-types-and-values">Type</a></emu-xref>(<var>parentRealm</var>) is not Object, throw a <emu-val>TypeError</emu-val> exception.</li><li>If <var>parentRealm</var> is not an instance of a concrete subclass of <emu-xref href="#realm"><a href="https://tc39.github.io/ecma262/#realm">Realm</a></emu-xref>, throw a <emu-val>TypeError</emu-val> exception.</li><li>Let <var>spawnedRealm</var> be ? <emu-xref aoid="CreateSpawnRealm"><a href="#sec-createspawnrealm">CreateSpawnRealm</a></emu-xref>(<var>parentRealm</var>).</li><li>Let <var>freshGlobal</var> be <var>childRealm</var>.[[FreshGlobal]].</li><li>If <var>endowments</var> is provided, then<ol><li>If <emu-xref aoid="Type"><a href="https://tc39.github.io/ecma262/#sec-ecmascript-data-types-and-values">Type</a></emu-xref>(<var>endowments</var>) is not an Object, throw a <emu-val>TypeError</emu-val> exception.</li><li>Let <var>props</var> be ? <emu-xref aoid="ToObject"><a href="https://tc39.github.io/ecma262/#sec-toobject">ToObject</a></emu-xref>(<var>endowments</var>).</li><li>Let <var>keys</var> be ? <var>props</var>.[[OwnPropertyKeys]]().</li><li>Repeat for each element <var>propName</var> of keys in <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.github.io/ecma262/#sec-list-and-record-specification-type">List</a></emu-xref> order,<ol><li>Let <var>propDesc</var> be ? <var>props</var>.[[GetOwnProperty]](<var>propName</var>).</li><li>If <var>propDesc</var> is not <emu-val>undefined</emu-val> and <var>propDesc</var>.[[Enumerable]] is <emu-val>true</emu-val>, then<ol><li>Let <var>propValue</var> be ? <emu-xref aoid="Get"><a href="https://tc39.github.io/ecma262/#sec-get-o-p">Get</a></emu-xref>(<var>props</var>, <var>propName</var>).</li><li>Perform ? <emu-xref aoid="CreateDataPropertyOrThrow"><a href="https://tc39.github.io/ecma262/#sec-createdatapropertyorthrow">CreateDataPropertyOrThrow</a></emu-xref>(<var>freshGlobal</var>, <var>propName</var>, <var>propValue</var>).</li></ol></li></ol></li></ol></li><li>Return <var>spawnedRealm</var>.
+              <emu-alg><ol><li>Let <var>parentRealmObj</var> be <emu-val>this</emu-val> value.</li><li>If <emu-xref aoid="Type"><a href="https://tc39.github.io/ecma262/#sec-ecmascript-data-types-and-values">Type</a></emu-xref>(<var>parentRealmObj</var>) is not Object, throw a <emu-val>TypeError</emu-val> exception.</li><li>If <var>parentRealmObj</var> is not an instance of a concrete subclass of <emu-xref href="#realm"><a href="https://tc39.github.io/ecma262/#realm">Realm</a></emu-xref>, throw a <emu-val>TypeError</emu-val> exception.</li><li>Let <var>O</var> be ? <emu-xref aoid="ObjectCreate"><a href="https://tc39.github.io/ecma262/#sec-objectcreate">ObjectCreate</a></emu-xref>(<var>parentRealmObj</var>, « [[Realm]] »).</li><li>Let <var>realmRec</var> be ? <emu-xref aoid="CreateSpawnRealm"><a href="#sec-createspawnrealm">CreateSpawnRealm</a></emu-xref>(<var>parentRealmObj</var>.[[Realm]]).</li><li>Set <var>O</var>'s [[Realm]] internal slot to <var>realmRec</var>.</li><li>If <var>endowments</var> is provided, then<ol><li>If <emu-xref aoid="Type"><a href="https://tc39.github.io/ecma262/#sec-ecmascript-data-types-and-values">Type</a></emu-xref>(<var>endowments</var>) is not an Object, throw a <emu-val>TypeError</emu-val> exception.</li><li>Let <var>globalObject</var> be <var>realmRec</var>.[[GlobalObject]].</li><li>Let <var>props</var> be ? <emu-xref aoid="ToObject"><a href="https://tc39.github.io/ecma262/#sec-toobject">ToObject</a></emu-xref>(<var>endowments</var>).</li><li>Let <var>keys</var> be ? <var>props</var>.[[OwnPropertyKeys]]().</li><li>Repeat for each element <var>propName</var> of keys in <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.github.io/ecma262/#sec-list-and-record-specification-type">List</a></emu-xref> order,<ol><li>Let <var>propDesc</var> be ? <var>props</var>.[[GetOwnProperty]](<var>propName</var>).</li><li>If <var>propDesc</var> is not <emu-val>undefined</emu-val> and <var>propDesc</var>.[[Enumerable]] is <emu-val>true</emu-val>, then<ol><li>Let <var>propValue</var> be ? <emu-xref aoid="Get"><a href="https://tc39.github.io/ecma262/#sec-get-o-p">Get</a></emu-xref>(<var>props</var>, <var>propName</var>).</li><li>Perform ? <emu-xref aoid="CreateDataPropertyOrThrow"><a href="https://tc39.github.io/ecma262/#sec-createdatapropertyorthrow">CreateDataPropertyOrThrow</a></emu-xref>(<var>globalObject</var>, <var>propName</var>, <var>propValue</var>).</li></ol></li></ol></li></ol></li><li>Return <var>O</var>.
               </li></ol></emu-alg>
         </emu-clause>
 
     </emu-clause>
-
-</emu-clause>
-
-<emu-clause id="sec-spawnedrealm-objects">
-  <h1><span class="secnum">2</span>SpawnedRealm Objects<span class="utils"><span class="anchor"><a href="#sec-spawnedrealm-objects">#</a></span></span></h1>
-
-  <emu-clause id="sec-realms-abstracts">
-      <h1><span class="secnum">2.1</span>Abstract Operations<span class="utils"><span class="anchor"><a href="#sec-realms-abstracts">#</a></span></span></h1>
-
-      <emu-clause id="sec-createspawnevaluators" aoid="CreateSpawnEvaluators">
-          <h1><span class="secnum">2.1.1</span>CreateSpawnEvaluators(<var>spawnedRealm</var>)<span class="utils"><span class="anchor"><a href="#sec-createspawnevaluators">#</a></span></span></h1>
-
-          The abstract operation <emu-val>CreateEvaluators</emu-val> with argument <var>spawnedRealm</var> performs the following steps: 
-
-          <emu-alg><ol><li>Assert: <var>spawnedRealm</var> is an instance of a Spawned <emu-xref href="#realm"><a href="https://tc39.github.io/ecma262/#realm">Realm</a></emu-xref>.</li><li>Let <var>freshGlobal</var> be <var>spawnedRealm</var>.[[FreshGlobal]].</li><li>Let <var>E</var> be a new built-in function object as defined in SpawnedRealm Evaluator Eval Functions (<emu-xref href="#sec-spawnedrealm-evaluator-eval-functions"><a href="#sec-spawnedrealm-evaluator-eval-functions">2.1.3</a></emu-xref>).</li><li>Let <var>F</var> be a new built-in function object as defined in SpawnedRealm Evaluator Function Functions (<emu-xref href="#sec-spawnedrealm-evaluator-function-functions"><a href="#sec-spawnedrealm-evaluator-function-functions">2.1.4</a></emu-xref>).</li><li>Let <var>eFn</var> be <emu-xref aoid="BoundFunctionCreate"><a href="https://tc39.github.io/ecma262/#sec-boundfunctioncreate">BoundFunctionCreate</a></emu-xref>(<var>E</var>, <var>O</var>, « »).</li><li>Let <var>fFn</var> be <emu-xref aoid="BoundFunctionCreate"><a href="https://tc39.github.io/ecma262/#sec-boundfunctioncreate">BoundFunctionCreate</a></emu-xref>(<var>F</var>, <var>O</var>, « »).</li><li>Perform ! <emu-xref aoid="DefinePropertyOrThrow"><a href="https://tc39.github.io/ecma262/#sec-definepropertyorthrow">DefinePropertyOrThrow</a></emu-xref>(<var>eFn</var>, "length", PropertyDescriptor {[[Value]]: 1, [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: true}).</li><li>Perform ! <emu-xref aoid="DefinePropertyOrThrow"><a href="https://tc39.github.io/ecma262/#sec-definepropertyorthrow">DefinePropertyOrThrow</a></emu-xref>(<var>fFn</var>, "length", PropertyDescriptor {[[Value]]: 1, [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: true}).</li><li>Perform ? <emu-xref aoid="CreateDataPropertyOrThrow"><a href="https://tc39.github.io/ecma262/#sec-createdatapropertyorthrow">CreateDataPropertyOrThrow</a></emu-xref>(<var>freshGlobal</var>, <emu-val>"eval"</emu-val>, <var>eFn</var>).</li><li>Perform ? <emu-xref aoid="CreateDataPropertyOrThrow"><a href="https://tc39.github.io/ecma262/#sec-createdatapropertyorthrow">CreateDataPropertyOrThrow</a></emu-xref>(<var>freshGlobal</var>, <emu-val>"Function"</emu-val>, <var>fFn</var>).
-          </li></ol></emu-alg>
-      </emu-clause>
-
-      <emu-clause id="sec-createspawnrealm" aoid="CreateSpawnRealm">
-          <h1><span class="secnum">2.1.2</span>CreateSpawnRealm(<var>parentRealm</var>)<span class="utils"><span class="anchor"><a href="#sec-createspawnrealm">#</a></span></span></h1>
-
-          The abstract operation <emu-val>CreateSpawnRealm</emu-val> with argument <var>parentRealm</var> performs the following steps: 
-
-          <emu-alg><ol><li>Assert: <var>parentReam</var> is an instance of a concrete subclass of <emu-xref href="#realm"><a href="https://tc39.github.io/ecma262/#realm">Realm</a></emu-xref>.</li><li>Let <var>O</var> be ? <emu-xref aoid="OrdinaryCreateFromConstructor"><a href="https://tc39.github.io/ecma262/#sec-ordinarycreatefromconstructor">OrdinaryCreateFromConstructor</a></emu-xref>(NewTarget, "%SpawnedRealmPrototype%", « [[Realm]], [[FreshGlobal]], [[GlobalEnv]] »).</li><li>Let <var>freshGlobal</var> be ? <emu-xref aoid="ObjectCreate"><a href="https://tc39.github.io/ecma262/#sec-objectcreate">ObjectCreate</a></emu-xref>(<emu-xref href="#sec-properties-of-the-object-prototype-object"><a href="https://tc39.github.io/ecma262/#sec-properties-of-the-object-prototype-object">%ObjectPrototype%</a></emu-xref>).</li><li>Let <var>globalEnv</var> be ? <emu-xref aoid="NewGlobalEnvironment"><a href="https://tc39.github.io/ecma262/#sec-newglobalenvironment">NewGlobalEnvironment</a></emu-xref>(<var>freshGlobal</var>, <var>freshGlobal</var>).</li><li>Perform ? <emu-xref aoid="CreateSpawnEvaluators"><a href="#sec-createspawnevaluators">CreateSpawnEvaluators</a></emu-xref>(<var>O</var>).</li><li>Set <var>O</var>.[[Realm]] to <var>parentReam</var>.</li><li>Set <var>O</var>.[[FreshGlobal]] be <var>freshGlobal</var>.</li><li>Set <var>O</var>.[[GlobalEnv]] be <var>globalEnv</var>.</li><li>Return <var>O</var>.
-          </li></ol></emu-alg>
-
-      </emu-clause>
-
-      <emu-clause id="sec-spawnedrealm-evaluator-eval-functions">
-          <h1><span class="secnum">2.1.3</span>SpawnedRealm Evaluator Eval Functions<span class="utils"><span class="anchor"><a href="#sec-spawnedrealm-evaluator-eval-functions">#</a></span></span></h1>
-
-          When a evaluator eval function is called with optional argument <var>src</var>, the following steps are taken: 
-
-          <emu-alg><ol><li>Let <var>O</var> be the <emu-val>this</emu-val> value.</li><li>Assert: <var>O</var> is an instance of a spawned <emu-xref href="#realm"><a href="https://tc39.github.io/ecma262/#realm">realm</a></emu-xref>.</li><li>If <var>src</var> is not provided, return <emu-val>undefined</emu-val>.</li><li>Return ? <emu-xref aoid="PerformSpawnedEval"><a href="#sec-performspawenedeval">PerformSpawnedEval</a></emu-xref>(<var>src</var>, <var>O</var>, <emu-val>false</emu-val>, <emu-val>false</emu-val>).
-          </li></ol></emu-alg>
-
-          The <emu-val>length</emu-val> property of a Number format function is 1.
-      
-      </emu-clause>
-
-      <emu-clause id="sec-spawnedrealm-evaluator-function-functions">
-          <h1><span class="secnum">2.1.4</span>SpawnedRealm Evaluator Function Functions<span class="utils"><span class="anchor"><a href="#sec-spawnedrealm-evaluator-function-functions">#</a></span></span></h1>
-
-          When a evaluator Function function is called, the following steps are taken: 
-
-          <emu-alg><ol><li>TBD.
-          </li></ol></emu-alg>
-
-          The <emu-val>length</emu-val> property of a Number format function is 1.
-      
-      </emu-clause>
-
-      <emu-clause id="sec-performspawenedeval" aoid="PerformSpawnedEval">
-          <h1><span class="secnum">2.1.5</span>Runtime Semantics: PerformSpawnedEval(<var>x</var>, <var>spawnedRealm</var>, <var>strictCaller</var>, <var>direct</var>)<span class="utils"><span class="anchor"><a href="#sec-performspawenedeval">#</a></span></span></h1>
-
-          <p>The abstract operation <emu-xref aoid="PerformEval"><a href="https://tc39.github.io/ecma262/#sec-performeval">PerformEval</a></emu-xref> with arguments <var>x</var>, <var>spawnedRealm</var>, <var>strictCaller</var>, and <var>direct</var> performs the following steps:</p>
-
-          <emu-alg><ol><li>Assert: If <var>direct</var> is <emu-val>false</emu-val>, then <var>strictCaller</var> is also <emu-val>false</emu-val>.</li><li>If <emu-xref aoid="Type"><a href="https://tc39.github.io/ecma262/#sec-ecmascript-data-types-and-values">Type</a></emu-xref>(<var>x</var>) is not String, return <var>x</var>.</li><li>Let <var>script</var> be the ECMAScript code that is the result of parsing <var>x</var>, interpreted as UTF-16 encoded Unicode text as described in <emu-xref href="#sec-ecmascript-language-types-string-type"><a href="https://tc39.github.io/ecma262/#sec-ecmascript-language-types-string-type">6.1.4</a></emu-xref>, for the goal symbol <emu-nt><a href="https://tc39.github.io/ecma262/#prod-Script">Script</a></emu-nt>. If the parse fails, throw a <emu-val>SyntaxError</emu-val> exception. If any early errors are detected, throw a <emu-val>SyntaxError</emu-val> or a <emu-val>ReferenceError</emu-val> exception, depending on the type of the error (but see also clause <emu-xref href="#sec-error-handling-and-language-extensions"><a href="https://tc39.github.io/ecma262/#sec-error-handling-and-language-extensions">16</a></emu-xref>). Parsing and <emu-xref href="#early-error"><a href="https://tc39.github.io/ecma262/#early-error">early error</a></emu-xref> detection may be interweaved in an implementation dependent manner.</li><li>If <var>script</var> Contains <emu-nt><a href="https://tc39.github.io/ecma262/#prod-ScriptBody">ScriptBody</a></emu-nt> is <emu-val>false</emu-val>, return <emu-val>undefined</emu-val>.</li><li>Let <var>body</var> be the <emu-nt><a href="https://tc39.github.io/ecma262/#prod-ScriptBody">ScriptBody</a></emu-nt> of <var>script</var>.</li><li>If <var>strictCaller</var> is <emu-val>true</emu-val>, let <var>strictEval</var> be <emu-val>true</emu-val>.</li><li>Else, let <var>strictEval</var> be IsStrict of <var>script</var>.</li><li>Let <var>ctx</var> be the <emu-xref href="#running-execution-context"><a href="https://tc39.github.io/ecma262/#running-execution-context">running execution context</a></emu-xref>. If <var>direct</var> is <emu-val>true</emu-val>, <var>ctx</var> will be the <emu-xref href="#sec-execution-contexts"><a href="https://tc39.github.io/ecma262/#sec-execution-contexts">execution context</a></emu-xref> that performed the direct eval. If <var>direct</var> is <emu-val>false</emu-val>, <var>ctx</var> will be the <emu-xref href="#sec-execution-contexts"><a href="https://tc39.github.io/ecma262/#sec-execution-contexts">execution context</a></emu-xref> for the invocation of the <code>eval</code> function.</li><li>Let <var>evalRealm</var> be <var>spawnedRealm</var>.[[Realm]].</li><li>If <var>direct</var> is <emu-val>true</emu-val>, then<ol><li>Let <var>lexEnv</var> be <emu-xref aoid="NewDeclarativeEnvironment"><a href="https://tc39.github.io/ecma262/#sec-newdeclarativeenvironment">NewDeclarativeEnvironment</a></emu-xref>(<var>ctx</var>'s LexicalEnvironment).</li><li>Let <var>varEnv</var> be <var>ctx</var>'s VariableEnvironment.</li></ol></li><li>Else,<ol><li>Let <var>lexEnv</var> be <emu-xref aoid="NewDeclarativeEnvironment"><a href="https://tc39.github.io/ecma262/#sec-newdeclarativeenvironment">NewDeclarativeEnvironment</a></emu-xref>(<var>spawnedRealm</var>.[[GlobalEnv]]).</li><li>Let <var>varEnv</var> be <var>evalRealm</var>.[[GlobalEnv]].</li></ol></li><li>If <var>strictEval</var> is <emu-val>true</emu-val>, let <var>varEnv</var> be <var>lexEnv</var>.</li><li>If <var>ctx</var> is not already suspended, suspend <var>ctx</var>.</li><li>Let <var>evalCxt</var> be a new ECMAScript code <emu-xref href="#sec-execution-contexts"><a href="https://tc39.github.io/ecma262/#sec-execution-contexts">execution context</a></emu-xref>.</li><li>Set the <var>evalCxt</var>'s Function to <emu-val>null</emu-val>.</li><li>Set the <var>evalCxt</var>'s <emu-xref href="#realm"><a href="https://tc39.github.io/ecma262/#realm">Realm</a></emu-xref> to <var>evalRealm</var>.</li><li>Set the <var>evalCxt</var>'s ScriptOrModule to <var>ctx</var>'s ScriptOrModule.</li><li>Set the <var>evalCxt</var>'s VariableEnvironment to <var>varEnv</var>.</li><li>Set the <var>evalCxt</var>'s LexicalEnvironment to <var>lexEnv</var>.</li><li>Push <var>evalCxt</var> on to the <emu-xref href="#execution-context-stack"><a href="https://tc39.github.io/ecma262/#execution-context-stack">execution context stack</a></emu-xref>; <var>evalCxt</var> is now the <emu-xref href="#running-execution-context"><a href="https://tc39.github.io/ecma262/#running-execution-context">running execution context</a></emu-xref>.</li><li>Let <var>result</var> be <emu-xref aoid="EvalDeclarationInstantiation"><a href="https://tc39.github.io/ecma262/#sec-evaldeclarationinstantiation">EvalDeclarationInstantiation</a></emu-xref>(<var>body</var>, <var>varEnv</var>, <var>lexEnv</var>, <var>strictEval</var>).</li><li>If <var>result</var>.[[Type]] is <emu-const>normal</emu-const>, then<ol><li>Let <var>result</var> be the result of evaluating <var>body</var>.</li></ol></li><li>If <var>result</var>.[[Type]] is <emu-const>normal</emu-const> and <var>result</var>.[[Value]] is <emu-const>empty</emu-const>, then<ol><li>Let <var>result</var> be <emu-xref aoid="NormalCompletion"><a href="https://tc39.github.io/ecma262/#sec-normalcompletion">NormalCompletion</a></emu-xref>(<emu-val>undefined</emu-val>).</li></ol></li><li>Suspend <var>evalCxt</var> and remove it from the <emu-xref href="#execution-context-stack"><a href="https://tc39.github.io/ecma262/#execution-context-stack">execution context stack</a></emu-xref>.</li><li>Resume the context that is now on the top of the <emu-xref href="#execution-context-stack"><a href="https://tc39.github.io/ecma262/#execution-context-stack">execution context stack</a></emu-xref> as the <emu-xref href="#running-execution-context"><a href="https://tc39.github.io/ecma262/#running-execution-context">running execution context</a></emu-xref>.</li><li>Return <emu-xref aoid="Completion"><a href="https://tc39.github.io/ecma262/#sec-completion-record-specification-type">Completion</a></emu-xref>(<var>result</var>).
-          </li></ol></emu-alg>
-
-          <emu-note><span class="note">Note 1</span>
-          <p>
-              The eval code cannot instantiate variable or function bindings in the variable environment of the calling context that invoked the eval if the calling context is evaluating formal parameter initializers or if either the code of the calling context or the eval code is <emu-xref href="#sec-strict-mode-code"><a href="https://tc39.github.io/ecma262/#sec-strict-mode-code">strict mode code</a></emu-xref>. Instead such bindings are instantiated in a new VariableEnvironment that is only accessible to the eval code. Bindings introduced by <code>let</code>, <code>const</code>, or <code>class</code> declarations are always instantiated in a new LexicalEnvironment.
-          
-          </p>
-          </emu-note>
-
-          <emu-note><span class="note">Note 2</span>
-          <p>
-              PerformSpawnedEval is equivalent to <emu-xref aoid="PerformEval"><a href="https://tc39.github.io/ecma262/#sec-performeval">PerformEval</a></emu-xref> in all sense, except that its <var>lexEnv</var> uses the [[GlobalEnv]] from the SpawnedRealm rather than the [[GlobalEnv]] from its underlying <emu-xref href="#realm"><a href="https://tc39.github.io/ecma262/#realm">Realm</a></emu-xref>.
-          
-          </p>
-          </emu-note>
-      </emu-clause>
-
-  </emu-clause>
-
-  <emu-clause id="sec-the-spawnedrealm-constructor">
-      <h1><span class="secnum">2.2</span>The SpawnedRealm Constructor<span class="utils"><span class="anchor"><a href="#sec-the-spawnedrealm-constructor">#</a></span></span></h1>
-
-        The SpawnedRealm constructor is the %SpawnedRealm% intrinsic object. It is not intended to be called as a function or as a constructor and will always throw an exception.
-  
-  </emu-clause>
-
-  <emu-clause id="sec-properties-of-the-spawnedrealm-constructor">
-      <h1><span class="secnum">2.3</span>Properties of the SpawnedRealm Constructor<span class="utils"><span class="anchor"><a href="#sec-properties-of-the-spawnedrealm-constructor">#</a></span></span></h1>
-
-      The value of the [[Prototype]] internal slot of the SpawnedRealm constructor is the intrinsic object <emu-xref href="#sec-properties-of-the-function-constructor"><a href="https://tc39.github.io/ecma262/#sec-properties-of-the-function-constructor">%FunctionPrototype%</a></emu-xref>. The SpawnedRealm constructor has the following properties: 
-
-      <emu-clause id="sec-spawnedrealm.prototype">
-          <h1><span class="secnum">2.3.1</span>SpawnedRealm.prototype<span class="utils"><span class="anchor"><a href="#sec-spawnedrealm.prototype">#</a></span></span></h1>
-
-          <p>The initial value of SpawnedRealm.prototype is %SpawnedRealmPrototype%.</p>
-
-          <p>This property has the attributes { [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: false }.</p>
-      </emu-clause>
-  </emu-clause>
-
-  <emu-clause id="sec-properties-of-the-realm-prototype-object">
-      <h1><span class="secnum">2.4</span>Properties of the SpawnedRealm Prototype Object<span class="utils"><span class="anchor"><a href="#sec-properties-of-the-realm-prototype-object">#</a></span></span></h1>
-
-      <emu-clause id="sec-spawnedrealm.prototype.eval">
-          <h1><span class="secnum">2.4.1</span>SpawnedRealm.prototype.eval(<var>src</var>)<span class="utils"><span class="anchor"><a href="#sec-spawnedrealm.prototype.eval">#</a></span></span></h1>
-
-          Synchronously execute a top-level script. The <var>src</var> is interpreted as a Script and evaluated with <emu-val>this</emu-val> Value bound to the SpawnedRealm's <emu-xref href="#global-object"><a href="https://tc39.github.io/ecma262/#global-object">global object</a></emu-xref>. 
-
-          <emu-alg><ol><li>Let <var>O</var> be <emu-val>this</emu-val> value.</li><li>If <emu-xref aoid="Type"><a href="https://tc39.github.io/ecma262/#sec-ecmascript-data-types-and-values">Type</a></emu-xref>(<var>O</var>) is not Object, throw a <emu-val>TypeError</emu-val> exception.</li><li>If <var>O</var> does not have all of the internal slots of a SpawnRealm Instance (<emu-xref href="#sec-properties-of-spawnedrealm-instances"><a href="#sec-properties-of-spawnedrealm-instances">2.5</a></emu-xref>), throw a <emu-val>TypeError</emu-val> exception.</li><li>If <emu-xref aoid="Type"><a href="https://tc39.github.io/ecma262/#sec-ecmascript-data-types-and-values">Type</a></emu-xref>(<var>src</var>) is not String, throw a <emu-val>TypeError</emu-val> exception.</li><li>Return ? <emu-xref aoid="PerformSpawnedEval"><a href="#sec-performspawenedeval">PerformSpawnedEval</a></emu-xref>(<var>src</var>, <var>O</var>, <emu-val>false</emu-val>, <emu-val>false</emu-val>)
-          </li></ol></emu-alg>
-      </emu-clause>
-
-      <emu-clause id="sec-spawnedrealm.prototype.global">
-          <h1><span class="secnum">2.4.2</span>get SpawnedRealm.prototype.global<span class="utils"><span class="anchor"><a href="#sec-spawnedrealm.prototype.global">#</a></span></span></h1>
-
-          SpawnedRealm.prototype.global is an accessor property whose set accessor function is <emu-val>undefined</emu-val>. Its get accessor function performs the following steps: 
-
-          <emu-alg><ol><li>Let <var>O</var> be <emu-val>this</emu-val> value.</li><li>If <emu-xref aoid="Type"><a href="https://tc39.github.io/ecma262/#sec-ecmascript-data-types-and-values">Type</a></emu-xref>(<var>O</var>) is not Object, throw a <emu-val>TypeError</emu-val> exception.</li><li>If <var>O</var> does not have all of the internal slots of a SpawnRealm Instance (<emu-xref href="#sec-properties-of-spawnedrealm-instances"><a href="#sec-properties-of-spawnedrealm-instances">2.5</a></emu-xref>), throw a <emu-val>TypeError</emu-val> exception.</li><li>Return <var>O</var>.[[FreshGlobal]].
-          </li></ol></emu-alg>
-      </emu-clause>
-
-      <emu-clause id="sec-spawnedrealm.prototype.realm">
-          <h1><span class="secnum">2.4.3</span>get SpawnedRealm.prototype.realm<span class="utils"><span class="anchor"><a href="#sec-spawnedrealm.prototype.realm">#</a></span></span></h1>
-
-          SpawnedRealm.prototype.<emu-xref href="#realm"><a href="https://tc39.github.io/ecma262/#realm">realm</a></emu-xref> is an accessor property whose set accessor function is <emu-val>undefined</emu-val>. Its get accessor function performs the following steps: 
-
-          <emu-alg><ol><li>Let <var>O</var> be <emu-val>this</emu-val> value.</li><li>If <emu-xref aoid="Type"><a href="https://tc39.github.io/ecma262/#sec-ecmascript-data-types-and-values">Type</a></emu-xref>(<var>O</var>) is not Object, throw a <emu-val>TypeError</emu-val> exception.</li><li>If <var>O</var> does not have all of the internal slots of a SpawnRealm Instance (<emu-xref href="#sec-properties-of-spawnedrealm-instances"><a href="#sec-properties-of-spawnedrealm-instances">2.5</a></emu-xref>), throw a <emu-val>TypeError</emu-val> exception.</li><li>Return <var>O</var>.[[Realm]].
-          </li></ol></emu-alg>
-      </emu-clause>
-
-      <emu-clause id="sec-spawnedrealm.prototype-@@tostringtag">
-          <h1><span class="secnum">2.4.4</span>SpawnedRealm.prototype [ @@toStringTag ]<span class="utils"><span class="anchor"><a href="#sec-spawnedrealm.prototype-@@tostringtag">#</a></span></span></h1>
-
-          The initial value of the @@toStringTag property is the String value "SpawnedRealm". This property has the attributes { [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: true }.
-      
-      </emu-clause>
-  </emu-clause>
-
-  <emu-clause id="sec-properties-of-spawnedrealm-instances">
-      <h1><span class="secnum">2.5</span>Properties of SpawnedRealm Instances<span class="utils"><span class="anchor"><a href="#sec-properties-of-spawnedrealm-instances">#</a></span></span></h1>
-
-      SpawnedRealm instances are ordinary objects that inherit properties from the SpawnedRealm prototype object (the intrinsic, %SpawnedRealmPrototype%). SpawnedRealm instances are initially created with the internal slots described in  <emu-xref href="#table-2"><a href="#table-2">Table 2</a></emu-xref>. 
-
-      <emu-table id="table-2" caption="Internal Slots of SpawnedRealm Instances"><figure><figcaption>Table 2: Internal Slots of SpawnedRealm Instances</figcaption>
-          <table>
-              <tbody>
-                  <tr>
-                      <th>Internal Slot</th>
-                      <th>Type</th>
-                      <th>Description</th>
-                  </tr>
-                  <tr>
-                      <td>[[Realm]]</td>
-                      <td><emu-xref href="#realm-record"><a href="https://tc39.github.io/ecma262/#realm-record">Realm Record</a></emu-xref></td>
-                      <td>The <emu-xref href="#realm-record"><a href="https://tc39.github.io/ecma262/#realm-record">Realm Record</a></emu-xref> for the initial <emu-xref href="#sec-execution-contexts"><a href="https://tc39.github.io/ecma262/#sec-execution-contexts">execution context</a></emu-xref>.</td>
-                  </tr>
-                  <tr>
-                      <td>[[FreshGlobal]]</td>
-                      <td>Object</td>
-                      <td>The fresh <emu-xref href="#global-object"><a href="https://tc39.github.io/ecma262/#global-object">global object</a></emu-xref> associated to the SpawnedRealm.</td>
-                  </tr>
-                  <tr>
-                      <td>[[GlobalEnv]]</td>
-                      <td><emu-xref href="#sec-lexical-environments"><a href="https://tc39.github.io/ecma262/#sec-lexical-environments">Lexical Environment</a></emu-xref></td>
-                      <td>The global <emu-xref href="#sec-lexical-environments"><a href="https://tc39.github.io/ecma262/#sec-lexical-environments">Lexical Environment</a></emu-xref> associated to the SpawnedRealm.</td>
-                  </tr>
-              </tbody>
-          </table>
-      </figure></emu-table>
-
-  </emu-clause>
-
-</emu-clause>
-
-<emu-clause id="sec-frozen-realms-objects">
-  <h1><span class="secnum">3</span>Frozen Realms Objects<span class="utils"><span class="anchor"><a href="#sec-frozen-realms-objects">#</a></span></span></h1>
-
-  TBD
 
 </emu-clause>
 </body>
