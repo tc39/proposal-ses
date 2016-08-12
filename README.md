@@ -814,5 +814,5 @@ Many thanks to E. Dean Tribble, Kevin Reid, Dave Herman, Michael
 Ficarra, Tom Van Cutsem, Kris Kowal, Kevin Smith, Terry Hayes, Daniel
 Ehrenberg, Ojan Vafai, Elliott Sprehn, and Alex Russell. Thanks to the
 entire Caja team (Jasvir Nagra, Ihab Awad, Mike Stay, Mike Samuel,
-Felix Lee, and Kevin Reid) for building a system in which all the
+Felix Lee, Kevin Reid, and Ben Laurie) for building a system in which all the
 hardest issues have already been worked out.
