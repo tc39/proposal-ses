@@ -18,6 +18,26 @@ Current Stage:
 
  * __Stage 1__
 
+### External links
+
+[Frozen Realms: Draft Standard Support for Safer JavaScript 
+Plugins](https://drive.google.com/file/d/0Bw0VXJKBgYPMeFRjenpFb0dYNnM/view) 
+is an in-depth talk that covers the important ideas, but is very stale 
+regarding specifics.
+
+The current plan is to settle the [Realms 
+proposal](https://github.com/tc39/proposal-realms) first while ensuring that we can 
+build frozen realms
+   * adequately, in user space
+   * well, with standard platform support if necessary
+
+The current effort to rebuild frozen realms on top of these Realms is:
+   * [Frozen Realm 
+      Shim](https://github.com/tc39/proposal-realms/blob/master/shim/examples/frozen-realm.js)
+   * [Frozen Realm Shim 
+      playgrouund](https://rawgit.com/caridy/proposal-realms/master/shim/examples/frozen.html)
+
+
 ## Summary
 
 In ECMAScript, a _realm_ consists of a global object and an associated
