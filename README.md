@@ -788,7 +788,7 @@ and/or the realms it spawns.
   expression will actually have the semantics of an indirect eval,
   i.e., a simple function call to the current value of `eval`. If
   an immutable root realm's builtin evaluators are not strict by default,
-  then any user customization that replaces a spanwed realm's global
+  then any user customization that replaces a spawned realm's global
   evaluators with strict-by-default wrappers will break their use for
   direct-eval. Fortunately, this seems to be addressed by the rest of
   the [old Realms API](https://gist.github.com/dherman/7568885).
