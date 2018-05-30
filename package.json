@@ -9,8 +9,9 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/FUDCo/frozen-realms.git"
+        "url": "git+https://github.com/tc39/frozen-realms.git"
     },
+    "main": "shim/src/main.js",
     "keywords": [
         "realms",
         "frozen",
@@ -24,11 +25,11 @@
     "author": {
         "name": "Mark S. Miller"
     },
-    "license": "MIT",
+    "license": "Apache 2.0",
     "bugs": {
-        "url": "https://github.com/FUDCo/frozen-realms/issues"
+        "url": "https://github.com/tc39/frozen-realms/issues"
     },
-    "homepage": "https://github.com/FUDCo/frozen-realms#readme",
+    "homepage": "https://github.com/tc39/frozen-realms#readme",
     "dependencies": {},
     "devDependencies": {
         "ecmarkup": "latest"
