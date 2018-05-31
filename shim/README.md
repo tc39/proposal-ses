@@ -26,7 +26,7 @@ This will install the necessary dependencies and build the shim locally.
 To open the playground example in your default browser.
 
 ```bash
-open shim/examples/simple.html
+open shim/examples/frozen.html
 ```
 
 ## Usage
@@ -64,38 +64,7 @@ And import the realm module in your code:
 
 ## Examples
 
-### Example 1: Root Realm
-
-To create a root realm with a new global and a fresh set of intrinsics:
-
-```js
-const r = new Realm(); // root realm
-r.global === this; // false
-r.global.JSON === JSON; // false
-```
-
-### Example 2: Realm Compartment
-
-To create a realm compartment with a new global and inherit the intrinsics from another realm:
-
-```js
-const r1 = new Realm(); // root realm
-const r2 = new r1.global.Realm({ intrinsics: 'inherit' }); // realm compartment
-r1.global === r2.global; // false
-r1.global.JSON === r2.global.JSON; // true
-```
-
-### Example 3: Realm Compartment from current Realm
-
-To create a realm compartment with a new global and inherit the intrinsics from the current execution context:
-
-```js
-const r = new Realm({ intrinsics: 'inherit' }); // realm compartment
-r.global === this; // false
-r.global.JSON === JSON; // true
-```
-
-### Example 4: Frozen realm
+### Example 1: Frozen realm
 
 To create a frozen realm:
 
@@ -106,7 +75,7 @@ r.freeze();
 r.evaluate('[].__proto__.slice = function(){}'); // TypeError: Cannot assign to read only property 'parse'
 ```
 
-### Example 5: Frozen realm from current Realm (careful)
+### Example 2: Frozen realm from current Realm (careful)
 
 To create a frozen realm compartment from the current execution context (which will also become frozen):
 
@@ -117,8 +86,8 @@ r.freeze()
 [].__proto__.slice = function(){}; // TypeError: Cannot assign to read only property 'slice'
 ```
 
-[travis-svg]: https://travis-ci.com/tc39/proposal-realms.svg?branch=master
-[travis-url]: https://travis-ci.com/tc39/proposal-realms
+[travis-svg]: https://travis-ci.com/tc39/proposal-frozen-realms.svg?branch=master
+[travis-url]: https://travis-ci.com/tc39/proposal-frozen-realms
 [license-image]: https://img.shields.io/badge/License-Apache%202.0-blue.svg
 [license-url]: LICENSE
 

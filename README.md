@@ -20,21 +20,21 @@ Current Stage:
 
 ### External links
 
-[Frozen Realms: Draft Standard Support for Safer JavaScript 
-Plugins](https://drive.google.com/file/d/0Bw0VXJKBgYPMeFRjenpFb0dYNnM/view) 
-is an in-depth talk that covers the important ideas, but is very stale 
+[Frozen Realms: Draft Standard Support for Safer JavaScript
+Plugins](https://drive.google.com/file/d/0Bw0VXJKBgYPMeFRjenpFb0dYNnM/view)
+is an in-depth talk that covers the important ideas, but is very stale
 regarding specifics.
 
-The current plan is to settle the [Realms 
-proposal](https://github.com/tc39/proposal-realms) first while ensuring that we can 
+The current plan is to settle the [Realms
+proposal](https://github.com/tc39/proposal-realms) first while ensuring that we can
 build frozen realms
    * adequately, in user space
    * well, with standard platform support if necessary
 
 The current effort to rebuild frozen realms on top of these Realms is:
-   * [Frozen Realm 
+   * [Frozen Realm
       Shim](https://github.com/tc39/proposal-realms/blob/master/shim/examples/frozen-realm.js)
-   * [Frozen Realm Shim 
+   * [Frozen Realm Shim
       playgrouund](https://rawgit.com/caridy/proposal-realms/master/shim/examples/frozen.html)
 
 
@@ -322,7 +322,7 @@ appropriate.
 
 ## Detailed Proposal
 
-You can view the spec text draft in [ecmarkup](spec/index.emu) format or rendered as [HTML](https://rawgit.com/FUDCo/frozen-realms/master/index.html).
+You can view the spec text draft in [ecmarkup](spec/index.emu) format or rendered as [HTML](https://rawgit.com/tc39/frozen-realms/master/index.html).
 
   1. Introduce the `Realm` class as an officially recognized part of the
      ECMAScript standard API.
