@@ -68,7 +68,7 @@ function tamperProof(obj, prop, desc) {
   }
 }
 
-function tamperProofProperties(obj) {
+export function tamperProofProperties(obj) {
   const descs = getOwnPropertyDescriptors(obj);
   for (const prop in descs) {
     const desc = descs[prop];
@@ -76,7 +76,7 @@ function tamperProofProperties(obj) {
   }
 }
 
-function tamperProofProperty(obj, prop) {
+export function tamperProofProperty(obj, prop) {
   const desc = getOwnPropertyDescriptor(obj, prop);
   tamperProof(obj, prop, desc);
 }
@@ -88,14 +88,32 @@ function tamperProofProperty(obj, prop) {
 export function tamperProofDataProperties(intrinsics) {
   const i = intrinsics;
 
-  [i.ObjectPrototype, i.ArrayPrototype, i.FunctionPrototype].forEach(tamperProofProperties);
+  [
+    i.ObjectPrototype,
+    i.FunctionPrototype,
 
-  // Intentionally avoid loops and data structures.
-  tamperProofProperty(i.ErrorPrototype, 'message');
-  tamperProofProperty(i.EvalErrorPrototype, 'message');
-  tamperProofProperty(i.RangeErrorPrototype, 'message');
-  tamperProofProperty(i.ReferenceErrorPrototype, 'message');
-  tamperProofProperty(i.SyntaxErrorPrototype, 'message');
-  tamperProofProperty(i.TypeErrorPrototype, 'message');
-  tamperProofProperty(i.URIErrorPrototype, 'message');
+    i.ArrayPrototype,
+    i.BooleanPrototype,
+    i.DatePrototype,
+    i.NumberPrototype,
+    i.StringPrototype,
+
+    i.PromisePrototype,
+
+    i.TypedArray,
+    i.Int8ArrayPrototype,
+    i.Int16ArrayPrototype,
+    i.Int32ArrayPrototype,
+    i.Uint8Array,
+    i.Uint16Array,
+    i.Uint32Array,
+
+    i.ErrorPrototype,
+    i.EvalErrorPrototype,
+    i.RangeErrorPrototype,
+    i.ReferenceErrorPrototype,
+    i.SyntaxErrorPrototype,
+    i.TypeErrorPrototype,
+    i.URIErrorPrototype
+  ].forEach(tamperProofProperties);
 }

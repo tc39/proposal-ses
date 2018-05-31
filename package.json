@@ -5,7 +5,9 @@
     "description": "ECMAScript spec proposal for Frozen Realms",
     "scripts": {
         "build": "ecmarkup spec/index.emu index.html",
-        "watch": "ecmarkup --watch spec/index.emu index.html"
+        "watch": "ecmarkup --watch spec/index.emu index.html",
+        "shim:lint": "eslint ./shim/src/**/*.js ./shim/test/**/*.js",
+        "shim:prettier": "prettier --config ./shim/.prettierrc --write ./shim/src/**/*.js ./shim/test/**/*.js"
     },
     "repository": {
         "type": "git",
@@ -32,6 +34,12 @@
     "homepage": "https://github.com/tc39/frozen-realms#readme",
     "dependencies": {},
     "devDependencies": {
-        "ecmarkup": "latest"
+        "ecmarkup": "latest",
+        "eslint": "^4.19.1",
+        "eslint-config-airbnb-base": "^12.1.0",
+        "eslint-config-prettier": "^2.9.0",
+        "eslint-plugin-import": "^2.12.0",
+        "eslint-plugin-prettier": "^2.6.0",
+        "prettier": "^1.12.1"
     }
 }
