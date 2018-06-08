@@ -1,4 +1,4 @@
-import { tamperProofDataProperties } from './tamper-proof';
+import { repairDataProperties } from './mutable';
 import { deepFreeze } from './deep-freeze';
 import { assign, create } from './commons';
 
@@ -8,6 +8,6 @@ export default function freeze(realm) {
   const obj = create(null);
   const intrinsics = realm.intrinsics;
   assign(obj, intrinsics);
-  tamperProofDataProperties(obj);
+  repairDataProperties(obj);
   deepFreeze(obj);
 }

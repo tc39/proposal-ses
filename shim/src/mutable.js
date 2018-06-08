@@ -7,6 +7,8 @@ import {
   defineProperty,
   getOwnPropertyDescriptor,
   getOwnPropertyDescriptors,
+  getOwnPropertyNames,
+  getOwnPropertySymbols,
   objectHasOwnProperty
 } from './commons';
 
@@ -29,7 +31,7 @@ import {
  * simulate what we should have specified -- that assignments to derived
  * objects succeed if otherwise possible.
  */
-function tamperProof(obj, prop, desc) {
+function beMutable(obj, prop, desc) {
   if ('value' in desc && desc.configurable) {
     const value = desc.value;
 
@@ -68,37 +70,48 @@ function tamperProof(obj, prop, desc) {
   }
 }
 
-export function tamperProofProperties(obj) {
-  const descs = getOwnPropertyDescriptors(obj);
-  for (const prop in descs) {
-    const desc = descs[prop];
-    tamperProof(obj, prop, desc);
+export function beMutableProperties(obj) {
+  if (!obj) {
+    return;
   }
+  const descs = getOwnPropertyDescriptors(obj);
+  if (!descs) {
+    return;
+  }
+  getOwnPropertyNames(obj).forEach(prop => beMutable(obj, prop, descs[prop]));
+  getOwnPropertySymbols(obj).forEach(prop => beMutable(obj, prop, descs[prop]));
 }
 
-export function tamperProofProperty(obj, prop) {
+export function beMutableProperty(obj, prop) {
   const desc = getOwnPropertyDescriptor(obj, prop);
-  tamperProof(obj, prop, desc);
+  beMutable(obj, prop, desc);
 }
 
 /**
  * These properties are subject to the override mistake
  * and must be converted before freezing.
  */
-export function tamperProofDataProperties(intrinsics) {
+export function repairDataProperties(intrinsics) {
   const i = intrinsics;
 
   [
     i.ObjectPrototype,
-    i.FunctionPrototype,
-
     i.ArrayPrototype,
     i.BooleanPrototype,
     i.DatePrototype,
     i.NumberPrototype,
     i.StringPrototype,
 
+    i.FunctionPrototype,
+    i.GeneratorPrototype,
+    i.AsyncFunctionPrototype,
+    i.AsyncGeneratorPrototype,
+
+    i.IteratorPrototype,
+    i.ArrayIteratorPrototype,
+
     i.PromisePrototype,
+    i.DataViewPrototype,
 
     i.TypedArray,
     i.Int8ArrayPrototype,
@@ -115,5 +128,5 @@ export function tamperProofDataProperties(intrinsics) {
     i.SyntaxErrorPrototype,
     i.TypeErrorPrototype,
     i.URIErrorPrototype
-  ].forEach(tamperProofProperties);
+  ].forEach(beMutableProperties);
 }

@@ -8,7 +8,8 @@ export const {
   defineProperties,
   freeze,
   getOwnPropertyDescriptors,
-  getOwnPropertyNames
+  getOwnPropertyNames,
+  getOwnPropertySymbols
 } = Object;
 
 export const {
