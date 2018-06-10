@@ -1,4 +1,7 @@
-# Realm Shim [![License][license-image]][license-url] [![Build Status][travis-svg]][travis-url]
+# Frozen Realm shim [![License][license-image]][license-url] [![Build Status][travis-svg]][travis-url]
+
+***TODO: The text below is from the [Realms shim](https://github.com/tc39/proposal-frozen-realms/tree/master/shim) and needs to be updated to describe the Frozen Realms shim.***
+
 
 This folder contains a shim implementation of the Realm API specified in this repo.
 
