@@ -21,7 +21,7 @@ Current Stage:
 ### External links
 
 [Frozen Realms: Draft Standard Support for Safer JavaScript
-Plugins](https://drive.google.com/file/d/0Bw0VXJKBgYPMeFRjenpFb0dYNnM/view)
+Plugins](https://www.youtube.com/watch?v=tuMG7688Ndw)
 is an in-depth talk that covers the important ideas, but is very stale
 regarding specifics.
 
@@ -32,10 +32,11 @@ build frozen realms
    * well, with standard platform support if necessary
 
 The current effort to rebuild frozen realms on top of these Realms is:
-   * [Frozen Realm
-      Shim](https://github.com/tc39/proposal-realms/blob/master/shim/examples/frozen-realm.js)
-   * [Frozen Realm Shim
-      playgrouund](https://rawgit.com/caridy/proposal-realms/master/shim/examples/frozen.html)
+   * [Realms shim](https://github.com/tc39/proposal-realms/tree/master/shim)
+   * [Realms shim
+      playgrouund](https://rawgit.com/tc39/proposal-realms/master/shim/examples/simple.html)
+   * [Frozen Realms
+      shim](https://github.com/tc39/proposal-frozen-realms/tree/master/shim)
 
 
 ## Summary
