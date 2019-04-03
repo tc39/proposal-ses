@@ -1,4 +1,10 @@
-# Draft Proposed Frozen Realm API
+# Draft Proposal for SES (Secure EcmaScript)
+
+Note that this proposal was previously called "proposal-frozen-realms". However, with progress on [proposal-realms](https://github.com/tc39/proposal-realms), the [realms shim](https://github.com/Agoric/realms-shim), and the [ses-shim](https://github.com/Agoric/SES), we found we no longer needed to distinguish frozen-realms from SES. Most historical references to "Frozen Realms" are best interpreted as being about an older version of SES.
+
+The following documentation is now very stale and needs to be updated.
+
+----
 
 This document specifies complimentary enhancements to the
 [old Realms API proposal](https://gist.github.com/dherman/7568885)
@@ -9,7 +15,7 @@ any of its elements not re-presented here. These proposals each have
 utility without the other, and so can be proposed separately. However,
 together they have more power than each separately.
 
-We motivate the Frozen Realm API presented here with a variety of
+We motivate the SES API presented here with a variety of
 examples.
 
 ### Status
@@ -27,16 +33,13 @@ regarding specifics.
 
 The current plan is to settle the [Realms
 proposal](https://github.com/tc39/proposal-realms) first while ensuring that we can
-build frozen realms
+build SES
    * adequately, in user space
    * well, with standard platform support if necessary
 
 The current effort to rebuild frozen realms on top of these Realms is:
-   * [Realms shim](https://github.com/tc39/proposal-realms/tree/master/shim)
-   * [Realms shim
-      playgrouund](https://rawgit.com/tc39/proposal-realms/master/shim/examples/simple.html)
-   * [Frozen Realms
-      shim](https://github.com/tc39/proposal-frozen-realms/tree/master/shim)
+   * [Realms shim](https://github.com/Agoric/realms-shim)
+   * [SES shim](https://github.com/Agoric/SES)
 
 
 ## Summary
