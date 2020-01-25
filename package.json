@@ -1,17 +1,15 @@
 {
-    "name": "ecma-proposal-frozen-realms",
+    "name": "ecma-proposal-ses",
     "private": true,
     "version": "0.0.0",
-    "description": "ECMAScript spec proposal for Frozen Realms",
+    "description": "ECMAScript Proposal for SES (Secure EcmaScript)",
     "scripts": {
         "build": "ecmarkup spec/index.emu index.html",
-        "watch": "ecmarkup --watch spec/index.emu index.html",
-        "shim:lint": "eslint ./shim/src/**/*.js ./shim/test/**/*.js",
-        "shim:prettier": "prettier --config ./shim/.prettierrc --write ./shim/src/**/*.js ./shim/test/**/*.js"
+        "watch": "ecmarkup --watch spec/index.emu index.html"
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/tc39/frozen-realms.git"
+        "url": "git+https://github.com/tc39/proposal-ses.git"
     },
     "main": "shim/src/main.js",
     "keywords": [
@@ -29,17 +27,11 @@
     },
     "license": "Apache 2.0",
     "bugs": {
-        "url": "https://github.com/tc39/frozen-realms/issues"
+        "url": "https://github.com/tc39/proposal-ses/issues"
     },
-    "homepage": "https://github.com/tc39/frozen-realms#readme",
+    "homepage": "https://github.com/tc39/proposal-ses#readme",
     "dependencies": {},
     "devDependencies": {
-        "ecmarkup": "latest",
-        "eslint": "^4.19.1",
-        "eslint-config-airbnb-base": "^12.1.0",
-        "eslint-config-prettier": "^2.9.0",
-        "eslint-plugin-import": "^2.12.0",
-        "eslint-plugin-prettier": "^2.6.0",
-        "prettier": "^1.12.1"
+        "ecmarkup": "latest"
     }
 }

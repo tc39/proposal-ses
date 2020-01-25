@@ -1,22 +1,12 @@
 # Draft Proposal for SES (Secure EcmaScript)
 
-Note that this proposal was previously called "proposal-frozen-realms". However, with progress on [proposal-realms](https://github.com/tc39/proposal-realms), the [realms shim](https://github.com/Agoric/realms-shim), and the [ses-shim](https://github.com/Agoric/SES), we found we no longer needed to distinguish frozen-realms from SES. Most historical references to "Frozen Realms" are best interpreted as being about an older version of SES.
-
-The following documentation is now very stale and needs to be updated.
+Note that this proposal was previously called "proposal-frozen-realms". However, with progress on [proposal-realms](https://github.com/tc39/proposal-realms), the [realms-shim](https://github.com/Agoric/realms-shim), and the [ses-shim](https://github.com/Agoric/SES), we found we no longer needed to distinguish frozen-realms from SES. Most historical references to "Frozen Realms" are best interpreted as being about an older version of SES.
 
 ----
 
-This document specifies complimentary enhancements to the
-[old Realms API proposal](https://gist.github.com/dherman/7568885)
-focused on making _lightweight realms_ that derive from a shared
-_immutable root realm_. The proposal here is intended to compose well
-with the remainder of the old `Realm` proposal but is not dependent on
-any of its elements not re-presented here. These proposals each have
-utility without the other, and so can be proposed separately. However,
-together they have more power than each separately.
+This document specifies "compartments", a concept focused on making _lightweight realms_ designed to be used with a shared _immutable realm_. The proposal here is intended to compose well with the various `Realm` proposals but is independent. These proposals each have utility without the other, and so can be proposed separately. However, together they have more power than each separately.
 
-We motivate the SES API presented here with a variety of
-examples.
+We motivate the SES API presented here with a variety of examples.
 
 ### Status
 
@@ -31,119 +21,213 @@ Plugins](https://www.youtube.com/watch?v=tuMG7688Ndw)
 is an in-depth talk that covers the important ideas, but is very stale
 regarding specifics.
 
-The current plan is to settle the [Realms
-proposal](https://github.com/tc39/proposal-realms) first while ensuring that we can
-build SES
-   * adequately, in user space
-   * well, with standard platform support if necessary
+The [old Realms API proposal](https://gist.github.com/dherman/7568885) and the [current Realms proposal](https://github.com/tc39/proposal-realms). The original plan was to settle the Realms proposal first, but with the current approach, this is not longer required.
 
-The current effort to rebuild frozen realms on top of these Realms is:
+The original efforts to rebuild frozen realms on top of these Realms is:
    * [Realms shim](https://github.com/Agoric/realms-shim)
    * [SES shim](https://github.com/Agoric/SES)
 
-
 ## Summary
 
-In ECMAScript, a _realm_ consists of a global object and an associated
-set of _primordial objects_ -- mutable objects like `Array.prototype`
-that must exist before any code runs. Objects within a realm
-implicitly share these primordials and can therefore easily disrupt
-each other by _primordial poisoning_ -- modifying these objects to
-behave badly. This disruption may happen accidentally or
-maliciously. Today, in the browser, realms can be created via _same
-origin iframes_. On creation, these realms are separate from each
-other. However, to achieve this separation, each realm needs its own
-primordials, making this separation too expensive to be used at fine
-grain.
+In ECMAScript, a _realm_ consists of a global object and an associated set of _primordial objects_ -- mutable objects like `Array.prototype` that must exist before any code runs. Objects within a realm implicitly share these primordials and can therefore easily disrupt
+each other by _primordial poisoning_ -- modifying these objects to behave badly. This disruption may happen accidentally or maliciously. Today, in the browser, realms can be created via _same origin iframes_,
+and in Node via `vm` contexts. On creation, these realms are separate from each other because they share no mutable state. Becuase prototypes are mutable, each realm needs its own set, making this separation too expensive to be used at fine grain.
 
-Though initially separate, realms can be brought into intimate contact
-with each other via host-provided APIs.  For example, in current
-browsers, same-origin iframes bring realms into direct contact with
-each other's objects. Once such realms are in contact, the mutability
-of primordials enables an object in one realm to poison the prototypes
-of the other realms.
+Realms are currently not exposed directly to JavaScript but are represented in the specs by the _realm record_, of which the most important slots are the _intrinsics_, the _global object_, and the _global lexical environment_ (see [ECMA262 sections 8.2 Realms](https://tc39.es/ecma262/#sec-code-realms)).
 
-Borrowing from the
-[old Realms API proposal](https://gist.github.com/dherman/7568885), we
-propose a `Realm` class, each of whose instances is a reification of
-the "Realm" concept. The only elements of the earlier API required here
-are the `global` accessor and the `eval` method, re-explained below.
+We propose to add the concept of _compartments_, to designate _lightweight child realms_ inside a realm. Each compartment has its own global object and global lexical scope, but all compartments inside a given realm share their intrinsics. Separation is achieved by making the intrinsics immutable, preventing an object in one compartment
+from poisoning the prototypes used by the other compartments.
 
-We propose a `spawn(endowments)` method on instances of the `Realm`
-class for making a _lightweight child realm_ consisting of four new
-objects explained below. Aside from these new objects, the new child
-realm inherits all its primordials from its parent realm. We propose a
-static method, `Realm.immutableRoot()`, for obtaining a realm
-consisting only of transitively immutable primordials. We call such a
-realm an _immutable root realm_.
+This means that each compartment consists of a new _global object_, and a new _global lexical environment_:
+
+| Record slots         | Realm          | Compartment       |
+| -------------------- | -------------- | ----------------- |
+| intrinsics           | mutable        | immutable, shared |
+| global object        | mutable        | mutable           |
+| global lexical scope | mutable        | mutable           |
+
+The _compartment record_ is like a _realm record_, except that its _intrinsics_ slot points to the parent realm record. Everywhere the specs refers to the the realm record, the compartment record can be subsituted with no further changes.
+
+### The Compartment constructor
+
+We propose a `Compartment` class, whose instances is a reification of the concept of "compartment" introduced above, for making multiple _lightweight child realms_ inside a given realm.
+
+Though initially separate, compartments can be brought into intimate contact with each other via global object and modules.
 
 ```js
-class Realm {
-  // From the prior Realm API proposal
-  const global -> object                // access this realm's global object
-  eval(stringable) -> any               // do an indirect eval in this realm
+class Compartment {
+  constructor: (
+      globals: object?,                 // extra globals added to the global object
+      modules: object?,                 // module map, specifier to specifier
+      options: object?                  // including hooks like isDirectEvalHook
+    ) -> object
 
-  // We expect the rest of earlier proposal to be re-proposed eventually in
-  // some form, but do not rely here on any of the remainder.
+  get global -> object                  // access this compartment's global object
 
-  // New with this proposal
-  static immutableRoot() -> Realm       // transitively immutable realm
-  spawn(endowments) -> Realm            // lightweight child realm
+  evaluate(                             // do an indirect eval in this compartment
+    src: stringable,
+    options: object?                    // per-evaluation rather than per-compartment
+  ) -> any
+
+  async import(specifier: string) -> promise  // same signature as dynamic import
 }
 ```
 
-An immutable root realm consists of all the primordial state defined by
-ES2016 (with the exception of the `Date.now` and `Math.random`
-methods, as explained below). It contains no host provided objects, so
-`window`, `document`, `XMLHttpRequest`, etc. are all absent. Thus,
-an immutable root realm contains none of the objects needed for interacting
-with the outside world, like the user or the network.
+The compartment constructor creates a new lightweight child realm with a new `global`, a new `eval` function, a new `Function` constructor, and a new `Compartment` constructor.
 
-The `spawn` method makes (1) a new lightweight child realm with (2) a new
-`global` inheriting from its parent's `global`, (3) a new `eval` function
-inheriting from its parent's `eval` function, and (4) a new `Function`
-constructor inheriting from its parent's `Function` constructor. The new `eval`
-and `Function` will evaluate code in the global scope of the new child realm:
-the new child realm's `global` becomes their global object. the `spawn` method
-then copies the own enumerable properties from the `endowments` record onto the
-new `global` and returns the new realm instance. With these endowments, users
-provide any host objects that they wish to be available in the spawned realm.
+- The compartment global object consists of all the primordial state defined by
+ECMA262, but contains no host provided objects, so `window`, `document`, `XMLHttpRequest`,
+`require`, `process` etc. are all absent. Thus, a compartment contains none of the objects needed for interacting with the outside world, like the user or the network.
 
-Although `immutableRoot()` and `spawn` are orthogonal, they are
-especially interesting when directly composed:
+- The new `eval`, `Function`, and `Compartment` will evaluate code in the global scope of the new compartment: the new compartment's `global` becomes their global object.
+
+- The new `eval`, `Function`, and `Compartment` inherit from the shared %FunctionPrototype%.
+
+- The new `Function.prototype` is the shared %FunctionPrototype%.
+
+- The new `Compartment` constructor...?
+
+- The new `Compartment.prototype` is the shared %CompartmentPrototype%.
+
+The constructor then copies the values of the own enumerable properties from the `globals` parameter onto the new `global` and returns the new compartment instance. With these additional globals, users provide the
+*virtual host objects* that they wish to be available in the spawned compartment.
+
+The Compartment constructor is only available on the global object after lockdown has been invoked (see below).
+
+### The Compartment prototype
+
+We propose on the shared `Compartment.prototype`, to be inherited by instances of the all Compartment classes:
+- a `global` getter to provide access to the compartment global object. Its behavior is similar to the `globalThis` global object.
+- an `evaluate` method to evaluate code in the global scope of the new compartment. Its signature is identical to the `eval()` function
+  but possibly with an additional optional options argument.
+- an asynchronous `import` method to dynamically load modules in the new compartment. Its signature is identical to the
+  dynamic import function.
+
+### The `lockdown` method
+
+We propose a static method, `lockdown()` or `Realm.lockdown()`, for converting the current realm into a state with immutable primordials. We call such a realm an _immutable realm_. The `Realm` global object will be specified by the Realms proposal.
+
+The lockdown operation consists of:
+- taming some globals (see below).
+- taming the function constructors (see below).
+- freezing all intrinsics (see below).
+- disabling the default mechanism causing the _override mistake_ (see below).
+- exposing the `Compartment` constructor via the global object which is not available before lockdown (see below).
+
+Although `Compartment` and `Realm.lockdown()` appear orthogonal, they are only interesting when directly composed:
 
 ```js
-const sharedRoot = Realm.immutableRoot();
-const realmA = sharedRoot.spawn({});
-const realmB = sharedRoot.spawn({});
+Realm.lockdown();
+const cmpA = new Compartment();
+const cmpB = new Compartment();
 ```
 
-All the primordials that `realmA` and `realmB` share are immutable, so
-neither can poison the prototypes of the other. Because they share no
-mutable state, they are as fully separate from each other as two full
-realms created by two same origin iframes.
+After lockdown, all the primordials that `cmpA` and `cmpB` share are immutable, so neither can poison the prototypes of the other. Because they share no mutable state, they are as fully separate from each other as two full realms created by two same origin iframes
+(except the shared identity of frozen primordials, thus avoiding identity discontinuity explained below).
 
-Two realms, whether made as above by the `Realm` API or by same origin
-iframes, can be put in contact. Once in contact, they can mix their
-object graphs freely. When same origin iframes do this, they encounter
-an inconvenience and source of bugs we will here call _identity
-discontinuity_. For example if code from iframeA makes an array `arr`
-that it passes to code from iframeB, and iframeB tests `arr instanceof
-Array`, the answer will be `false` since `arr` inherits from the
-`Array.prototype` of iframeA which is a different object than the
-`Array.prototype` of iframeB.
+Modification of the prototypes is allowed before lockdown is called
+(which raises interesting issues re what is frozen by lockdown).
 
-By contrast, since `realmA` and `realmB` share the `Array.prototype`
-they inherit from their common immutable `sharedRoot`, an array `arr`
-created by one still passes the `arr instanceof Array` as tested by
-the other. We reuse this immutable `sharedRoot` realm in the examples
-below.
+(edit with next two paragraphs)
 
-A long recognized best practice is "don't monkey-patch primordials" --
-don't mutate any primordial state. Most legacy code obeying this
-practice is already compatible with lightweight realms descending from
-an immutable root realm. Some further qualifications are explained in
-the rest of this document.
+A long recognized best practice is "don't monkey-patch primordials" -- don't mutate any primordial state. Most legacy code obeying this practice is already compatible with lightweight realms descending from an immutable root realm. Some further qualifications are explained in the rest of this document.
+
+If customization of the intrinsics is required, it can be done before lockdown is called and before any compartment is created.
+
+
+## The Compartment global object
+
+The compartment constructor is unavailable before `lockdown()` is called, to avoid the risk of omitting lockdown and creating compartments with non-frozen primordials (which would not provide the intended isolation).
+
+## Freezing intrinsics and Taming globals
+
+In order for the intrinsics to be shared safely, they must be transitively immutable. Fortunately, of the standard primordials in ES2016, the only mutable primordial state is:
+  * Mutable own properties of primordial objects
+  * The mutable internal [[Prototype]] slot of primordial objects
+  * The ability to add properties
+  * `Math.random`
+  * `Date.now`
+  * The `Date` constructor called as a constructor with no arguments
+  * The `Date` constructor called as a function, no matter what arguments
+    (Surprised me!)
+  * Normative optional proposed `RegExp` static methods (link)
+  * Normative optional proposed `Error.prototype.stack` accessor (link)
+
+To make a transitively immutable root realm, we, respectively
+  * Remove all non-standard properties
+  * Remove `Math.random`
+  * Remove `Date.now`
+  * Have `new Date()` throw a `TypeError`
+  * Have `Date(any...)` throw a `TypeError`
+  * Remove the `RegExp` static methods if present
+  * Remove `RegExp.prototype.compile`
+  * Remove `Error.prototype.stack` if present
+  * Make all primordial objects non-extensible.
+  * Make all remaining properties non-configurable, non-writable. If an
+    accessor property, we specify that its getter must always return
+    the same value
+    without mutating any state, and its setter either be absent or throw an error
+    without mutating any state.
+
+Likewise, any new addition to the specifications need to follow the same policy, in order to avoid introducing mutable state in a compartment.
+
+A user can effectively add the missing functionality of `Date` and `Math` back in when necessary, or substiture safe implementations. For example
+
+```js
+const DateNow = Date.now;
+
+Realm.lockdown();
+
+function unsafeDate() { 
+  return Date(...arguments); 
+}
+Object.defineProperties(unsafeDate, Object.getOwnPropertyDescriptors(Date));
+Object.defineProperty(unsafeDate, 'now', { 
+	value: DateNow, 
+	writable: true,
+	enumerable: false,
+	configurable: true
+});
+
+const cmp = new Compartment({ Date: unsafeDate });
+```
+
+## Taming the function constructors.
+
+All intrinscis are shared, but the %Function%, %GeneratorFunction%, %AsyncFunction% and %AsyncGeneratorFunction% perform by default source code evaluation in the global scope of the realm.
+
+After lockdown, these constructor should be replaced with functions that throw instead of evaluating source code, so they can be safely shared.
+We could specify that their throwing behavior is the same as when the host hook (for CSP) suppresses evaluation, mapping it to an already possible behavior.
+If `Compartment` is a per-realm global rather than per-Compartment, then
+`Compartment.prototype.constructor === Compartment`, which is not tamed? Let's talk about this.
+
+## Override mistake
+
+Because of lack of sufficient foresight at the time, ES5 unfortunately specified that a simple assignment to a non-existent property must fail if it would override a non-writable data property of the same name. (In retrospect, this was a mistake, but it is now too late and we must live with the consequences.) It is inconsistent with overriding by classes and object literals, since they do `[[DefineOwnProperty]]` rather than assignment.
+
+As a result, simply freezing an object to make it immutable has the unfortunate side effect of breaking previously correct code that is considered to have followed JS best practices, if this previous code used assignment to override. For example this assignment will fail:
+
+```js
+Object.freeze(Array.prototype);
+const arr = []
+arr.join = true; // throws in strict mode, ignore in sloppy mode.
+```
+
+For that reason, after freezing the primordials, we need to [Make non-writable prototype properties not prevent assigning to instance](https://github.com/tc39/ecma262/pull/1320).
+
+See the [override mistake](https://web.archive.org/web/20141230041441/http://wiki.ecmascript.org/doku.php?id=strawman:fixing_override_mistake). (better link?)
+
+(We need another bit of semantic state to distinguish these two ways of being frozen. We should specify that `petrify` and perhaps even `harden` also protect against override mistake, even though we avoid fully shimming that.)
+
+## Identity discontinuity
+
+Two realms, made by same origin iframes or vm contexts, can be put in contact. Once in contact, they can mix their object graphs freely. When realms do this, they encounter an inconvenience and source of bugs we will here call _identity discontinuity_. For example if code from iframeA makes an array `arr` that it passes to code from iframeB, and iframeB tests `arr instanceof Array`, the answer will be `false` since `arr` inherits from the `Array.prototype` of iframeA which is a different object than the `Array.prototype` of iframeB.
+
+By contrast, since `cmpA` and `cmpB` share the same `Array.prototype`, an array `arr` created by one still passes the `arr instanceof Array` as tested by the other.
+
+
+###################################
+# TODO BELOW
 
 
 ## Confinement examples
@@ -293,37 +377,6 @@ After `killBill` is called, there is nothing the Bill code can do to
 cause further effects.
 
 
-## Date and Math
-
-
-In order for `sharedRoot` to be shared safely, it must be transitively
-immutable. Fortunately, of the standard primordials in ES2016, the
-only mutable primordial state is
-  * Mutable own properties of primordial objects
-  * The mutable internal [[Prototype]] slot of primordial objects, and
-    the ability to add new own properties
-  * The ability to add properties
-  * `Math.random`
-  * `Date.now`
-  * The `Date` constructor called as a constructor with no arguments
-  * The `Date` constructor called as a function, no matter what arguments
-
-To make a transitively immutable root realm, we, respectively
-  * Make all these properties non-configurable, non-writable. If an
-    accessor property, we specify that its getter must always return
-    the same value and its setter either be absent or throw an error
-    without mutating any state.
-  * Make all primordial objects non-extensible.
-  * Remove `Math.random`
-  * Remove `Date.now`
-  * Have `new Date()` throw a `TypeError`
-  * Have `Date(any...)` throw a `TypeError`
-
-The **Polyfill example** below shows how a user can effectively add
-the missing functionality of `Date` and `Math` back in when
-appropriate.
-
-
 ## Detailed Proposal
 
 You can view the spec text draft in [ecmarkup](spec/index.emu) format or rendered as [HTML](https://rawgit.com/tc39/frozen-realms/master/index.html).
@@ -468,17 +521,6 @@ price of avoiding identity discontinuities between lightweight realms
 spawned from a common parent. We have chosen these breaks carefully to
 be compatible with virtually all code not written specifically to test
 standards conformance.
-
-This proposal by itself is not adequate to polyfill intrinsics like
-`%ArrayPrototype%` that can be reached by syntax. Spawning a descendant realm
-using only the API proposed here, a polyfill can replace what object is looked
-up by the expression `Array.prototype`.  However, the expression `[]` will
-still evaluate to an array that inherits from the `%ArrayPrototype%` instrinsic
-of the root realm. This is obviously inadequate, but is best addressed by
-moving the remainder of the [old Realm API
-proposal](https://gist.github.com/dherman/7568885) towards standardization in a
-separate proposal. Among other things, the full Realm API will provide the
-necessary methods for manipulating the binding of intrinsics.
 
 
 ### Mobile code example
@@ -693,12 +735,6 @@ these builtins could be defined in a lightweight realm spawned from an
 immutable root realm, making defensiveness easier to achieve with
 higher confidence.
 
-Because of the so-called "[override mistake](
-http://wiki.ecmascript.org/doku.php?id=strawman:fixing_override_mistake)",
-for many or possibly all properties in this frozen state, primordial
-objects need to be frozen in a pattern we call "tamper proofing",
-which makes them less compliant with the current language
-standard. See the **Open Questions** below for other possibilities.
 
 By the rules above, a spawned realm's `Function.prototype.constructor`
 will be the parent realm's `Function` constructor, i.e., identical to
@@ -761,26 +797,6 @@ and/or the realms it spawns.
   on one of these options, we should codify that rather than continue
   to leave this implementation-defined.
 
-* It remains unclear how we should cope with the override
-  mistake. Above, we propose the tamper proofing pattern, but this
-  requires novel effort to become efficient. Alternatively, we could
-  specify that the override mistake is fixed in an immutable root realm and
-  its descendants, making the problem go away. This diverges from the
-  current standard in a different way, but we have some evidence that
-  such divergence will break almost no existing code other than code
-  that specifically tests for standards compliance. We could also
-  leave it unfixed. This would break some good-practice legacy
-  patterns of overriding methods by assignment. But it is compatible
-  with overriding by classes and object literals, since they do
-  `[[DefineOwnProperty]]` rather than assignment.
-
-  Our sense is that not fixing the override mistake at all will
-  [break too much legacy code](https://esdiscuss.org/topic/object-freeze-object-prototype-vs-reality). But
-  if fully fixing the override mistake is too expensive, it might be
-  that fixing a handful of properties on primordial prototypes that
-  are overridden in practice (e.g., `constructor`, `toString`, ...)
-  will reduce the breakage to a tolerable level. We need measurements.
-
 * Although not officially a question within the jurisdiction of TC39,
   we should discuss whether the existing CSP "no script evaluation"
   settings should exempt an immutable root realm's evaluators, or whether CSP
@@ -818,11 +834,9 @@ and/or the realms it spawns.
 
 ### Updating the spec text for this proposal
 
-The source for the spec text is located in [spec/index.emu](spec/index.emu) and it is written in
-[ecmarkup](https://github.com/bterlson/ecmarkup) language.
+The source for the spec text is located in [spec/index.emu](spec/index.emu) and it is written in [ecmarkup](https://github.com/bterlson/ecmarkup) language.
 
-When modifying the spec text, you should be able to build the HTML version in
-`index.html` by using the following command:
+When modifying the spec text, you should be able to build the HTML version in `index.html` by using the following command:
 
 ```bash
 npm install
@@ -834,9 +848,4 @@ Alternative, you can use `npm run watch`.
 
 ## Acknowledgements
 
-Many thanks to E. Dean Tribble, Kevin Reid, Dave Herman, Michael
-Ficarra, Tom Van Cutsem, Kris Kowal, Kevin Smith, Terry Hayes, Daniel
-Ehrenberg, Ojan Vafai, Elliott Sprehn, and Alex Russell. Thanks to the
-entire Caja team (Jasvir Nagra, Ihab Awad, Mike Stay, Mike Samuel,
-Felix Lee, Kevin Reid, and Ben Laurie) for building a system in which all the
-hardest issues have already been worked out.
+Many thanks to E. Dean Tribble, Kevin Reid, Dave Herman, Michael Ficarra, Tom Van Cutsem, Kris Kowal, Kevin Smith, Terry Hayes, Daniel Ehrenberg, Ojan Vafai, Elliott Sprehn, and Alex Russell. Thanks to the entire Caja team (Jasvir Nagra, Ihab Awad, Mike Stay, Mike Samuel, Felix Lee, Kevin Reid, and Ben Laurie) for building a system in which all the hardest issues have already been worked out.

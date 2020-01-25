@@ -1,8 +1,0 @@
-{
-  "presets": ["es2016"],
-  "env": {
-    "production": {
-      "presets": ["minify"]
-    }
-  }
-}
