@@ -77,7 +77,7 @@ Though initially separate, compartments can be brought into intimate contact wit
 ```js
 class Compartment {
   constructor: (
-      globals: object?,                 // extra globals added to the global object
+      endowments: object?,              // extra bindings added to the global object
       modules: object?,                 // module map, specifier to specifier
       options: object?                  // including hooks like isDirectEvalHook
     ) -> object
@@ -109,7 +109,7 @@ ECMA262, but contains no host provided objects, so `window`, `document`, `XMLHtt
 
 - The new `Compartment.prototype` is the shared %CompartmentPrototype%.
 
-The constructor then copies the values of the own enumerable properties from the `globals` parameter onto the new `global` and returns the new compartment instance. With these additional globals, users provide the
+The constructor then copies the values of the own enumerable properties from the `endowments` parameter onto the new `global` and returns the new compartment instance. With these additional endowments, users provide the
 *virtual host objects* that they wish to be available in the spawned compartment.
 
 The Compartment constructor is only available on the global object after lockdown has been invoked (see below).
