@@ -2,6 +2,12 @@
 
 Note that this proposal was previously called "proposal-frozen-realms". However, with progress on [proposal-realms](https://github.com/tc39/proposal-realms), the [realms-shim](https://github.com/Agoric/realms-shim), and the [ses-shim](https://github.com/Agoric/SES), we found we no longer needed to distinguish frozen-realms from SES. Most historical references to "Frozen Realms" are best interpreted as being about an older version of SES.
 
+Champions
+  - Mark S. Miller
+  - JF Paradis
+  - Caridy Patino
+  - Chip Morningstar
+
 ----
 
 This document specifies "compartments", a concept focused on making _lightweight realms_ designed to be used with a shared _immutable realm_. The proposal here is intended to compose well with the various `Realm` proposals but is independent. These proposals each have utility without the other, and so can be proposed separately. However, together they have more power than each separately.
@@ -15,6 +21,20 @@ Current Stage:
  * __Stage 1__
 
 ### External links
+
+[Moddable's Compartment API](https://github.com/Moddable-OpenSource/moddable/tree/public/examples/js/compartments), the direct ancestor to this proposal, implemented on the XS SES engine.
+
+[Making Javascript Safe and Secure](https://www.youtube.com/playlist?list=PLzDw4TTug5O25J5M3fwErKImrjOrqGikj) Talks by Mark S. Miller (Agoric), Peter Hoddie (Moddable), and Dan Finlay (MetaMask)
+
+Presentation to TC53 [Omit Needless Words](https://www.youtube.com/watch?v=aMHV7LCt8Es&list=PLzDw4TTug5O0ywHrOz4VevVTYr6Kj_KtW)
+
+[LavaMoat - Securing your dependency graph](https://www.youtube.com/watch?v=pOTEJy_FqIA) by Kumavis (MetaMask)
+
+Presentation to Node Security [Securing EcmaScript](https://www.youtube.com/watch?v=9Snbss_tawI&list=PLzDw4TTug5O0ywHrOz4VevVTYr6Kj_KtW)
+
+**Historical**
+
+[Automated Analysis of Security-Critical JavaScript APIs](https://research.google/pubs/pub37199/) by Ankur Taly Úlfar Erlingsson John C. Mitchell Mark S. Miller Jasvir Nagra
 
 [Frozen Realms: Draft Standard Support for Safer JavaScript
 Plugins](https://www.youtube.com/watch?v=tuMG7688Ndw)
@@ -178,12 +198,12 @@ const DateNow = Date.now;
 
 Realm.lockdown();
 
-function unsafeDate() { 
-  return Date(...arguments); 
+function unsafeDate() {
+  return Date(...arguments);
 }
 Object.defineProperties(unsafeDate, Object.getOwnPropertyDescriptors(Date));
-Object.defineProperty(unsafeDate, 'now', { 
-	value: DateNow, 
+Object.defineProperty(unsafeDate, 'now', {
+	value: DateNow,
 	writable: true,
 	enumerable: false,
 	configurable: true
@@ -847,5 +867,9 @@ open index.html
 Alternative, you can use `npm run watch`.
 
 ## Acknowledgements
+
+The Compartment API proposed here derives directly from [Moddable's earlier Compartment API](https://github.com/Moddable-OpenSource/moddable/tree/public/examples/js/compartments), in the XS implementation of standalone SES. We thank in particular Patrick Soquet and Peter Hoddlie for repeated sessions of brainstorming and refinement.
+
+Thanks to the regular attendees at the recent SES meetings, especially Bradley Farias, Michael Fig, Saleh Motaal, and Chip Morningstar.
 
 Many thanks to E. Dean Tribble, Kevin Reid, Dave Herman, Michael Ficarra, Tom Van Cutsem, Kris Kowal, Kevin Smith, Terry Hayes, Daniel Ehrenberg, Ojan Vafai, Elliott Sprehn, and Alex Russell. Thanks to the entire Caja team (Jasvir Nagra, Ihab Awad, Mike Stay, Mike Samuel, Felix Lee, Kevin Reid, and Ben Laurie) for building a system in which all the hardest issues have already been worked out.
