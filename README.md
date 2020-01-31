@@ -51,7 +51,7 @@ The original efforts to rebuild frozen realms on top of these Realms is:
 
 In ECMAScript, a _realm_ consists of a global object and an associated set of _primordial objects_ -- mutable objects like `Array.prototype` that must exist before any code runs. Objects within a realm implicitly share these primordials and can therefore easily disrupt
 each other by _primordial poisoning_ -- modifying these objects to behave badly. This disruption may happen accidentally or maliciously. Today, in the browser, realms can be created via _same origin iframes_,
-and in Node via `vm` contexts. On creation, these realms are separate from each other because they share no mutable state. Becuase prototypes are mutable, each realm needs its own set, making this separation too expensive to be used at fine grain.
+and in Node via `vm` contexts. On creation, these realms are separate from each other because they share no mutable state. Because prototypes are mutable, each realm needs its own set, making this separation too expensive to be used at fine grain.
 
 Realms are currently not exposed directly to JavaScript but are represented in the specs by the _realm record_, of which the most important slots are the _intrinsics_, the _global object_, and the _global lexical environment_ (see [ECMA262 sections 8.2 Realms](https://tc39.es/ecma262/#sec-code-realms)).
 
@@ -191,7 +191,7 @@ To make a transitively immutable root realm, we, respectively
 
 Likewise, any new addition to the specifications need to follow the same policy, in order to avoid introducing mutable state in a compartment.
 
-A user can effectively add the missing functionality of `Date` and `Math` back in when necessary, or substiture safe implementations. For example
+A user can effectively add the missing functionality of `Date` and `Math` back in when necessary, or substitute safe implementations. For example
 
 ```js
 const DateNow = Date.now;
@@ -214,7 +214,7 @@ const cmp = new Compartment({ Date: unsafeDate });
 
 ## Taming the function constructors.
 
-All intrinscis are shared, but the %Function%, %GeneratorFunction%, %AsyncFunction% and %AsyncGeneratorFunction% perform by default source code evaluation in the global scope of the realm.
+All intrinsics are shared, but the %Function%, %GeneratorFunction%, %AsyncFunction% and %AsyncGeneratorFunction% perform by default source code evaluation in the global scope of the realm.
 
 After lockdown, these constructor should be replaced with functions that throw instead of evaluating source code, so they can be safely shared.
 We could specify that their throwing behavior is the same as when the host hook (for CSP) suppresses evaluation, mapping it to an already possible behavior.
@@ -668,7 +668,7 @@ Even without pinning down the precise meaning of
 "implementation-defined", a computation that is limited to fail-stop
 implementation-defined determinism _**cannot read covert channels and
 side channels**_ that it was not explicitly enabled to read. Nothing
-can practically prevent signalling on covert channels and side
+can practically prevent signaling on covert channels and side
 channels, but approximations to determinism can practically prevent
 confined computations from perceiving these signals.
 
@@ -766,7 +766,7 @@ by a user's polyfill to the contrary.
 In ES2016, the `GeneratorFunction` evaluator is not a named global,
 but rather an unnamed intrinsic. Upcoming evaluators are likely to
 include `AsyncFunction` and `AsyncGeneratorFunction`. These are likely
-to be specified as unnamed instrinsics as well. For all of these, the
+to be specified as unnamed intrinsics as well. For all of these, the
 above name-based overriding of `spawn` is irrelevant and probably not
 needed anyway.
 
