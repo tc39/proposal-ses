@@ -78,18 +78,20 @@ Though initially separate, compartments can be brought into intimate contact wit
 class Compartment {
   constructor: (
       endowments: object?,              // extra bindings added to the global object
-      modules: object?,                 // module map, specifier to specifier
+      moduleMap: object?,               // maps child specifier to parent specifier
       options: object?                  // including hooks like isDirectEvalHook
-    ) -> object
+    ) -> object                         // an exotic compartment object
 
   get global -> object                  // access this compartment's global object
 
-  evaluate(                             // do an indirect eval in this compartment
+  evaluate(                             // do a strict indirect eval in this compartment
     src: stringable,
     options: object?                    // per-evaluation rather than per-compartment
   ) -> any
 
-  async import(specifier: string) -> promise  // same signature as dynamic import
+  // same signature as dynamic import
+  async import(specifier: string) -> promise<ModuleNamespace>
+  importSync(specifier: string) -> ModuleNamespace
 }
 ```
 
