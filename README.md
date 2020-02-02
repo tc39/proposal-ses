@@ -77,10 +77,10 @@ Though initially separate, compartments can be brought into intimate contact wit
 ```js
 class Compartment {
   constructor: (
-      endowments: object?,   // extra bindings added to the global object
-      moduleMap: object?,    // maps child specifier to parent specifier
-      options: object?       // including hooks like isDirectEvalHook
-    ) -> object              // an exotic compartment object
+    endowments: object?,     // extra bindings added to the global object
+    moduleMap: object?,      // maps child specifier to parent specifier
+    options: object?         // including hooks like isDirectEvalHook
+  ) -> object                // an exotic compartment object
 
   get global -> object       // access this compartment's global object
 
