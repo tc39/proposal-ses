@@ -7,6 +7,7 @@ Champions
   - JF Paradis, Agoric
   - Caridy Patiño, Salesforce
   - Patrick Soquet, Moddable
+  - Bradley Farias, GoDaddy, Node
 
 ----
 
