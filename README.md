@@ -3,10 +3,10 @@
 Note that this proposal was previously called "proposal-frozen-realms". However, with progress on [proposal-realms](https://github.com/tc39/proposal-realms), the [realms-shim](https://github.com/Agoric/realms-shim), and the [ses-shim](https://github.com/Agoric/SES), we found we no longer needed to distinguish frozen-realms from SES. Most historical references to "Frozen Realms" are best interpreted as being about an older version of SES.
 
 Champions
-  - Mark S. Miller
-  - JF Paradis
-  - Caridy Patino
-  - Chip Morningstar
+  - Mark S. Miller, Agoric
+  - JF Paradis, Agoric
+  - Caridy Patiño, Salesforce
+  - Patrick Soquet, Moddable
 
 ----
 
