@@ -1,7 +1,5 @@
 # Draft Proposal for SES (Secure EcmaScript)
 
-**Superceded (at least in part) by the [Compartments](https://github.com/tc39/proposal-compartments) proposal.**
-
 Note that this proposal was previously called "proposal-frozen-realms". However, with progress on [proposal-realms](https://github.com/tc39/proposal-realms), the [realms-shim](https://github.com/Agoric/realms-shim), and the [ses-shim](https://github.com/Agoric/SES), we found we no longer needed to distinguish frozen-realms from SES. Most historical references to "Frozen Realms" are best interpreted as being about an older version of SES.
 
 Champions
@@ -72,6 +70,8 @@ This means that each compartment consists of a new _global object_, and a new _g
 The _compartment record_ is like a _realm record_, except that its _intrinsics_ slot points to the parent realm record. Everywhere the specs refers to the the realm record, the compartment record can be subsituted with no further changes.
 
 ### The Compartment constructor
+
+**Superceded by the [Compartments](https://github.com/tc39/proposal-compartments) proposal.**
 
 We propose a `Compartment` class, whose instances is a reification of the concept of "compartment" introduced above, for making multiple _lightweight child realms_ inside a given realm.
 
