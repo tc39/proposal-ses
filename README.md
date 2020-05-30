@@ -71,6 +71,8 @@ The _compartment record_ is like a _realm record_, except that its _intrinsics_ 
 
 ### The Compartment constructor
 
+**Superceded by the [Compartments](https://github.com/tc39/proposal-compartments) proposal.**
+
 We propose a `Compartment` class, whose instances is a reification of the concept of "compartment" introduced above, for making multiple _lightweight child realms_ inside a given realm.
 
 Though initially separate, compartments can be brought into intimate contact with each other via global object and modules.
