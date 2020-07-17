@@ -42,7 +42,7 @@ Plugins](https://www.youtube.com/watch?v=tuMG7688Ndw)
 is an in-depth talk that covers the important ideas, but is very stale
 regarding specifics.
 
-The [old Realms API proposal](https://gist.github.com/dherman/7568885) and the [current Realms proposal](https://github.com/tc39/proposal-realms). The original plan was to settle the Realms proposal first, but with the current approach, this is not longer required.
+The [old Realms API proposal](https://gist.github.com/dherman/7568885) and the [current Realms proposal](https://github.com/tc39/proposal-realms). The original plan was to settle the Realms proposal first, but with the current approach, this is no longer required.
 
 The original efforts to rebuild frozen realms on top of these Realms is:
    * [Realms shim](https://github.com/Agoric/realms-shim)
